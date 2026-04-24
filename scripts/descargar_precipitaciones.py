@@ -1,14 +1,14 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 descargar_precipitaciones.py
-Descarga precipitaciones acumuladas de los últimos 7 días
+Descarga precipitaciones acumuladas de los Ãºltimos 7 dÃ­as
 desde agrometeorologia.cl usando Selenium (simula navegador real).
 
-Ejecución manual:
+EjecuciÃ³n manual:
     pip install selenium webdriver-manager pandas openpyxl
     python scripts/descargar_precipitaciones.py
 
-Ejecución automática:
+EjecuciÃ³n automÃ¡tica:
     GitHub Actions cada lunes a las 00:30
 """
 
@@ -24,19 +24,19 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-# ═══════════════════════════════════════════════════════════════════════
-#  ESTACIONES — nombre exacto como aparece en agrometeorologia.cl
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  ESTACIONES â€” nombre exacto como aparece en agrometeorologia.cl
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 GRUPOS_ESTACIONES = [
-    ["Carrizal, Constitución, ARAUCO",
+    ["Carrizal, ConstituciÃ³n, ARAUCO",
      "Curepto, Curepto, ARAUCO",
      "Cuyuname, Empedrado, ARAUCO",
      "El Auquil, Pelarco, ARAUCO",
-     "Hualañé, Hualañé, ARAUCO"],
+     "HualaÃ±Ã©, HualaÃ±Ã©, ARAUCO"],
 
     ["Palhuen, Curepto, ARAUCO",
-     "Santa Estela, Constitución, ARAUCO",
-     "Vivero Quivolgo, Constitución, ARAUCO",
+     "Santa Estela, ConstituciÃ³n, ARAUCO",
+     "Vivero Quivolgo, ConstituciÃ³n, ARAUCO",
      "Talca, Talca, INIA",
      "Cauquenes, Cauquenes, INIA"],
 
@@ -44,18 +44,18 @@ GRUPOS_ESTACIONES = [
      "Zorzal Blanco, Quirihue, ARAUCO",
      "Human, Yumbel, INIA",
      "El Kayser, Coihueco, ARAUCO",
-     "El Espolón, Chillán, ARAUCO"],
+     "El EspolÃ³n, ChillÃ¡n, ARAUCO"],
 
     ["Totoral, Coelemu, ARAUCO",
-     "Puralihue, Purén, INIA",
+     "Puralihue, PurÃ©n, INIA",
      "Cangrejillo, Florida, ARAUCO",
-     "Quilamapu, Chillán, INIA",
+     "Quilamapu, ChillÃ¡n, INIA",
      "Yungay, Yungay, ARAUCO"],
 
     ["Nueva Aldea, Ranquil, INIA",
      "Portezuelo, Portezuelo, INIA",
-     "Coyanco, Quillón, ARAUCO",
-     "Concepción, Concepción, INIA",
+     "Coyanco, QuillÃ³n, ARAUCO",
+     "ConcepciÃ³n, ConcepciÃ³n, INIA",
      "La Colcha, Curanilahue, ARAUCO"],
 
     ["Las Puentes, Arauco, INIA",
@@ -68,12 +68,12 @@ GRUPOS_ESTACIONES = [
      "Santa Amelia, Collipulli, ARAUCO",
      "Llongo, Mariquina, ARAUCO",
      "Pancul, Los Lagos, ARAUCO",
-     "Oldenburgo, La Unión, ARAUCO"],
+     "Oldenburgo, La UniÃ³n, ARAUCO"],
 
     ["La Paz, Padre Las Casas, INIA",
-     "Aeródromo Maquehue, Temuco, DMC",
-     "Liceo Agrotec, Río Bueno, INIA",
-     "El Copihue, Río Bueno, INIA"],
+     "AerÃ³dromo Maquehue, Temuco, DMC",
+     "Liceo Agrotec, RÃ­o Bueno, INIA",
+     "El Copihue, RÃ­o Bueno, INIA"],
 ]
 
 ESTACION_PAISAJE = {
@@ -81,29 +81,29 @@ ESTACION_PAISAJE = {
     "Curepto":            "Secanos del Mataquito",
     "Cuyuname":           "Ruiles de la Costa Maulina",
     "El Auquil":          "Cordillera del Maule",
-    "Hualañé":            "Valle de Cauquenes",
+    "HualaÃ±Ã©":            "Valle de Cauquenes",
     "Palhuen":            "Secanos del Mataquito",
     "Santa Estela":       "Ruiles de la Costa Maulina",
     "Vivero Quivolgo":    "Lomas de Quivolgo",
     "Talca":              "Cordillera del Maule",
     "Cauquenes":          "Valle de Cauquenes",
-    "Siberia":            "Arenales de Cholguán",
-    "Yungay":             "Arenales de Cholguán",
+    "Siberia":            "Arenales de CholguÃ¡n",
+    "Yungay":             "Arenales de CholguÃ¡n",
     "Human":              "Canteras del Laja",
     "El Kayser":          "Cordillera de Huemules",
-    "El Espolón":         "Secanos del Ñuble",
+    "El EspolÃ³n":         "Secanos del Ã‘uble",
     "Totoral":            "Costa de Queules",
     "Zorzal Blanco":      "Costa de Queules",
     "Puralihue":          "Costa de Queules",
     "Cangrejillo":        "Robles de Coyanmahuida",
-    "Concepción":         "Robles de Coyanmahuida",
-    "Quilamapu":          "Secanos del Ñuble",
+    "ConcepciÃ³n":         "Robles de Coyanmahuida",
+    "Quilamapu":          "Secanos del Ã‘uble",
     "Nueva Aldea":        "Valle del Itata",
     "Portezuelo":         "Valle del Itata",
     "Coyanco":            "Valle del Itata",
     "La Colcha":          "Cuenca de Curanilahue",
     "Las Puentes":        "Golfo de Arauco",
-    "Lebu":               "Costa Leufú",
+    "Lebu":               "Costa LeufÃº",
     "Llanquehue":         "Cumbres de Nahuelbuta",
     "Santa Juana":        "Biobio Sur",
     "Tanahullin":         "Biobio Sur",
@@ -111,20 +111,20 @@ ESTACION_PAISAJE = {
     "Santa Amelia":       "Malleco",
     "Llongo":             "Bosque Valdiviano",
     "Pancul":             "Bosque Valdiviano",
-    "Oldenburgo":         "Río Bueno",
-    "La Paz":             "Valle del Rucapillán",
-    "Aeródromo Maquehue": "Valle del Rucapillán",
-    "Liceo Agrotec":      "Río Bueno",
-    "El Copihue":         "Río Bueno",
+    "Oldenburgo":         "RÃ­o Bueno",
+    "La Paz":             "Valle del RucapillÃ¡n",
+    "AerÃ³dromo Maquehue": "Valle del RucapillÃ¡n",
+    "Liceo Agrotec":      "RÃ­o Bueno",
+    "El Copihue":         "RÃ­o Bueno",
 }
 
-# ═══════════════════════════════════════════════════════════════════════
-#  FECHAS — 7 días anteriores al lunes actual
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  FECHAS â€” 7 dÃ­as anteriores al lunes actual
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def calcular_fechas():
     """
-    Calcula rango de 7 días anteriores al lunes actual.
-    Lunes 28 abril → rango: lunes 21 abril al domingo 27 abril
+    Calcula rango de 7 dÃ­as anteriores al lunes actual.
+    Lunes 28 abril â†’ rango: lunes 21 abril al domingo 27 abril
     """
     hoy = datetime.now()
     dias_hasta_domingo = (hoy.weekday() + 1) % 7
@@ -137,7 +137,7 @@ def parsear_csv(texto, estaciones):
     resultado = {est: {} for est in estaciones}
     lines = texto.strip().split("\n")
 
-    # Buscar línea de encabezados
+    # Buscar lÃ­nea de encabezados
     header_idx = None
     for i, line in enumerate(lines):
         if "Tiempo" in line or any(est in line for est in estaciones):
@@ -149,7 +149,7 @@ def parsear_csv(texto, estaciones):
 
     headers = [h.strip() for h in lines[header_idx].split("\t")]
 
-    # Mapear estaciones a índices de columna
+    # Mapear estaciones a Ã­ndices de columna
     col_map = {}
     for j, h in enumerate(headers):
         if h in estaciones:
@@ -188,12 +188,12 @@ def parsear_csv(texto, estaciones):
         print(f"    ✗ Parse error: {e}")
         return {}
 
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  MAIN
-# ═══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def main():
     f_ini_web, f_fin_web, f_ini_iso, f_fin_iso = calcular_fechas()
-    print(f"Período: {f_ini_iso} → {f_fin_iso}")
+    print(f"PerÃ­odo: {f_ini_iso} â†’ {f_fin_iso}")
 
     dl_dir      = tempfile.mkdtemp()
     todos_datos = {}
@@ -208,7 +208,7 @@ def main():
             if arch:
                 datos = parsear_excel(arch)
                 todos_datos.update(datos)
-                print(f"  ✓ {len(datos)} estaciones")
+                print(f"  âœ“ {len(datos)} estaciones")
                 os.remove(arch)
             else:
                 print("  ✗ Sin archivo")
@@ -237,7 +237,8 @@ def main():
     with open("data/precipitaciones.json", "w", encoding="utf-8") as f:
         json.dump(resultado, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ data/precipitaciones.json — {len(todos_datos)} estaciones, {len(por_paisaje)} paisajes")
+    print(f"\nâœ… data/precipitaciones.json â€” {len(todos_datos)} estaciones, {len(por_paisaje)} paisajes")
 
 if __name__ == "__main__":
     main()
+
