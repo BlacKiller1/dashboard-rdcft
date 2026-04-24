@@ -556,3 +556,45 @@ html, body {
 .mrs-v   { font-size: 18px; font-weight: 500; color: var(--c-text); }
 
 .modal-table-wrap { overflow-x: auto; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SIDEBAR — GRUPOS POR ZONA
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.zona-group { border-bottom: 0.5px solid var(--c-border); }
+
+.zona-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 15px;
+  cursor: pointer;
+  transition: background .1s;
+  user-select: none;
+}
+.zona-header:hover { background: rgba(255,255,255,0.03); }
+
+.zona-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--c-orange);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.zona-arrow {
+  font-size: 12px;
+  color: var(--c-text-dim);
+  transition: transform .2s;
+  display: inline-block;
+  transform: rotate(-90deg);
+}
+.zona-arrow.open { transform: rotate(0deg); }
+
+/* Paisajes dentro de la zona — colapsable */
+.zona-items {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .25s ease;
+}
+.zona-items.open { max-height: 500px; }

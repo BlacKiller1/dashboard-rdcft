@@ -53,18 +53,57 @@ let activePaisajeIdx  = null;
 const PAISAJE_ESTADO = {};
 
 function renderSidebar(activeIdx) {
-  document.getElementById('sidebarList').innerHTML = PAISAJES.map((p, i) => {
-    // Si ya tiene datos de la API, usar ese estado; si no, sin punto
-    const estado = PAISAJE_ESTADO[i];
-    const dotHTML = estado
-      ? `<span class="dot ${estado}"></span>`
-      : `<span class="dot-empty"></span>`;
+  // Construir sidebar agrupado por zonas
+  const html = ZONAS.map(zona => {
+    // Encontrar los paisajes de esta zona con su índice global
+    const itemsZona = zona.paisajes.map(nombre => {
+      const idx = PAISAJES.findIndex(p => p.n === nombre);
+      if (idx === -1) return '';
+      const p      = PAISAJES[idx];
+      const estado = PAISAJE_ESTADO[idx];
+      const dotHTML = estado
+        ? `<span class="dot ${estado}"></span>`
+        : `<span class="dot-empty"></span>`;
+      return `
+        <div class="p-item${activeIdx === idx ? ' active' : ''}" onclick="onSelectPaisaje(${idx})">
+          ${dotHTML}
+          <span class="pname">${p.n}</span>
+        </div>`;
+    }).join('');
+
+    // Verificar si algún paisaje de la zona está activo para mantenerla abierta
+    const zonaActiva = zona.paisajes.some(nombre => {
+      const idx = PAISAJES.findIndex(p => p.n === nombre);
+      return idx === activeIdx;
+    });
+
     return `
-    <div class="p-item${activeIdx === i ? ' active' : ''}" onclick="onSelectPaisaje(${i})">
-      ${dotHTML}
-      <span class="pname">${p.n}</span>
-    </div>`;
+      <div class="zona-group">
+        <div class="zona-header" onclick="toggleZona(this)">
+          <span class="zona-name">${zona.nombre}</span>
+          <span class="zona-arrow${zonaActiva ? ' open' : ''}">▾</span>
+        </div>
+        <div class="zona-items${zonaActiva ? ' open' : ''}">
+          ${itemsZona}
+        </div>
+      </div>`;
   }).join('');
+
+  document.getElementById('sidebarList').innerHTML = html;
+}
+
+function toggleZona(header) {
+  const arrow = header.querySelector('.zona-arrow');
+  const items = header.nextElementSibling;
+  const isOpen = items.classList.contains('open');
+  // Cerrar todos
+  document.querySelectorAll('.zona-items').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.zona-arrow').forEach(el => el.classList.remove('open'));
+  // Abrir el clickeado si estaba cerrado
+  if (!isOpen) {
+    items.classList.add('open');
+    arrow.classList.add('open');
+  }
 }
 
 // Llamada desde app.js después de cargar datos: registra el estado real del paisaje

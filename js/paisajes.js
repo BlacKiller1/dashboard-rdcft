@@ -215,3 +215,53 @@ const PAISAJES = [
     p:   'Precipitaciones >21 mm últimos 7 días'
   },
 ];
+
+// ═══════════════════════════════════════════════════════════════════════
+//  ZONAS — agrupación de paisajes por zona geográfica
+//  Usado por el sidebar para mostrar grupos desplegables
+// ═══════════════════════════════════════════════════════════════════════
+
+const ZONAS = [
+  {
+    nombre: 'Zona Constitución',
+    paisajes: [
+      'Cordillera del Maule',
+      'Lomas de Quivolgo',
+      'Ruiles de la Costa Maulina',
+      'Secanos del Mataquito',
+      'Valle de Cauquenes',
+      'Arenales de Cholguán',
+    ]
+  },
+  {
+    nombre: 'Zona Chillán',
+    paisajes: [
+      'Canteras del Laja',
+      'Cordillera de Huemules',
+      'Costa de Queules',
+      'Robles de Coyanmahuida',
+      'Secanos del Ñuble',
+      'Valle del Itata',
+    ]
+  },
+  {
+    nombre: 'Zona Arauco',
+    paisajes: [
+      'Biobio Sur',
+      'Cuenca de Curanilahue',
+      'Costa Leufú',
+      'Golfo de Arauco',
+      'Cumbres de Nahuelbuta',
+      'Malleco',
+    ]
+  },
+  {
+    nombre: 'Zona Valdivia',
+    paisajes: [
+      'Bosque Valdiviano',
+      'Valle del Rucapillán',
+      'Río Cruces',
+      'Río Bueno',
+    ]
+  },
+];
