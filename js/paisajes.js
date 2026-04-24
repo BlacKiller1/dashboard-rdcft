@@ -265,3 +265,41 @@ const ZONAS = [
     ]
   },
 ];
+
+// ═══════════════════════════════════════════════════════════════════════
+//  MAPEO PAISAJE → ESTACIONES PROPIAS (según informe PPT)
+//  Estas son las estaciones que se muestran resaltadas en cada lámina
+//  del informe meteorológico semanal.
+// ═══════════════════════════════════════════════════════════════════════
+
+const ESTACIONES_PAISAJE = {
+  // ── Zona Constitución ───────────────────────────────────────────────
+  'Cordillera del Maule':      ['Talca', 'El Auquil'],
+  'Lomas de Quivolgo':         ['Carrizal', 'Vivero Quivolgo'],
+  'Ruiles de la Costa Maulina':['Cuyuname', 'Santa Estela'],
+  'Secanos del Mataquito':     ['Hualañé', 'Palhuen', 'Curepto'],
+  'Valle de Cauquenes':        ['Cauquenes'],
+
+  // ── Zona Chillán ────────────────────────────────────────────────────
+  'Arenales de Cholguán':      ['Siberia', 'Yungay'],
+  'Canteras del Laja':         ['Human'],
+  'Cordillera de Huemules':    ['El Kayser'],
+  'Costa de Queules':          ['Totoral', 'Zorzal Blanco', 'Puralihue'],
+  'Robles de Coyanmahuida':    ['Cangrejillo', 'Concepción'],
+  'Secanos del Ñuble':         ['El Espolón', 'Quilamapu'],
+  'Valle del Itata':           ['Nueva Aldea', 'Portezuelo', 'Zorzal Blanco', 'Coyanco'],
+
+  // ── Zona Arauco ─────────────────────────────────────────────────────
+  'Biobio Sur':                ['Tanahullin', 'Santa Juana'],
+  'Cuenca de Curanilahue':     ['La Colcha'],
+  'Costa Leufú':               ['Lebu'],
+  'Golfo de Arauco':           ['Las Puentes'],
+  'Cumbres de Nahuelbuta':     ['Llanquehue'],
+  'Malleco':                   ['Baltimore', 'Santa Amelia'],
+
+  // ── Zona Valdivia ───────────────────────────────────────────────────
+  'Bosque Valdiviano':         ['Pancul', 'Llongo'],
+  'Valle del Rucapillán':      ['La Paz', 'Aeródromo Maquehue'],
+  'Río Cruces':                [],
+  'Río Bueno':                 ['Oldenburgo', 'Liceo Agrotec', 'El Copihue'],
+};

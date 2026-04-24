@@ -16,12 +16,22 @@ from io import StringIO
 #  ESTACIONES ARAUCO agrupadas en grupos de 5 (límite del sitio)
 # ═══════════════════════════════════════════════════════════════════
 GRUPOS_ESTACIONES = [
+    # Grupo 1 — Zona Constitución
     ["Carrizal", "Curepto", "Cuyuname", "El Auquil", "Hualañé"],
-    ["Palhuen", "Santa Estela", "Vivero Quivolgo", "Teno", "Bandurrias"],
-    ["Coyanco", "El Espolón", "El Kayser", "Litral", "Remolinos"],
-    ["Siberia", "Totoral", "Zorzal Blanco", "Cangrejillo", "La Colcha"],
-    ["Las Puentes", "Los Alamos", "Santa Juana", "Tanahullin", "Baltimore"],
-    ["Santa Amelia", "Llongo", "Oldenburgo", "Pancul"],
+    # Grupo 2 — Zona Constitución
+    ["Palhuen", "Santa Estela", "Vivero Quivolgo", "Talca", "Cauquenes"],
+    # Grupo 3 — Zona Chillán
+    ["Siberia", "Yungay", "Human", "El Kayser", "El Espolón"],
+    # Grupo 4 — Zona Chillán
+    ["Totoral", "Zorzal Blanco", "Puralihue", "Cangrejillo", "Concepción"],
+    # Grupo 5 — Zona Chillán
+    ["Quilamapu", "Nueva Aldea", "Portezuelo", "Coyanco", "La Colcha"],
+    # Grupo 6 — Zona Arauco
+    ["Las Puentes", "Lebu", "Llanquehue", "Santa Juana", "Tanahullin"],
+    # Grupo 7 — Zona Arauco / Valdivia
+    ["Baltimore", "Santa Amelia", "Llongo", "Pancul", "Oldenburgo"],
+    # Grupo 8 — Zona Valdivia
+    ["La Paz", "Aeródromo Maquehue", "Liceo Agrotec", "El Copihue"],
 ]
 
 # ═══════════════════════════════════════════════════════════════════
