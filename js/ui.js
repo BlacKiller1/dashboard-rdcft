@@ -514,10 +514,7 @@ function renderOperationalCard(paisaje, days) {
       <div class="sec-label">Ventana operacional semanal</div>
       <div class="dias-row">${renderSemaforo(paisaje, days)}</div>
 
-      <div class="comment-box">
-        <div class="comment-title">COMENTARIO OPERACIONAL</div>
-        <div class="comment-text">${resumenAuto}</div>
-      </div>
+
 
       <div class="mini-stats">
         <div class="ms">
