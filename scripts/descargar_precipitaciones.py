@@ -12,9 +12,9 @@ Ejecución automática:
     GitHub Actions cada lunes a las 00:30
 """
 
-import sys, os, json, time, glob, shutil, tempfile
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-import pandas as pd
+import requests
+import json
+import os
 from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -122,166 +122,60 @@ ESTACION_PAISAJE = {
 #  FECHAS — 7 días anteriores al lunes actual
 # ═══════════════════════════════════════════════════════════════════════
 def calcular_fechas():
-    hoy  = datetime.now()
-    dias = (hoy.weekday() + 1) % 7
-    dom  = hoy - timedelta(days=dias if dias > 0 else 7)
-    lun  = dom - timedelta(days=6)
-    # Formato web DD-MM-YYYY y formato ISO YYYY-MM-DD
-    return (lun.strftime("%d-%m-%Y"), dom.strftime("%d-%m-%Y"),
-            lun.strftime("%Y-%m-%d"), dom.strftime("%Y-%m-%d"))
-
-# ═══════════════════════════════════════════════════════════════════════
-#  DRIVER CHROME
-# ═══════════════════════════════════════════════════════════════════════
-def crear_driver(download_dir):
-    opts = Options()
-    if os.environ.get("CI"):               # GitHub Actions — sin ventana
-        opts.add_argument("--headless=new")
-        opts.add_argument("--no-sandbox")
-        opts.add_argument("--disable-dev-shm-usage")
-        opts.add_argument("--disable-gpu")
-    opts.add_argument("--window-size=1366,768")
-    opts.add_argument("--disable-blink-features=AutomationControlled")
-    opts.add_experimental_option("excludeSwitches", ["enable-automation"])
-    opts.add_experimental_option("useAutomationExtension", False)
-    opts.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                      "AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36")
-    opts.add_experimental_option("prefs", {
-        "download.default_directory":   download_dir,
-        "download.prompt_for_download": False,
-        "download.directory_upgrade":   True,
-        "safebrowsing.enabled":         True,
-    })
-    svc    = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=svc, options=opts)
-    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument",
-        {"source": "Object.defineProperty(navigator,'webdriver',{get:()=>undefined})"})
-    return driver
-
-# ═══════════════════════════════════════════════════════════════════════
-#  DESCARGA DE UN GRUPO
-# ═══════════════════════════════════════════════════════════════════════
-def descargar_grupo(driver, wait, estaciones, f_ini, f_fin, download_dir):
     """
-    f_ini / f_fin en formato dd-mm-yyyy (ej. "17-04-2026")
-    El sitio usa Bootstrap Datepicker con ese mismo formato.
+    Calcula rango de 7 días anteriores al lunes actual.
+    Lunes 28 abril → rango: lunes 21 abril al domingo 27 abril
     """
-    try:
-        driver.get("https://agrometeorologia.cl/PP")
-        time.sleep(4)
+    hoy = datetime.now()
+    dias_hasta_domingo = (hoy.weekday() + 1) % 7
+    domingo = hoy - timedelta(days=dias_hasta_domingo if dias_hasta_domingo > 0 else 7)
+    lunes = domingo - timedelta(days=6)
+    return lunes.strftime("%Y-%m-%d"), domingo.strftime("%Y-%m-%d")
 
-        # Abrir panel "CONSULTAR DATOS" (toggle collapse)
+def parsear_csv(texto, estaciones):
+    """Parsea el texto CSV descargado y retorna {estacion: {fecha: mm}}"""
+    resultado = {est: {} for est in estaciones}
+    lines = texto.strip().split("\n")
+
+    # Buscar línea de encabezados
+    header_idx = None
+    for i, line in enumerate(lines):
+        if "Tiempo" in line or any(est in line for est in estaciones):
+            header_idx = i
+            break
+
+    if header_idx is None:
+        return resultado
+
+    headers = [h.strip() for h in lines[header_idx].split("\t")]
+
+    # Mapear estaciones a índices de columna
+    col_map = {}
+    for j, h in enumerate(headers):
+        if h in estaciones:
+            col_map[h] = j
+
+    # Parsear filas de datos
+    for line in lines[header_idx + 1:]:
+        if not line.strip() or "uso de los datos" in line or "Descargar" in line:
+            continue
+        cols = line.split("\t")
+        if len(cols) < 2:
+            continue
+
+        # Normalizar fecha a YYYY-MM-DD
+        fecha_raw = cols[0].strip()
         try:
-            toggle = wait.until(EC.element_to_be_clickable(
-                (By.CSS_SELECTOR, "a[data-target='collapse'], a.ts-center__vertical")))
-            toggle.click()
-            time.sleep(1.5)
+            partes = fecha_raw.split("-")
+            if len(partes) == 3 and len(partes[0]) == 2:
+                fecha = f"{partes[2]}-{partes[1]}-{partes[0]}"
+            else:
+                fecha = fecha_raw
         except:
-            pass  # El panel puede ya estar visible
+            continue
 
-        # --- Estaciones via jQuery Chosen ---
-        nombres = [e.split(",")[0].strip() for e in estaciones]
-        encontrados = driver.execute_script("""
-            var names = arguments[0];
-            var select = document.getElementById('estaciones');
-            var vals = [];
-            Array.from(select.options).forEach(function(opt) {
-                names.forEach(function(name) {
-                    if (opt.text.toLowerCase().startsWith(name.toLowerCase())) {
-                        vals.push(opt.value);
-                    }
-                });
-            });
-            $('#estaciones').val(vals).trigger('chosen:updated');
-            return vals.length;
-        """, nombres)
-        print(f"    Estaciones encontradas: {encontrados}/{len(nombres)}")
-        time.sleep(0.5)
-
-        # --- Variable: Precipitación Acumulada ---
-        driver.execute_script(
-            "$('#variables').val(['PP_SUM']).trigger('chosen:updated');"
-        )
-        time.sleep(0.3)
-
-        # --- Intervalo: Día ---
-        driver.execute_script(
-            "$('#intervalo').val('day').trigger('chosen:updated');"
-        )
-        time.sleep(0.3)
-
-        # --- Fechas via Bootstrap Datepicker (formato dd-mm-yyyy) ---
-        driver.execute_script("""
-            $('#desde').datepicker('setDate', arguments[0]);
-            $('#hasta').datepicker('setDate', arguments[1]);
-        """, f_ini, f_fin)
-        print(f"    Fechas: {f_ini} → {f_fin}")
-        time.sleep(0.3)
-
-        # --- Marcar solo Excel ---
-        driver.execute_script("""
-            document.getElementById('tabla').checked   = false;
-            document.getElementById('grafico').checked = false;
-            document.getElementById('excel').checked   = true;
-            document.getElementById('csv').checked     = false;
-        """)
-        time.sleep(0.3)
-
-        # Snapshot archivos antes
-        antes = set(glob.glob(os.path.join(download_dir, "*.xlsx")) +
-                    glob.glob(os.path.join(download_dir, "*.csv")))
-
-        # Clic en CONSULTAR DATOS
-        btn_dl = wait.until(EC.element_to_be_clickable((By.ID, "search-btn")))
-        btn_dl.click()
-
-        # Esperar archivo descargado
-        for _ in range(45):
-            time.sleep(1)
-            despues = set(glob.glob(os.path.join(download_dir, "*.xlsx")) +
-                          glob.glob(os.path.join(download_dir, "*.csv")))
-            nuevos  = despues - antes
-            if nuevos and not list(nuevos)[0].endswith(".crdownload"):
-                time.sleep(1)
-                return list(nuevos)[0]
-
-        print("    ⚠ Timeout descarga")
-        return None
-
-    except Exception as e:
-        print(f"    ✗ Error grupo: {e}")
-        return None
-
-# ═══════════════════════════════════════════════════════════════════════
-#  PARSEAR EXCEL
-# ═══════════════════════════════════════════════════════════════════════
-def parsear_excel(archivo):
-    try:
-        df = pd.read_excel(archivo, header=None)
-        # Buscar fila con "Tiempo"
-        hrow = None
-        for i, row in df.iterrows():
-            if any("Tiempo" in str(v) for v in row.values):
-                hrow = i; break
-        if hrow is None:
-            return {}
-
-        headers = df.iloc[hrow].tolist()
-        data    = df.iloc[hrow + 1:]
-        result  = {}
-
-        for j, h in enumerate(headers):
-            h = str(h).strip()
-            if not h or h == "nan" or "%" in h or "Tiempo" in h:
-                continue
-            nombre = h.split(",")[0].strip()
-            if not nombre or nombre == "nan":
-                continue
-            result[nombre] = {}
-            for _, row in data.iterrows():
-                fr = str(row.iloc[0]).strip()
-                if not fr or fr == "nan" or "uso" in fr.lower():
-                    continue
+        for est, idx in col_map.items():
+            if idx < len(cols):
                 try:
                     p = fr.split("-")
                     fecha = f"{p[2]}-{p[1]}-{p[0]}" if len(p[0]) == 2 else fr
