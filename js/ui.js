@@ -119,11 +119,93 @@ function registrarEstadoPaisaje(idx, days) {
 
 // ── Estados vacío / loading / error ─────────────────────────────────────
 function renderEmpty() {
-  document.getElementById('mainTitle').textContent = 'Selecciona un paisaje';
+  document.getElementById('mainTitle').textContent = 'Resumen operacional semanal';
+
+  // Agrupar paisajes por zona con su estado actual
+  const zonasHTML = ZONAS.map(zona => {
+    const items = zona.paisajes.map(nombre => {
+      const idx    = PAISAJES.findIndex(p => p.n === nombre);
+      if (idx === -1) return '';
+      const estado = PAISAJE_ESTADO[idx] || 'sin-rdcft';
+      const colores = {
+        favorable:    'var(--c-green)',
+        restriccion:  'var(--c-yellow)',
+        'no-favorable': 'var(--c-red)',
+        'sin-rdcft':  'var(--c-gray)'
+      };
+      const etiquetas = {
+        favorable:      'Favorable',
+        restriccion:    'Con restricciones',
+        'no-favorable': 'No favorable',
+        'sin-rdcft':    'Sin RDCFT programado'
+      };
+      return `
+        <div class="resumen-paisaje" onclick="onSelectPaisaje(${idx})">
+          <span class="resumen-dot" style="background:${colores[estado]}"></span>
+          <span class="resumen-nombre">${nombre}</span>
+          <span class="resumen-estado" style="color:${colores[estado]}">${etiquetas[estado]}</span>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="resumen-zona">
+        <div class="resumen-zona-titulo">${zona.nombre}</div>
+        ${items}
+      </div>`;
+  }).join('');
+
+  const totalConsultados = Object.keys(PAISAJE_ESTADO).length;
+  const favorable   = Object.values(PAISAJE_ESTADO).filter(e => e === 'favorable').length;
+  const restriccion = Object.values(PAISAJE_ESTADO).filter(e => e === 'restriccion').length;
+  const noFavorable = Object.values(PAISAJE_ESTADO).filter(e => e === 'no-favorable').length;
+
+  const decisionHTML = totalConsultados > 0 ? `
+    <div class="decision-stats">
+      <div class="dstat"><div class="dstat-v" style="color:var(--c-green)">${favorable}</div><div class="dstat-l">Favorable</div></div>
+      <div class="dstat"><div class="dstat-v" style="color:var(--c-yellow)">${restriccion}</div><div class="dstat-l">Con restricciones</div></div>
+      <div class="dstat"><div class="dstat-v" style="color:var(--c-red)">${noFavorable}</div><div class="dstat-l">No favorable</div></div>
+      <div class="dstat"><div class="dstat-v" style="color:var(--c-gray)">${PAISAJES.length - totalConsultados}</div><div class="dstat-l">Sin consultar</div></div>
+    </div>` : `
+    <div class="decision-hint">
+      Selecciona un paisaje en el panel izquierdo para cargar su pronóstico.<br>
+      Los estados se actualizarán automáticamente con datos de Open-Meteo.
+    </div>`;
+
   document.getElementById('detailPanel').innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">🌲</div>
-      <div class="empty-text">Selecciona un paisaje para ver el pronóstico</div>
+    <div class="resumen-layout">
+
+      <!-- Panel izquierdo: decisión operacional -->
+      <div class="decision-panel">
+        <div class="decision-badge">DECISIÓN OPERACIONAL DE LA SEMANA</div>
+        <p class="decision-texto">
+          Este dashboard informa las condiciones meteorológicas pronosticadas
+          que respaldan la toma de decisiones para evaluar la ejecución de
+          <strong>Reducción de Combustibles mediante Fuego Técnico (RDCFT)</strong>
+          durante los próximos 7 días, para cada Paisaje Productivo Protegido.
+        </p>
+        <ul class="decision-lista">
+          <li>Pronóstico meteorológico semanal por paisaje (10:00 / 15:00 / 18:00)</li>
+          <li>Regla operacional: viento &gt; ${VIENTO_LIMITE_RDCFT} km/h impide la ejecución de RDCFT</li>
+          <li>Semáforo operacional diario basado en datos reales de Open-Meteo</li>
+          <li>Sugerencia operacional por horario</li>
+        </ul>
+        <div class="decision-seccion">Estado actual de paisajes consultados</div>
+        ${decisionHTML}
+        <div class="decision-leyenda">
+          <div class="dl-item"><span class="resumen-dot" style="background:var(--c-green)"></span>Favorable</div>
+          <div class="dl-item"><span class="resumen-dot" style="background:var(--c-yellow)"></span>Con restricciones</div>
+          <div class="dl-item"><span class="resumen-dot" style="background:var(--c-red)"></span>No favorable</div>
+          <div class="dl-item"><span class="resumen-dot" style="background:var(--c-gray)"></span>Sin RDCFT programado</div>
+        </div>
+      </div>
+
+      <!-- Panel derecho: lista de paisajes por zona -->
+      <div class="resumen-panel">
+        <div class="resumen-panel-titulo">PAISAJES</div>
+        <p class="resumen-panel-sub">Haz clic en un paisaje para ver su pronóstico detallado.</p>
+        <div class="resumen-zonas">${zonasHTML}</div>
+      </div>
+
     </div>`;
 }
 
