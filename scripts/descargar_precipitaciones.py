@@ -12,7 +12,8 @@ Ejecución automática:
     GitHub Actions cada lunes a las 00:30
 """
 
-import os, json, time, glob, shutil, tempfile
+import sys, os, json, time, glob, shutil, tempfile
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import pandas as pd
 from datetime import datetime, timedelta
 from selenium import webdriver
