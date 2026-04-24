@@ -234,10 +234,10 @@ function mostrarDetalleDia(idx) {
     <div class="slots-row">${comentarioSlots}</div>
   `;
 
-  // Insertarlo después del comment-box (dentro de la primera dcard)
-  const commentBox = document.querySelector('.comment-box');
-  if (commentBox) {
-    commentBox.parentNode.insertBefore(panel, commentBox.nextSibling);
+  // Insertarlo después del semáforo (dentro de la primera dcard)
+  const diasRow = document.querySelector('.dias-row');
+  if (diasRow) {
+    diasRow.parentNode.insertBefore(panel, diasRow.nextSibling);
     panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
