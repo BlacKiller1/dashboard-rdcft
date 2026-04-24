@@ -150,17 +150,96 @@ function renderError(idx, mensaje) {
 // ── Semáforo semanal ──────────────────────────────────────────────────────
 function renderSemaforo(paisaje, days) {
   const DAY_ABBR = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
-  return days.map((day) => {
+  return days.map((day, idx) => {
     const estado   = estadoDia(day);
     const dateObj  = new Date(day.date + 'T12:00:00');
     const dayAbbr  = DAY_ABBR[dateObj.getDay()];
     const fechaStr = day.date.slice(5).replace('-', '/');
     return `
-      <div class="dc ${estado}">
+      <div class="dc ${estado}" onclick="mostrarDetalleDia(${idx})" style="cursor:pointer;" title="Ver detalle del día">
         <span class="dn">${dayAbbr}</span>
         <span class="df">${fechaStr}</span>
       </div>`;
   }).join('');
+}
+
+// ── Detalle por día al hacer clic en semáforo ─────────────────────────────
+function mostrarDetalleDia(idx) {
+  if (!activeWeatherDays) return;
+  const day     = activeWeatherDays[idx];
+  if (!day) return;
+
+  const DAY_FULL  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const MESES_F   = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const dateObj   = new Date(day.date + 'T12:00:00');
+  const dayFull   = DAY_FULL[dateObj.getDay()];
+  const dayNum    = dateObj.getDate();
+  const mes       = MESES_F[dateObj.getMonth()];
+  const estado    = estadoDia(day);
+  const estColor  = { ok:'var(--c-green)', warn:'var(--c-yellow)', bad:'var(--c-red)', neutral:'var(--c-text-dim)' };
+  const estLabel  = { ok:'Operable', warn:'Restricción parcial', bad:'No operable', neutral:'Sin operación' };
+
+  // Generar comentario por slot horario
+  const comentarioSlots = day.slots.map(s => {
+    const rdcftColor = s.rdcft.operable ? 'var(--c-green)' : 'var(--c-red)';
+    const rdcftIcon  = s.rdcft.operable ? '✅' : '🚫';
+
+    // Comentario automático por hora
+    let comentario = '';
+    if (!s.rdcft.operable) {
+      comentario = `Viento de ${s.viento} km/h supera el límite operacional de ${VIENTO_LIMITE_RDCFT} km/h. <strong>No es posible realizar RDCFT.</strong>`;
+    } else {
+      const nivelViento = s.viento <= 5 ? 'muy bajo' : s.viento <= 8 ? 'bajo' : 'dentro del límite';
+      const nivelTemp   = s.temp >= 25 ? 'alta' : s.temp >= 18 ? 'moderada' : 'baja';
+      const nivelHum    = s.hum >= 70 ? 'alta' : s.hum >= 50 ? 'moderada' : 'baja';
+      comentario = `Viento ${nivelViento} (${s.viento} km/h), temperatura ${nivelTemp} (${s.temp}°C) y humedad ${nivelHum} (${s.hum}%). ` +
+        `${s.precip > 0 ? `Precipitación de ${s.precip} mm. ` : 'Sin precipitaciones. '}` +
+        `<strong>Condiciones favorables para RDCFT.</strong>`;
+    }
+
+    return `
+      <div class="slot-card">
+        <div class="slot-header">
+          <div class="slot-hora">${s.hora}</div>
+          <div class="slot-icon">${codigoIcono(s.codigo)}</div>
+          <div class="slot-rdcft" style="color:${rdcftColor}">${rdcftIcon} ${s.rdcft.operable ? 'Posible' : 'No posible'}</div>
+        </div>
+        <div class="slot-datos">
+          <div class="slot-dato"><span class="sd-l">🌡 Temp.</span><span class="sd-v" style="color:${tempColor(s.temp)}">${s.temp}°C</span></div>
+          <div class="slot-dato"><span class="sd-l">💧 Humedad</span><span class="sd-v" style="color:var(--c-blue)">${s.hum}%</span></div>
+          <div class="slot-dato"><span class="sd-l">🌧 Lluvia</span><span class="sd-v" style="color:${precipColor(s.precip)}">${s.precip} mm</span></div>
+          <div class="slot-dato"><span class="sd-l">💨 Viento</span><span class="sd-v" style="color:${vientoColor(s.viento)}">${dirArrow(s.direccion)} ${s.viento} km/h</span></div>
+          <div class="slot-dato"><span class="sd-l">⚡ Racha</span><span class="sd-v" style="color:var(--c-yellow)">${s.racha} km/h</span></div>
+          <div class="slot-dato"><span class="sd-l">🧭 Direc.</span><span class="sd-v">${s.direccion}° ${compassLabel(s.direccion)}</span></div>
+        </div>
+        <div class="slot-comentario">${comentario}</div>
+      </div>`;
+  }).join('');
+
+  // Insertar panel debajo del semáforo
+  const existing = document.getElementById('detalleDiaPanel');
+  if (existing) existing.remove();
+
+  const panel = document.createElement('div');
+  panel.id    = 'detalleDiaPanel';
+  panel.className = 'detalle-dia-panel';
+  panel.innerHTML = `
+    <div class="detalle-dia-header">
+      <div>
+        <div class="detalle-dia-titulo">${dayFull} ${dayNum} de ${mes}</div>
+        <div class="detalle-dia-estado" style="color:${estColor[estado]}">${estLabel[estado]}</div>
+      </div>
+      <button class="detalle-dia-close" onclick="document.getElementById('detalleDiaPanel').remove()">✕ Cerrar</button>
+    </div>
+    <div class="slots-row">${comentarioSlots}</div>
+  `;
+
+  // Insertarlo después del comment-box (dentro de la primera dcard)
+  const commentBox = document.querySelector('.comment-box');
+  if (commentBox) {
+    commentBox.parentNode.insertBefore(panel, commentBox.nextSibling);
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
 // ── Tabla meteorológica ───────────────────────────────────────────────────

@@ -598,3 +598,88 @@ html, body {
   transition: max-height .25s ease;
 }
 .zona-items.open { max-height: 500px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PANEL DETALLE DÍA — aparece al hacer clic en semáforo
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.detalle-dia-panel {
+  background: rgba(15,13,10,0.95);
+  border: 0.5px solid var(--c-orange);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 10px;
+  animation: fadeSlide .2s ease;
+}
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.detalle-dia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.detalle-dia-titulo  { font-size: 14px; font-weight: 600; color: var(--c-text); }
+.detalle-dia-estado  { font-size: 10px; margin-top: 3px; font-weight: 500; }
+.detalle-dia-close   {
+  font-size: 10px; padding: 4px 10px; border-radius: 6px;
+  border: 0.5px solid var(--c-border-md); background: transparent;
+  color: var(--c-text-dim); cursor: pointer; transition: all .12s;
+}
+.detalle-dia-close:hover { background: rgba(255,255,255,0.07); color: var(--c-text); }
+
+/* Fila de 3 slots horarios */
+.slots-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+/* Card de cada slot */
+.slot-card {
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid var(--c-border);
+  border-radius: 8px;
+  padding: 12px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.slot-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 0.5px solid var(--c-border);
+  padding-bottom: 8px;
+}
+.slot-hora   { font-size: 15px; font-weight: 700; color: var(--c-text); flex: 1; }
+.slot-icon   { font-size: 20px; }
+.slot-rdcft  { font-size: 10px; font-weight: 600; }
+
+/* Datos meteorológicos en grid 2 col */
+.slot-datos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.slot-dato { display: flex; flex-direction: column; gap: 1px; }
+.sd-l { font-size: 8.5px; color: var(--c-text-dim); text-transform: uppercase; letter-spacing: .06em; }
+.sd-v { font-size: 12px; font-weight: 500; color: var(--c-text); }
+
+/* Comentario por hora */
+.slot-comentario {
+  font-size: 11px;
+  color: var(--c-text-muted);
+  line-height: 1.6;
+  border-top: 0.5px solid var(--c-border);
+  padding-top: 8px;
+}
+.slot-comentario strong { color: var(--c-text); }
+
+/* Días del semáforo — indicar que son clickeables */
+.dc:hover { opacity: .85; transform: scale(1.03); transition: all .12s; }
+.dc.selected { outline: 1.5px solid var(--c-orange); outline-offset: 2px; }
