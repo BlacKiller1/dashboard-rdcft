@@ -1,212 +1,244 @@
 #!/usr/bin/env python3
 """
 descargar_precipitaciones.py
-Descarga precipitaciones acumuladas de los últimos 7 días
-desde agrometeorologia.cl para todas las estaciones Arauco.
-Se ejecuta automáticamente cada lunes a las 00:30 via GitHub Actions.
+Descarga precipitaciones desde la API JSON de agrometeorologia.cl.
+No requiere Selenium ni formularios — usa GET directo a la API.
+
+Instalación:
+    pip install requests
+
+Uso:
+    python scripts/descargar_precipitaciones.py
 """
 
-import requests
-import json
-import os
+import os, json, time, requests
 from datetime import datetime, timedelta
-from io import StringIO
 
 # ═══════════════════════════════════════════════════════════════════
-#  ESTACIONES ARAUCO agrupadas en grupos de 5 (límite del sitio)
+#  API de agrometeorologia.cl
+#  La URL base del JSON con todas las estaciones y sus precipitaciones
 # ═══════════════════════════════════════════════════════════════════
-GRUPOS_ESTACIONES = [
-    # Grupo 1 — Zona Constitución
-    ["Carrizal", "Curepto", "Cuyuname", "El Auquil", "Hualañé"],
-    # Grupo 2 — Zona Constitución
-    ["Palhuen", "Santa Estela", "Vivero Quivolgo", "Talca", "Cauquenes"],
-    # Grupo 3 — Zona Chillán
-    ["Siberia", "Yungay", "Human", "El Kayser", "El Espolón"],
-    # Grupo 4 — Zona Chillán
-    ["Totoral", "Zorzal Blanco", "Puralihue", "Cangrejillo", "Concepción"],
-    # Grupo 5 — Zona Chillán
-    ["Quilamapu", "Nueva Aldea", "Portezuelo", "Coyanco", "La Colcha"],
-    # Grupo 6 — Zona Arauco
-    ["Las Puentes", "Lebu", "Llanquehue", "Santa Juana", "Tanahullin"],
-    # Grupo 7 — Zona Arauco / Valdivia
-    ["Baltimore", "Santa Amelia", "Llongo", "Pancul", "Oldenburgo"],
-    # Grupo 8 — Zona Valdivia
-    ["La Paz", "Aeródromo Maquehue", "Liceo Agrotec", "El Copihue"],
-]
+# Esta URL devuelve todas las estaciones con STACK-DAY (precipitación diaria)
+# El timestamp _= es solo un cache-buster, puede ser cualquier número
+API_URL = "https://agrometeorologia.cl/json/tmp_667249736/items-pp.json"
 
 # ═══════════════════════════════════════════════════════════════════
-#  Mapeo estación → paisaje (para mostrar en el dashboard)
+#  MAPEO estación → paisaje
 # ═══════════════════════════════════════════════════════════════════
 ESTACION_PAISAJE = {
-    # ── Zona Constitución ─────────────────────────────────────────────
-    "Carrizal":            "Lomas de Quivolgo",
-    "Curepto":             "Secanos del Mataquito",
-    "Cuyuname":            "Ruiles de la Costa Maulina",
-    "El Auquil":           "Cordillera del Maule",
-    "Hualañé":             "Valle de Cauquenes",
-    "Palhuen":             "Secanos del Mataquito",
-    "Santa Estela":        "Ruiles de la Costa Maulina",
-    "Vivero Quivolgo":     "Lomas de Quivolgo",
-    "Talca":               "Cordillera del Maule",
-    "Cauquenes":           "Valle de Cauquenes",
-    # ── Zona Chillán ──────────────────────────────────────────────────
-    "Siberia":             "Arenales de Cholguán",
-    "Yungay":              "Arenales de Cholguán",
-    "Human":               "Canteras del Laja",
-    "El Kayser":           "Cordillera de Huemules",
-    "El Espolón":          "Secanos del Ñuble",
-    "Totoral":             "Costa de Queules",
-    "Zorzal Blanco":       "Costa de Queules",
-    "Puralihue":           "Costa de Queules",
-    "Cangrejillo":         "Robles de Coyanmahuida",
-    "Concepción":          "Robles de Coyanmahuida",
-    "Quilamapu":           "Secanos del Ñuble",
-    "Nueva Aldea":         "Valle del Itata",
-    "Portezuelo":          "Valle del Itata",
-    "Coyanco":             "Valle del Itata",
-    # ── Zona Arauco ───────────────────────────────────────────────────
-    "La Colcha":           "Cuenca de Curanilahue",
-    "Las Puentes":         "Golfo de Arauco",
-    "Lebu":                "Costa Leufú",
-    "Llanquehue":          "Cumbres de Nahuelbuta",
-    "Santa Juana":         "Biobio Sur",
-    "Tanahullin":          "Biobio Sur",
-    "Baltimore":           "Malleco",
-    "Santa Amelia":        "Malleco",
-    # ── Zona Valdivia ─────────────────────────────────────────────────
-    "Llongo":              "Bosque Valdiviano",
-    "Pancul":              "Bosque Valdiviano",
-    "Oldenburgo":          "Río Bueno",
-    "La Paz":              "Valle del Rucapillán",
-    "Aeródromo Maquehue":  "Valle del Rucapillán",
-    "Liceo Agrotec":       "Río Bueno",
-    "El Copihue":          "Río Bueno",
+    "Carrizal":        "Lomas de Quivolgo",
+    "Curepto":         "Secanos del Mataquito",
+    "Cuyuname":        "Ruiles de la Costa Maulina",
+    "El Auquil":       "Cordillera del Maule",
+    "Hualañé":         "Valle de Cauquenes",
+    "Cauquenes":       "Valle de Cauquenes",
+    "Palhuen":         "Secanos del Mataquito",
+    "Santa Estela":    "Ruiles de la Costa Maulina",
+    "Talca":           "Cordillera del Maule",
+    "Vivero Quivolgo": "Lomas de Quivolgo",
+    "Bandurrias":      "Secanos del Ñuble",
+    "Coyanco":         "Valle del Itata",
+    "El Espolón":      "Secanos del Ñuble",
+    "Quilamapu":       "Secanos del Ñuble",
+    "El Kayser":       "Cordillera de Huemules",
+    "Human":           "Canteras del Laja",
+    "Remolinos":       "Arenales de Cholguán",
+    "Siberia":         "Arenales de Cholguán",
+    "Yungay":          "Arenales de Cholguán",
+    "Totoral":         "Costa de Queules",
+    "Zorzal Blanco":   "Costa de Queules",
+    "Puralihue":       "Costa de Queules",
+    "Cangrejillo":     "Robles de Coyanmahuida",
+    "Concepción":      "Robles de Coyanmahuida",
+    "Nueva Aldea":     "Valle del Itata",
+    "Portezuelo":      "Valle del Itata",
+    "La Colcha":       "Cuenca de Curanilahue",
+    "Las Puentes":     "Golfo de Arauco",
+    "Lebu":            "Costa Leufú",
+    "Llanquehue":      "Cumbres de Nahuelbuta",
+    "Santa Juana":     "Biobio Sur",
+    "Tanahullin":      "Biobio Sur",
+    "Baltimore":       "Malleco",
+    "Santa Amelia":    "Malleco",
+    "Llongo":          "Bosque Valdiviano",
+    "Pancul":          "Bosque Valdiviano",
+    "Oldenburgo":      "Río Bueno",
+    "La Paz":          "Valle del Rucapillán",
+    "Maquehue":        "Valle del Rucapillán",
+    "Liceo Agrotec":   "Río Bueno",
+    "Copihue":         "Río Bueno",
+}
+
+# Estaciones Arauco que nos interesan (nombre como aparece en la API)
+ESTACIONES_ARAUCO = set(ESTACION_PAISAJE.keys())
+
+HEADERS = {
+    "User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+    "Referer":         "https://agrometeorologia.cl/PP",
+    "Accept":          "application/json, text/javascript, */*; q=0.01",
+    "X-Requested-With": "XMLHttpRequest",
 }
 
 def calcular_fechas():
-    """
-    Calcula rango de 7 días anteriores al lunes actual.
-    Lunes 28 abril → rango: lunes 21 abril al domingo 27 abril
-    """
-    hoy = datetime.now()
-    dias_hasta_domingo = (hoy.weekday() + 1) % 7
-    domingo = hoy - timedelta(days=dias_hasta_domingo if dias_hasta_domingo > 0 else 7)
-    lunes = domingo - timedelta(days=6)
-    return lunes.strftime("%Y-%m-%d"), domingo.strftime("%Y-%m-%d")
+    """Retorna las fechas de los 7 días anteriores al lunes actual"""
+    hoy  = datetime.now()
+    dias = (hoy.weekday() + 1) % 7
+    dom  = hoy - timedelta(days=dias if dias > 0 else 7)
+    lun  = dom - timedelta(days=6)
+    return lun.strftime("%Y-%m-%d"), dom.strftime("%Y-%m-%d")
 
-def parsear_csv(texto, estaciones):
-    """Parsea el texto CSV descargado y retorna {estacion: {fecha: mm}}"""
-    resultado = {est: {} for est in estaciones}
-    lines = texto.strip().split("\n")
-
-    # Buscar línea de encabezados
-    header_idx = None
-    for i, line in enumerate(lines):
-        if "Tiempo" in line or any(est in line for est in estaciones):
-            header_idx = i
-            break
-
-    if header_idx is None:
-        return resultado
-
-    headers = [h.strip() for h in lines[header_idx].split("\t")]
-
-    # Mapear estaciones a índices de columna
-    col_map = {}
-    for j, h in enumerate(headers):
-        if h in estaciones:
-            col_map[h] = j
-
-    # Parsear filas de datos
-    for line in lines[header_idx + 1:]:
-        if not line.strip() or "uso de los datos" in line or "Descargar" in line:
-            continue
-        cols = line.split("\t")
-        if len(cols) < 2:
-            continue
-
-        # Normalizar fecha a YYYY-MM-DD
-        fecha_raw = cols[0].strip()
-        try:
-            partes = fecha_raw.split("-")
-            if len(partes) == 3 and len(partes[0]) == 2:
-                fecha = f"{partes[2]}-{partes[1]}-{partes[0]}"
-            else:
-                fecha = fecha_raw
-        except:
-            continue
-
-        for est, idx in col_map.items():
-            if idx < len(cols):
-                try:
-                    resultado[est][fecha] = round(float(cols[idx].strip()), 1)
-                except:
-                    resultado[est][fecha] = None
-
-    return resultado
-
-def descargar_grupo(estaciones, fecha_inicio, fecha_fin):
-    """Descarga datos para un grupo de estaciones via formulario web"""
-    # La URL de descarga del sitio (basada en el patrón observado)
-    url = "https://agrometeorologia.cl/datos/PP_DIA"
-
-    # Parámetros del formulario
-    payload = {
-        "startDate": fecha_inicio,
-        "endDate":   fecha_fin,
-        "format":    "csv",
-    }
-    for est in estaciones:
-        payload.setdefault("stations[]", []).append(est)
-
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Referer":    "https://agrometeorologia.cl/PP_DIA",
-    }
-
+def es_fecha_valida(fecha_str):
+    """Verifica que sea una fecha real (YYYY-MM-DD), no 'ayer', 'hoy', etc."""
     try:
-        resp = requests.post(url, data=payload, headers=headers, timeout=30)
-        resp.raise_for_status()
-        return parsear_csv(resp.text, estaciones)
+        datetime.strptime(fecha_str, "%Y-%m-%d")
+        return True
+    except:
+        return False
+
+def obtener_url_api(session):
+    """
+    Obtiene la URL correcta del JSON haciendo POST al formulario primero.
+    Así obtenemos el tmp_XXXXXXX correcto de la sesión actual.
+    """
+    try:
+        # Primero hacer la consulta para generar el tmp correcto
+        data = [
+            ("estaciones[]", "EXT-1003"),  # Carrizal como prueba
+            ("variables[]",  "PP_ACUM"),
+            ("tiempo",       "dia"),
+            ("fecha_inicio", "13-04-2026"),
+            ("fecha_fin",    "19-04-2026"),
+            ("tipo_archivo", "excel"),
+        ]
+        r = session.post(
+            "https://agrometeorologia.cl/consultar",
+            data=data,
+            headers={**HEADERS, "Content-Type": "application/x-www-form-urlencoded",
+                     "Referer": "https://agrometeorologia.cl/PP_DIA"},
+            timeout=30,
+        )
+        # Extraer el tmp_XXXXXXX de la respuesta
+        import re
+        m = re.search(r'/json/(tmp_\d+)/items', r.text)
+        if m:
+            tmp = m.group(1)
+            url = f"https://agrometeorologia.cl/json/{tmp}/items-pp.json"
+            print(f"  URL API: {url}")
+            return url
     except Exception as e:
-        print(f"    ✗ Error: {e}")
-        return {est: {} for est in estaciones}
+        print(f"  ⚠ No se pudo obtener URL dinámica: {e}")
+
+    # Fallback: usar la URL conocida
+    return API_URL
+
+def descargar_datos(session, url_api, f_ini, f_fin):
+    """
+    Descarga el JSON completo y filtra las estaciones Arauco
+    con precipitaciones en el rango de fechas solicitado.
+    """
+    ts = int(datetime.now().timestamp() * 1000)
+    try:
+        r = session.get(
+            f"{url_api}?_={ts}",
+            headers=HEADERS,
+            timeout=60
+        )
+        r.raise_for_status()
+        estaciones_json = r.json()
+        print(f"  Total estaciones en API: {len(estaciones_json)}")
+        return estaciones_json
+    except Exception as e:
+        print(f"  ✗ Error descargando JSON: {e}")
+        return []
+
+def procesar_datos(estaciones_json, f_ini, f_fin):
+    """Filtra y procesa las estaciones Arauco del JSON"""
+    todos_datos = {}
+    fecha_ini   = datetime.strptime(f_ini, "%Y-%m-%d")
+    fecha_fin   = datetime.strptime(f_fin, "%Y-%m-%d")
+
+    for est in estaciones_json:
+        nombre = est.get("nombre", "").strip()
+
+        # Verificar si es una estación que nos interesa
+        paisaje = None
+        for key in ESTACIONES_ARAUCO:
+            if key.lower() in nombre.lower() or nombre.lower() in key.lower():
+                paisaje = ESTACION_PAISAJE[key]
+                break
+        if not paisaje:
+            continue
+
+        # Extraer precipitaciones diarias del rango solicitado
+        stack = est.get("STACK-DAY", {})
+        datos_est = {}
+        for fecha_str, vals in stack.items():
+            if not es_fecha_valida(fecha_str):
+                continue
+            fecha_obj = datetime.strptime(fecha_str, "%Y-%m-%d")
+            if fecha_ini <= fecha_obj <= fecha_fin:
+                pp = vals.get("PP-SUM", None)
+                try:
+                    datos_est[fecha_str] = round(float(pp), 1) if pp is not None else None
+                except:
+                    datos_est[fecha_str] = None
+
+        if datos_est:
+            todos_datos[nombre] = datos_est
+            print(f"    ✓ {nombre} ({paisaje}): {len(datos_est)} días")
+
+    return todos_datos
 
 def main():
-    fecha_inicio, fecha_fin = calcular_fechas()
-    print(f"Período: {fecha_inicio} → {fecha_fin}")
+    f_ini, f_fin = calcular_fechas()
+    print(f"\n{'='*55}")
+    print(f"  Dashboard RDCFT — Descarga Precipitaciones")
+    print(f"  Período: {f_ini} → {f_fin}")
+    print(f"{'='*55}\n")
 
-    todos_datos = {}
+    session = requests.Session()
 
-    for i, grupo in enumerate(GRUPOS_ESTACIONES, 1):
-        print(f"Grupo {i}/{len(GRUPOS_ESTACIONES)}: {', '.join(grupo)}")
-        datos = descargar_grupo(grupo, fecha_inicio, fecha_fin)
-        todos_datos.update(datos)
+    # Obtener URL correcta de la API
+    print("Conectando con agrometeorologia.cl...")
+    url_api = obtener_url_api(session)
+
+    # Descargar JSON completo
+    print("\nDescargando datos...")
+    estaciones_json = descargar_datos(session, url_api, f_ini, f_fin)
+
+    if not estaciones_json:
+        print("✗ No se obtuvieron datos")
+        return
+
+    # Procesar y filtrar estaciones Arauco
+    print("\nFiltrando estaciones Arauco:")
+    todos_datos = procesar_datos(estaciones_json, f_ini, f_fin)
 
     # Agrupar por paisaje
     por_paisaje = {}
     for est, dias in todos_datos.items():
-        paisaje = ESTACION_PAISAJE.get(est)
-        if not paisaje:
-            continue
-        if paisaje not in por_paisaje:
-            por_paisaje[paisaje] = {}
-        if est not in por_paisaje[paisaje]:
-            por_paisaje[paisaje][est] = dias
+        paisaje = next((p for n, p in ESTACION_PAISAJE.items()
+                        if n.lower() in est.lower() or est.lower() in n.lower()), None)
+        if paisaje:
+            por_paisaje.setdefault(paisaje, {})[est] = dias
 
-    # JSON final
-    resultado = {
-        "generado":  datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "periodo":   {"inicio": fecha_inicio, "fin": fecha_fin},
-        "estaciones": todos_datos,
-        "por_paisaje": por_paisaje
-    }
-
+    # Guardar JSON
     os.makedirs("data", exist_ok=True)
+    resultado = {
+        "generado":    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "periodo":     {"inicio": f_ini, "fin": f_fin},
+        "estaciones":  todos_datos,
+        "por_paisaje": por_paisaje,
+    }
     with open("data/precipitaciones.json", "w", encoding="utf-8") as f:
         json.dump(resultado, f, ensure_ascii=False, indent=2)
 
-    print(f"Guardado en data/precipitaciones.json ({len(todos_datos)} estaciones)")
+    print(f"\n{'='*55}")
+    print(f"  ✅ Completado")
+    print(f"  Estaciones: {len(todos_datos)}")
+    print(f"  Paisajes:   {len(por_paisaje)}")
+    print(f"  Archivo:    data/precipitaciones.json")
+    print(f"{'='*55}\n")
 
 if __name__ == "__main__":
     main()

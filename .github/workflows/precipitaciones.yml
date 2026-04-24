@@ -1,43 +1,61 @@
 name: Descargar Precipitaciones Arauco
 
 on:
-  # Ejecutar cada lunes a las 00:30 hora Chile (UTC-4 = 04:30 UTC)
+  # Cada lunes a las 00:30 hora Chile (UTC-4 = 04:30 UTC)
   schedule:
     - cron: '30 4 * * 1'
 
-  # Permitir ejecución manual desde GitHub para pruebas
+  # Ejecución manual para pruebas
   workflow_dispatch:
 
 jobs:
   descargar:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Necesario para hacer commit al repositorio
+      contents: write
 
     steps:
       - name: Checkout repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar Python
+      - name: Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Instalar dependencias
-        run: pip install requests
+      - name: Instalar dependencias Python
+        run: |
+          pip install selenium webdriver-manager pandas openpyxl
+
+      - name: Instalar Google Chrome
+        run: |
+          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
+
+      - name: Verificar Chrome instalado
+        run: google-chrome --version
 
       - name: Ejecutar script de descarga
         run: python scripts/descargar_precipitaciones.py
+        env:
+          CI: true   # Activa modo headless en el script
 
-      - name: Verificar archivo generado
+      - name: Mostrar resultado
         run: |
-          echo "Contenido de data/precipitaciones.json:"
-          cat data/precipitaciones.json | head -50
+          echo "=== precipitaciones.json ==="
+          cat data/precipitaciones.json | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          print(f'Período: {d[\"periodo\"][\"inicio\"]} → {d[\"periodo\"][\"fin\"]}')
+          print(f'Estaciones: {len(d[\"estaciones\"])}')
+          print(f'Paisajes: {len(d[\"por_paisaje\"])}')
+          print(f'Generado: {d[\"generado\"]}')
+          "
 
-      - name: Commit y push del JSON actualizado
+      - name: Commit y push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/precipitaciones.json
-          git diff --staged --quiet || git commit -m "auto: precipitaciones semana $(date +'%Y-%m-%d')"
+          git diff --staged --quiet || git commit -m "auto: precipitaciones $(date +'%Y-%m-%d')"
           git push
