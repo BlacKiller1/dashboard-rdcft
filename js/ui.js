@@ -655,12 +655,86 @@ function descargarPDF(nombrePaisaje) {
 function renderDetail(idx, days) {
   const p           = PAISAJES[idx];
   activeWeatherDays        = days;
-  window.activeWeatherDays = days;  // accesible desde onclick en HTML
+  window.activeWeatherDays = days;
   activePaisajeIdx  = idx;
 
   document.getElementById('detailPanel').innerHTML =
     renderOperationalCard(p, days) +
-    renderWeatherCard(days, p);
+    renderWeatherCard(days, p) +
+    renderPrecipCard(p.n);
+}
+
+// ── Sección precipitaciones desde agrometeorologia.cl ────────────────────
+function renderPrecipCard(nombrePaisaje) {
+  if (!window.precipData) return '';
+
+  const porPaisaje = window.precipData.por_paisaje || {};
+  const estaciones = porPaisaje[nombrePaisaje];
+  const periodo    = window.precipData.periodo || {};
+  const generado   = window.precipData.generado || '—';
+
+  if (!estaciones || Object.keys(estaciones).length === 0) {
+    return `
+      <div class="dcard">
+        <div class="sec-label" style="margin-bottom:8px;">Precipitaciones acumuladas — Agrometeorología INIA</div>
+        <div style="font-size:11px;color:var(--c-text-dim);padding:10px 0;">
+          Sin estaciones asociadas a este paisaje en el período actual.
+        </div>
+      </div>`;
+  }
+
+  // Obtener todas las fechas únicas ordenadas
+  const todasFechas = [...new Set(
+    Object.values(estaciones).flatMap(dias => Object.keys(dias))
+  )].sort();
+
+  // Construir tabla
+  const thead = `
+    <tr>
+      <th style="text-align:left;padding-left:0;font-size:9px;color:var(--c-text-dim);text-transform:uppercase;letter-spacing:.07em;padding-bottom:8px;border-bottom:0.5px solid var(--c-border);">Estación</th>
+      ${todasFechas.map(f => {
+        const d = new Date(f + 'T12:00:00');
+        const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+        return `<th style="text-align:center;font-size:9px;color:var(--c-text-dim);text-transform:uppercase;letter-spacing:.07em;padding-bottom:8px;border-bottom:0.5px solid var(--c-border);">${dias[d.getDay()]}<br>${f.slice(5).replace('-','/')}</th>`;
+      }).join('')}
+      <th style="text-align:center;font-size:9px;color:var(--c-text-dim);text-transform:uppercase;letter-spacing:.07em;padding-bottom:8px;border-bottom:0.5px solid var(--c-border);">Total</th>
+    </tr>`;
+
+  const tbody = Object.entries(estaciones).map(([estacion, dias]) => {
+    const total = Object.values(dias).reduce((s, v) => s + (v || 0), 0);
+    const celdas = todasFechas.map(f => {
+      const val = dias[f];
+      const mm  = val !== null && val !== undefined ? val : '—';
+      const color = val > 10 ? 'var(--c-blue)' : val > 0 ? 'var(--c-text-muted)' : 'var(--c-text-dim)';
+      return `<td style="text-align:center;padding:8px 6px;border-bottom:0.5px solid rgba(255,255,255,0.04);font-size:11px;color:${color};font-weight:${val > 0 ? '600' : '400'}">${mm !== '—' ? mm + ' mm' : '—'}</td>`;
+    }).join('');
+    const totalColor = total > 20 ? 'var(--c-blue)' : total > 5 ? 'var(--c-text-muted)' : 'var(--c-text-dim)';
+    return `
+      <tr>
+        <td style="text-align:left;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.04);font-size:11px;color:var(--c-text-muted);">${estacion}</td>
+        ${celdas}
+        <td style="text-align:center;padding:8px 6px;border-bottom:0.5px solid rgba(255,255,255,0.04);font-size:12px;font-weight:600;color:${totalColor}">${total.toFixed(1)} mm</td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <div class="dcard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:6px;">
+        <div>
+          <div class="sec-label" style="margin-bottom:3px;">Precipitaciones acumuladas — Agrometeorología INIA</div>
+          <div style="font-size:9px;color:var(--c-text-dim);">Período: ${periodo.inicio || '—'} → ${periodo.fin || '—'} · Actualizado: ${generado}</div>
+        </div>
+        <div style="font-size:9px;color:var(--c-text-dim);background:rgba(255,255,255,0.04);border:0.5px solid var(--c-border);border-radius:6px;padding:3px 8px;">
+          Fuente: agrometeorologia.cl · INIA
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;min-width:400px;">
+          <thead>${thead}</thead>
+          <tbody>${tbody}</tbody>
+        </table>
+      </div>
+    </div>`;
 }
 
 // ── Cambiar hora (sin recargar la API) ────────────────────────────────────

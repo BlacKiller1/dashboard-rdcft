@@ -1,0 +1,43 @@
+name: Descargar Precipitaciones Arauco
+
+on:
+  # Ejecutar cada lunes a las 00:30 hora Chile (UTC-4 = 04:30 UTC)
+  schedule:
+    - cron: '30 4 * * 1'
+
+  # Permitir ejecución manual desde GitHub para pruebas
+  workflow_dispatch:
+
+jobs:
+  descargar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Necesario para hacer commit al repositorio
+
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: pip install requests
+
+      - name: Ejecutar script de descarga
+        run: python scripts/descargar_precipitaciones.py
+
+      - name: Verificar archivo generado
+        run: |
+          echo "Contenido de data/precipitaciones.json:"
+          cat data/precipitaciones.json | head -50
+
+      - name: Commit y push del JSON actualizado
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/precipitaciones.json
+          git diff --staged --quiet || git commit -m "auto: precipitaciones semana $(date +'%Y-%m-%d')"
+          git push
