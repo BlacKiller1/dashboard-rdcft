@@ -25,9 +25,9 @@ const SEM_COLORS = {
 
 const SEM_LABELS = {
   ok:      'Favorable',
-  warn:    'Restricción',
+  warn:    'Con restricciones',
   bad:     'No favorable',
-  neutral: '—'
+  neutral: 'Sin RDCFT programado'
 };
 
 // ── Calcular estado real de un día desde datos de la API ─────────────────
@@ -178,7 +178,7 @@ function mostrarDetalleDia(idx) {
   const mes       = MESES_F[dateObj.getMonth()];
   const estado    = estadoDia(day);
   const estColor  = { ok:'var(--c-green)', warn:'var(--c-yellow)', bad:'var(--c-red)', neutral:'var(--c-text-dim)' };
-  const estLabel  = { ok:'Operable', warn:'Restricción parcial', bad:'No operable', neutral:'Sin operación' };
+  const estLabel  = { ok:'Favorable', warn:'Con restricciones', bad:'No favorable', neutral:'Sin RDCFT programado' };
 
   // Generar comentario por slot horario
   const comentarioSlots = day.slots.map(s => {
@@ -278,7 +278,7 @@ function buildWeatherTable(days, paisaje) {
     const ninguno       = day.slots.every(s => !s.rdcft.operable);
     const rdcftColor    = todosOp  ? 'var(--c-green)'  : ninguno ? 'var(--c-red)' : 'var(--c-yellow)';
     const rdcftIcon     = todosOp  ? '✅' : ninguno ? '🚫' : '⚠️';
-    const rdcftLabel    = todosOp  ? 'Posible' : ninguno ? 'No posible' : 'Restricción';
+    const rdcftLabel    = todosOp  ? 'Favorable' : ninguno ? 'No favorable' : 'Con restricciones';
     // Resumen de qué horas son operables
     const horasOp       = day.slots.filter(s => s.rdcft.operable).map(s => s.hora).join(', ');
     const horasNO       = day.slots.filter(s => !s.rdcft.operable).map(s => s.hora).join(', ');
