@@ -1,20 +1,22 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 descargar_precipitaciones.py
-Descarga precipitaciones acumuladas de los Ãºltimos 7 dÃ­as
-desde agrometeorologia.cl usando Selenium (simula navegador real).
+Descarga precipitaciones acumuladas de los últimos 7 días
+desde agrometeorologia.cl/PP usando Selenium.
 
-EjecuciÃ³n manual:
+Ejecución manual:
     pip install selenium webdriver-manager pandas openpyxl
     python scripts/descargar_precipitaciones.py
 
-EjecuciÃ³n automÃ¡tica:
+Ejecución automática:
     GitHub Actions cada lunes a las 00:30
 """
 
-import requests
 import json
 import os
+import tempfile
+import time
+import shutil
 from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -24,19 +26,70 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-#  ESTACIONES â€” nombre exacto como aparece en agrometeorologia.cl
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════════
+#  ESTACIONES — nombre completo → código del sitio agrometeorologia.cl
+#  (obtenidos desde el <select id="estaciones"> del sitio)
+# ═══════════════════════════════════════════════════════════════════════════
+CODIGOS_ESTACIONES = {
+    "Carrizal, Constitución, ARAUCO":        "EXT-1003",
+    "Curepto, Curepto, ARAUCO":              "EXT-1004",
+    "Cuyuname, Empedrado, ARAUCO":           "EXT-991",
+    "El Auquil, Pelarco, ARAUCO":            "EXT-992",
+    "Hualañé, Hualañé, ARAUCO":              "EXT-983",
+
+    "Palhuen, Curepto, ARAUCO":              "EXT-986",
+    "Santa Estela, Constitución, ARAUCO":    "EXT-981",
+    "Vivero Quivolgo, Constitución, ARAUCO": "EXT-993",
+    "Talca, Talca, INIA":                    "EXT-982",
+    "Cauquenes, Cauquenes, INIA":            "INIA-46",
+
+    "Siberia, Yungay, ARAUCO":               "EXT-999",
+    "Zorzal Blanco, Quirihue, ARAUCO":       "EXT-989",
+    "Human, Yumbel, INIA":                   "INIA-21",
+    "El Kayser, Coihueco, ARAUCO":           "EXT-1001",
+    "El Espolón, Chillán, ARAUCO":           "EXT-1030",
+
+    "Totoral, Coelemu, ARAUCO":              "EXT-994",
+    "Puralihue, Purén, INIA":                "INIA-211",
+    "Cangrejillo, Florida, ARAUCO":          "EXT-996",
+    "Quilamapu, Chillán, INIA":              "INIA-351",
+    "Yungay, Yungay, ARAUCO":               "INIA-49",
+
+    "Nueva Aldea, Ranquil, INIA":            "INIA-24",
+    "Portezuelo, Portezuelo, INIA":          "INIA-23",
+    "Coyanco, Quillón, ARAUCO":              "EXT-997",
+    "Concepción, Concepción, INIA":          None,   # no disponible en el sitio
+    "La Colcha, Curanilahue, ARAUCO":        "EXT-990",
+
+    "Las Puentes, Arauco, INIA":             "INIA-308",
+    "Lebu, Lebu, INIA":                      "INIA-84",
+    "Llanquehue, Llanquehue, INIA":          None,   # no disponible en el sitio
+    "Santa Juana, Santa Juana, ARAUCO":      "EXT-998",
+    "Tanahullin, Santa Juana, ARAUCO":       "EXT-1006",
+
+    "Baltimore, Collipulli, ARAUCO":         "EXT-1037",
+    "Santa Amelia, Collipulli, ARAUCO":      "EXT-1005",
+    "Llongo, Mariquina, ARAUCO":             "EXT-995",
+    "Pancul, Los Lagos, ARAUCO":             "EXT-985",
+    "Oldenburgo, La Unión, ARAUCO":          "EXT-1032",
+
+    "La Paz, Padre Las Casas, INIA":         "INIA-208",
+    "Aeródromo Maquehue, Temuco, DMC":       "EXT-163",
+    "Liceo Agrotec, Río Bueno, INIA":        "EXT-976",
+    "El Copihue, Río Bueno, INIA":           "EXT-1027",
+}
+
+# Grupos de estaciones para descargar en lotes
 GRUPOS_ESTACIONES = [
-    ["Carrizal, ConstituciÃ³n, ARAUCO",
+    ["Carrizal, Constitución, ARAUCO",
      "Curepto, Curepto, ARAUCO",
      "Cuyuname, Empedrado, ARAUCO",
      "El Auquil, Pelarco, ARAUCO",
-     "HualaÃ±Ã©, HualaÃ±Ã©, ARAUCO"],
+     "Hualañé, Hualañé, ARAUCO"],
 
     ["Palhuen, Curepto, ARAUCO",
-     "Santa Estela, ConstituciÃ³n, ARAUCO",
-     "Vivero Quivolgo, ConstituciÃ³n, ARAUCO",
+     "Santa Estela, Constitución, ARAUCO",
+     "Vivero Quivolgo, Constitución, ARAUCO",
      "Talca, Talca, INIA",
      "Cauquenes, Cauquenes, INIA"],
 
@@ -44,18 +97,18 @@ GRUPOS_ESTACIONES = [
      "Zorzal Blanco, Quirihue, ARAUCO",
      "Human, Yumbel, INIA",
      "El Kayser, Coihueco, ARAUCO",
-     "El EspolÃ³n, ChillÃ¡n, ARAUCO"],
+     "El Espolón, Chillán, ARAUCO"],
 
     ["Totoral, Coelemu, ARAUCO",
-     "Puralihue, PurÃ©n, INIA",
+     "Puralihue, Purén, INIA",
      "Cangrejillo, Florida, ARAUCO",
-     "Quilamapu, ChillÃ¡n, INIA",
+     "Quilamapu, Chillán, INIA",
      "Yungay, Yungay, ARAUCO"],
 
     ["Nueva Aldea, Ranquil, INIA",
      "Portezuelo, Portezuelo, INIA",
-     "Coyanco, QuillÃ³n, ARAUCO",
-     "ConcepciÃ³n, ConcepciÃ³n, INIA",
+     "Coyanco, Quillón, ARAUCO",
+     "Concepción, Concepción, INIA",
      "La Colcha, Curanilahue, ARAUCO"],
 
     ["Las Puentes, Arauco, INIA",
@@ -68,12 +121,12 @@ GRUPOS_ESTACIONES = [
      "Santa Amelia, Collipulli, ARAUCO",
      "Llongo, Mariquina, ARAUCO",
      "Pancul, Los Lagos, ARAUCO",
-     "Oldenburgo, La UniÃ³n, ARAUCO"],
+     "Oldenburgo, La Unión, ARAUCO"],
 
     ["La Paz, Padre Las Casas, INIA",
-     "AerÃ³dromo Maquehue, Temuco, DMC",
-     "Liceo Agrotec, RÃ­o Bueno, INIA",
-     "El Copihue, RÃ­o Bueno, INIA"],
+     "Aeródromo Maquehue, Temuco, DMC",
+     "Liceo Agrotec, Río Bueno, INIA",
+     "El Copihue, Río Bueno, INIA"],
 ]
 
 ESTACION_PAISAJE = {
@@ -81,29 +134,29 @@ ESTACION_PAISAJE = {
     "Curepto":            "Secanos del Mataquito",
     "Cuyuname":           "Ruiles de la Costa Maulina",
     "El Auquil":          "Cordillera del Maule",
-    "HualaÃ±Ã©":            "Valle de Cauquenes",
+    "Hualañé":            "Valle de Cauquenes",
     "Palhuen":            "Secanos del Mataquito",
     "Santa Estela":       "Ruiles de la Costa Maulina",
     "Vivero Quivolgo":    "Lomas de Quivolgo",
     "Talca":              "Cordillera del Maule",
     "Cauquenes":          "Valle de Cauquenes",
-    "Siberia":            "Arenales de CholguÃ¡n",
-    "Yungay":             "Arenales de CholguÃ¡n",
+    "Siberia":            "Arenales de Cholguán",
+    "Yungay":             "Arenales de Cholguán",
     "Human":              "Canteras del Laja",
     "El Kayser":          "Cordillera de Huemules",
-    "El EspolÃ³n":         "Secanos del Ã‘uble",
+    "El Espolón":         "Secanos del Ñuble",
     "Totoral":            "Costa de Queules",
     "Zorzal Blanco":      "Costa de Queules",
     "Puralihue":          "Costa de Queules",
     "Cangrejillo":        "Robles de Coyanmahuida",
-    "ConcepciÃ³n":         "Robles de Coyanmahuida",
-    "Quilamapu":          "Secanos del Ã‘uble",
+    "Concepción":         "Robles de Coyanmahuida",
+    "Quilamapu":          "Secanos del Ñuble",
     "Nueva Aldea":        "Valle del Itata",
     "Portezuelo":         "Valle del Itata",
     "Coyanco":            "Valle del Itata",
     "La Colcha":          "Cuenca de Curanilahue",
     "Las Puentes":        "Golfo de Arauco",
-    "Lebu":               "Costa LeufÃº",
+    "Lebu":               "Costa Leufú",
     "Llanquehue":         "Cumbres de Nahuelbuta",
     "Santa Juana":        "Biobio Sur",
     "Tanahullin":         "Biobio Sur",
@@ -111,89 +164,217 @@ ESTACION_PAISAJE = {
     "Santa Amelia":       "Malleco",
     "Llongo":             "Bosque Valdiviano",
     "Pancul":             "Bosque Valdiviano",
-    "Oldenburgo":         "RÃ­o Bueno",
-    "La Paz":             "Valle del RucapillÃ¡n",
-    "AerÃ³dromo Maquehue": "Valle del RucapillÃ¡n",
-    "Liceo Agrotec":      "RÃ­o Bueno",
-    "El Copihue":         "RÃ­o Bueno",
+    "Oldenburgo":         "Río Bueno",
+    "La Paz":             "Valle del Rucapillán",
+    "Aeródromo Maquehue": "Valle del Rucapillán",
+    "Liceo Agrotec":      "Río Bueno",
+    "El Copihue":         "Río Bueno",
 }
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-#  FECHAS â€” 7 dÃ­as anteriores al lunes actual
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════════
+#  FECHAS — 7 días anteriores al lunes actual
+# ═══════════════════════════════════════════════════════════════════════════
 def calcular_fechas():
     """
-    Calcula rango de 7 dÃ­as anteriores al lunes actual.
-    Lunes 28 abril â†’ rango: lunes 21 abril al domingo 27 abril
+    Calcula rango de 7 días anteriores al lunes actual.
+    Retorna: f_ini_web (DD-MM-YYYY), f_fin_web (DD-MM-YYYY),
+             f_ini_iso (YYYY-MM-DD), f_fin_iso (YYYY-MM-DD)
     """
     hoy = datetime.now()
     dias_hasta_domingo = (hoy.weekday() + 1) % 7
     domingo = hoy - timedelta(days=dias_hasta_domingo if dias_hasta_domingo > 0 else 7)
     lunes = domingo - timedelta(days=6)
-    return lunes.strftime("%Y-%m-%d"), domingo.strftime("%Y-%m-%d")
+    return (
+        lunes.strftime("%d-%m-%Y"),
+        domingo.strftime("%d-%m-%Y"),
+        lunes.strftime("%Y-%m-%d"),
+        domingo.strftime("%Y-%m-%d"),
+    )
 
-def parsear_csv(texto, estaciones):
-    """Parsea el texto CSV descargado y retorna {estacion: {fecha: mm}}"""
-    resultado = {est: {} for est in estaciones}
-    lines = texto.strip().split("\n")
+# ═══════════════════════════════════════════════════════════════════════════
+#  DRIVER
+# ═══════════════════════════════════════════════════════════════════════════
+def crear_driver(dl_dir):
+    """Crea Chrome WebDriver configurado para descargas automáticas."""
+    opts = Options()
+    opts.add_argument("--headless=new")
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--window-size=1920,1080")
+    prefs = {
+        "download.default_directory": dl_dir,
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "safebrowsing.enabled": True,
+    }
+    opts.add_experimental_option("prefs", prefs)
+    return webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()),
+        options=opts
+    )
 
-    # Buscar lÃ­nea de encabezados
-    header_idx = None
-    for i, line in enumerate(lines):
-        if "Tiempo" in line or any(est in line for est in estaciones):
-            header_idx = i
-            break
+# ═══════════════════════════════════════════════════════════════════════════
+#  DESCARGA SELENIUM — agrometeorologia.cl/PP
+# ═══════════════════════════════════════════════════════════════════════════
+def descargar_grupo(driver, wait, grupo, f_ini_web, f_fin_web, dl_dir):
+    """
+    Descarga Excel diario de un grupo de estaciones desde agrometeorologia.cl/PP.
+    Retorna ruta del archivo descargado, o None si falla.
 
-    if header_idx is None:
-        return resultado
+    Hallazgos del formulario real (custom.js):
+      - chosen.js transforma los <select>: se setean con jQuery + trigger('chosen:updated')
+      - Intervalo 'day' requiere #desde y #hasta (datepicker DD-MM-YYYY), NO month/year
+      - Submit final: $('#consultar').submit() desde el handler de #search-btn
+    """
+    URL = "https://agrometeorologia.cl/PP"
 
-    headers = [h.strip() for h in lines[header_idx].split("\t")]
+    codigos = [CODIGOS_ESTACIONES[e] for e in grupo if CODIGOS_ESTACIONES.get(e)]
+    if not codigos:
+        return None
 
-    # Mapear estaciones a Ã­ndices de columna
-    col_map = {}
-    for j, h in enumerate(headers):
-        if h in estaciones:
-            col_map[h] = j
+    try:
+        driver.get(URL)
 
-    # Parsear filas de datos
-    for line in lines[header_idx + 1:]:
-        if not line.strip() or "uso de los datos" in line or "Descargar" in line:
-            continue
-        cols = line.split("\t")
-        if len(cols) < 2:
-            continue
+        # Esperar que jQuery y chosen.js estén listos
+        wait.until(EC.presence_of_element_located((By.ID, "estaciones")))
+        wait.until(lambda d: d.execute_script("return typeof $ !== 'undefined' && $.fn.chosen !== undefined"))
+        time.sleep(2)
 
-        # Normalizar fecha a YYYY-MM-DD
-        fecha_raw = cols[0].strip()
-        try:
-            partes = fecha_raw.split("-")
-            if len(partes) == 3 and len(partes[0]) == 2:
-                fecha = f"{partes[2]}-{partes[1]}-{partes[0]}"
-            else:
-                fecha = fecha_raw
-        except:
-            continue
+        # Setear todo via jQuery + chosen.js API (como lo lee el handler de #search-btn)
+        driver.execute_script(f"""
+            // 1. Variable PP_SUM (chosen-select-vars)
+            $('#variables').val(['PP_SUM']).trigger('chosen:updated');
 
-        for est, idx in col_map.items():
-            if idx < len(cols):
+            // 2. Estaciones por código (chosen-select-emas)
+            $('#estaciones').val({json.dumps(codigos)}).trigger('chosen:updated');
+
+            // 3. Intervalo diario
+            $('#intervalo').val('day').trigger('change');
+
+            // 4. Fechas de inicio y fin (requeridas para intervalo 'day' y 'hour')
+            $('#desde').val('{f_ini_web}');
+            $('#hasta').val('{f_fin_web}');
+
+            // 5. Marcar Excel (desmarcar los demás)
+            $('#excel').prop('checked', true);
+            $('#csv').prop('checked', false);
+            $('#tabla').prop('checked', false);
+            $('#grafico').prop('checked', false);
+        """)
+        time.sleep(1)
+
+        # Verificar que chosen registró los valores
+        n_est = driver.execute_script(
+            "return ($('.chosen-select-emas').val() || []).length;"
+        )
+        if n_est == 0:
+            print("    ⚠ chosen.js no registró estaciones")
+            return None
+
+        # 6. Enviar formulario y esperar la página de respuesta con el link de descarga
+        driver.execute_script("$('#consultar').submit();")
+
+        # 7. Esperar que aparezca el link de descarga .xlsx en la respuesta
+        #    El servidor genera el archivo y lo expone en /tmp/agrometeorologia-*.xlsx
+        import re as _re
+        import requests as _req
+
+        link_xlsx = None
+        for i in range(60):
+            time.sleep(3)
+            src = driver.page_source
+            m = _re.search(r'href="(https?://[^"]+\.xlsx)"', src)
+            if m:
+                link_xlsx = m.group(1)
+                break
+            if i % 10 == 9:
+                print(f"    ⏳ Esperando link de descarga... {(i+1)*3}s")
+
+        if not link_xlsx:
+            return None
+
+        # 8. Descargar el archivo directamente con requests
+        print(f"    ↓ Descargando {link_xlsx.split('/')[-1]}")
+        resp = _req.get(link_xlsx, timeout=60,
+                        headers={"User-Agent": "Mozilla/5.0",
+                                 "Referer": "https://agrometeorologia.cl/PP"})
+        if resp.status_code != 200:
+            print(f"    ✗ Error HTTP {resp.status_code} al descargar Excel")
+            return None
+
+        dest = os.path.join(dl_dir, link_xlsx.split("/")[-1])
+        with open(dest, "wb") as fh:
+            fh.write(resp.content)
+        return dest
+
+    except Exception as e:
+        print(f"    ✗ Error descargando grupo: {e}")
+        return None
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  PARSEO EXCEL — formato agrometeorologia.cl
+# ═══════════════════════════════════════════════════════════════════════════
+def parsear_excel(arch):
+    """
+    Parsea Excel de agrometeorologia.cl.
+    Busca la fila con 'Tiempo' como encabezado, luego lee
+    fechas (columna 0) y valores por estación (columnas 1..n).
+    Retorna {nombre_estacion: {fecha_iso: mm_float}}
+    """
+    try:
+        import pandas as pd
+        df = pd.read_excel(arch, header=None)
+
+        # Buscar fila de encabezados
+        header_row = None
+        for i, row in df.iterrows():
+            if any("Tiempo" in str(v) for v in row.values):
+                header_row = i
+                break
+        if header_row is None:
+            return {}
+
+        df.columns = [str(c).strip() for c in df.iloc[header_row]]
+        df = df.iloc[header_row + 1:].reset_index(drop=True)
+
+        result = {}
+        fecha_col = df.columns[0]
+
+        for col in df.columns[1:]:
+            nombre = str(col).strip()
+            # Ignorar columnas de metadatos (% cobertura, nan, etc.)
+            if not nombre or nombre == "nan" or "%" in nombre or "datos" in nombre.lower():
+                continue
+            result[nombre] = {}
+            for _, row in df.iterrows():
+                fr = str(row[fecha_col]).strip()
                 try:
                     p = fr.split("-")
-                    fecha = f"{p[2]}-{p[1]}-{p[0]}" if len(p[0]) == 2 else fr
-                    val = row.iloc[j]
+                    # Normalizar DD-MM-YYYY → YYYY-MM-DD
+                    if len(p) == 3 and len(p[0]) == 2:
+                        fecha = f"{p[2]}-{p[1]}-{p[0]}"
+                    elif len(p) == 3 and len(p[0]) == 4:
+                        fecha = fr  # ya es YYYY-MM-DD
+                    else:
+                        continue  # no es una fecha válida (disclaimer, nan, etc.)
+                    val = row[col]
                     result[nombre][fecha] = round(float(val), 1) if str(val) != "nan" else None
-                except:
-                    pass
+                except Exception:
+                    continue  # saltar filas no numéricas (disclaimers, etc.)
+
         return result
+
     except Exception as e:
         print(f"    ✗ Parse error: {e}")
         return {}
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════════
 #  MAIN
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════════════════════════
 def main():
     f_ini_web, f_fin_web, f_ini_iso, f_fin_iso = calcular_fechas()
-    print(f"PerÃ­odo: {f_ini_iso} â†’ {f_fin_iso}")
+    print(f"Período: {f_ini_iso} → {f_fin_iso}")
+    print(f"Fechas web: {f_ini_web} → {f_fin_web}")
 
     dl_dir      = tempfile.mkdtemp()
     todos_datos = {}
@@ -203,15 +384,15 @@ def main():
     try:
         for i, grupo in enumerate(GRUPOS_ESTACIONES, 1):
             cortos = [e.split(",")[0].strip() for e in grupo]
-            print(f"Grupo {i}/{len(GRUPOS_ESTACIONES)}: {', '.join(cortos)}")
+            print(f"\nGrupo {i}/{len(GRUPOS_ESTACIONES)}: {', '.join(cortos)}")
             arch = descargar_grupo(driver, wait, grupo, f_ini_web, f_fin_web, dl_dir)
             if arch:
                 datos = parsear_excel(arch)
                 todos_datos.update(datos)
-                print(f"  âœ“ {len(datos)} estaciones")
+                print(f"  ✓ {len(datos)} estaciones parseadas")
                 os.remove(arch)
             else:
-                print("  ✗ Sin archivo")
+                print("  ✗ Sin archivo descargado")
             time.sleep(2)
     finally:
         driver.quit()
@@ -220,8 +401,11 @@ def main():
     # Agrupar por paisaje
     por_paisaje = {}
     for est, dias in todos_datos.items():
-        paisaje = next((p for n, p in ESTACION_PAISAJE.items()
-                        if n.lower() in est.lower() or est.lower() in n.lower()), None)
+        paisaje = next(
+            (p for n, p in ESTACION_PAISAJE.items()
+             if n.lower() in est.lower() or est.lower() in n.lower()),
+            None
+        )
         if not paisaje:
             continue
         por_paisaje.setdefault(paisaje, {})[est] = dias
@@ -237,8 +421,7 @@ def main():
     with open("data/precipitaciones.json", "w", encoding="utf-8") as f:
         json.dump(resultado, f, ensure_ascii=False, indent=2)
 
-    print(f"\nâœ… data/precipitaciones.json â€” {len(todos_datos)} estaciones, {len(por_paisaje)} paisajes")
+    print(f"\n✅ data/precipitaciones.json — {len(todos_datos)} estaciones, {len(por_paisaje)} paisajes")
 
 if __name__ == "__main__":
     main()
-
