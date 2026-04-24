@@ -376,7 +376,6 @@ function buildWeatherTable(days, paisaje) {
         <td class="col-day">
           <div class="day-cell-name">${dayName}</div>
           <div class="day-cell-date">${dayNum} ${month}</div>
-          <div class="day-cell-status" style="color:${SEM_COLORS[sem]}">${SEM_LABELS[sem]}</div>
         </td>
         <td>
           <div class="w-icon">${codigoIcono(slot.codigo)}</div>
