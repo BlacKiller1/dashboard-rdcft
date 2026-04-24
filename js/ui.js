@@ -203,7 +203,7 @@ function mostrarDetalleDia(idx) {
         <div class="slot-header">
           <div class="slot-hora">${s.hora}</div>
           <div class="slot-icon">${codigoIcono(s.codigo)}</div>
-          <div class="slot-rdcft" style="color:${rdcftColor}">${rdcftIcon} ${s.rdcft.operable ? 'Posible' : 'No posible'}</div>
+          <div class="slot-rdcft" style="color:${rdcftColor}">${rdcftIcon} ${s.rdcft.operable ? 'Favorable' : 'No favorable'}</div>
         </div>
         <div class="slot-datos">
           <div class="slot-dato"><span class="sd-l">🌡 Temp.</span><span class="sd-v" style="color:${tempColor(s.temp)}">${s.temp}°C</span></div>
@@ -286,7 +286,7 @@ function buildWeatherTable(days, paisaje) {
       ? `Todas las horas dentro del límite`
       : ninguno
         ? `Viento supera ${VIENTO_LIMITE_RDCFT} km/h en todas las horas`
-        : `Operable: ${horasOp} · No operable: ${horasNO}`;
+        : `Favorable: ${horasOp} · No favorable: ${horasNO}`;
 
     return `
       <tr>
@@ -704,6 +704,7 @@ async function ejecutarConsulta() {
     const filas = slots24.map(s => {
       const rdcftColor = s.operable ? 'var(--c-green)' : 'var(--c-red)';
       const rdcftIcon  = s.operable ? '✅' : '🚫';
+    const rdcftTexto = s.operable ? 'Favorable' : 'No favorable';
       return `
         <tr>
           <td style="text-align:left;padding-left:0;">
@@ -720,7 +721,7 @@ async function ejecutarConsulta() {
           </td>
           <td style="color:var(--c-yellow)">${s.racha} km/h</td>
           <td style="font-size:10px;color:var(--c-text-muted)">${s.direccion}° ${compassLabel(s.direccion)}</td>
-          <td style="color:${rdcftColor};font-weight:600;font-size:13px">${rdcftIcon}</td>
+          <td style="color:${rdcftColor};font-weight:600;font-size:11px">${rdcftIcon} ${rdcftTexto}</td>
         </tr>`;
     }).join('');
 
