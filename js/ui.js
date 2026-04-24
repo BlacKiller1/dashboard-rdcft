@@ -613,7 +613,7 @@ function renderOperationalCard(paisaje, days) {
           <div class="mv" style="color:var(--c-red)">${diasBad}</div>
         </div>
         <div class="ms">
-          <div class="ml">Precip. total</div>
+          <div class="ml">Precipitación Total Pronosticada</div>
           <div class="mv" style="color:var(--c-blue)">${totalPrecip.toFixed(1)} mm</div>
         </div>
         <div class="ms">
