@@ -278,7 +278,7 @@ function buildWeatherTable(days, paisaje) {
     const ninguno       = day.slots.every(s => !s.rdcft.operable);
     const rdcftColor    = todosOp  ? 'var(--c-green)'  : ninguno ? 'var(--c-red)' : 'var(--c-yellow)';
     const rdcftIcon     = todosOp  ? '✅' : ninguno ? '🚫' : '⚠️';
-    const rdcftLabel    = todosOp  ? 'Posible' : ninguno ? 'No posible' : 'Parcial';
+    const rdcftLabel    = todosOp  ? 'Posible' : ninguno ? 'No posible' : 'Restricción';
     // Resumen de qué horas son operables
     const horasOp       = day.slots.filter(s => s.rdcft.operable).map(s => s.hora).join(', ');
     const horasNO       = day.slots.filter(s => !s.rdcft.operable).map(s => s.hora).join(', ');
