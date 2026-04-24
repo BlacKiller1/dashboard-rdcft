@@ -283,9 +283,9 @@ def descargar_grupo(driver, wait, grupo, f_ini_web, f_fin_web, dl_dir):
         for i in range(60):
             time.sleep(3)
             src = driver.page_source
-            m = _re.search(r'href="(https?://[^"]+\.xlsx)"', src)
-            if m:
-                link_xlsx = m.group(1)
+            matches = _re.findall(r'href="(https?://[^"]+\.xlsx)"', src)
+            if matches:
+                link_xlsx = matches[-1]  # tomar el más reciente (último en el HTML)
                 break
             if i % 10 == 9:
                 print(f"    ⏳ Esperando link de descarga... {(i+1)*3}s")
@@ -342,8 +342,11 @@ def parsear_excel(arch):
 
         for col in df.columns[1:]:
             nombre = str(col).strip()
-            # Ignorar columnas de metadatos (% cobertura, nan, etc.)
-            if not nombre or nombre == "nan" or "%" in nombre or "datos" in nombre.lower():
+            # Ignorar columnas de metadatos (% cobertura, nan, nombres de variable, etc.)
+            _skip_words = ("nan", "%", "datos", "precipitación", "temperatura",
+                           "humedad", "velocidad", "dirección", "radiación",
+                           "acumulada", "viento", "presión")
+            if not nombre or any(w in nombre.lower() for w in _skip_words):
                 continue
             result[nombre] = {}
             for _, row in df.iterrows():
