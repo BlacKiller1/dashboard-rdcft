@@ -165,8 +165,9 @@ function renderSemaforo(paisaje, days) {
 
 // ── Detalle por día al hacer clic en semáforo ─────────────────────────────
 function mostrarDetalleDia(idx) {
-  if (!activeWeatherDays) return;
-  const day     = activeWeatherDays[idx];
+  const days = window.activeWeatherDays || activeWeatherDays;
+  if (!days) return;
+  const day  = days[idx];
   if (!day) return;
 
   const DAY_FULL  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -254,7 +255,7 @@ function buildWeatherTable(days, paisaje) {
       <th>💨 Viento</th>
       <th>⚡ Racha</th>
       <th>🧭 Dirección</th>
-      <th>🔥 RDCFT</th>
+      <th>🔥 Sugerencia Operacional</th>
     </tr>`;
 
   const tbody = days.map((day, di) => {
@@ -571,7 +572,8 @@ function descargarPDF(nombrePaisaje) {
 // ── Render completo del detalle ───────────────────────────────────────────
 function renderDetail(idx, days) {
   const p           = PAISAJES[idx];
-  activeWeatherDays = days;
+  activeWeatherDays        = days;
+  window.activeWeatherDays = days;  // accesible desde onclick en HTML
   activePaisajeIdx  = idx;
 
   document.getElementById('detailPanel').innerHTML =
