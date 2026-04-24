@@ -139,11 +139,12 @@ function renderEmpty() {
         'no-favorable': 'No favorable',
         'sin-rdcft':    'Sin RDCFT programado'
       };
+      const tieneEstado = PAISAJE_ESTADO[idx] !== undefined;
       return `
         <div class="resumen-paisaje" onclick="onSelectPaisaje(${idx})">
           <span class="resumen-dot" style="background:${colores[estado]}"></span>
           <span class="resumen-nombre">${nombre}</span>
-          <span class="resumen-estado" style="color:${colores[estado]}">${etiquetas[estado]}</span>
+          ${tieneEstado ? `<span class="resumen-estado" style="color:${colores[estado]}">${etiquetas[estado]}</span>` : ''}
         </div>`;
     }).join('');
 
