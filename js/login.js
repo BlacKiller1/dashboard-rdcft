@@ -1,90 +1,182 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   login.js
-   Verificación de correo @arauco.com — Sin contraseña
+   login.js — Autenticación con base de datos de usuarios y roles
    Dashboard Meteorológico RDCFT — Arauco
    ═══════════════════════════════════════════════════════════════════════ */
 
-const DOMINIO_PERMITIDO = 'arauco.com';
-const SESSION_KEY = 'rdcft_user';
+const SESSION_KEY  = 'rdcft_user';
+const USUARIOS_URL = 'https://arauco-rdcft.vercel.app/data/usuarios.json';
+let usuariosDB     = null;
 
-/* ── Verificar sesión activa ───────────────────────────────────────── */
-function verificarSesion() {
-  const usuario = sessionStorage.getItem(SESSION_KEY);
-  if (usuario) return JSON.parse(usuario);
-  return null;
+async function cargarUsuarios() {
+  try {
+    const resp = await fetch(USUARIOS_URL);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    usuariosDB = data.usuarios || [];
+  } catch (err) {
+    console.warn('[RDCFT] Error cargando usuarios:', err);
+    usuariosDB = [];
+  }
 }
 
-/* ── Mostrar login ─────────────────────────────────────────────────── */
+function verificarSesion() {
+  const u = sessionStorage.getItem(SESSION_KEY);
+  return u ? JSON.parse(u) : null;
+}
+
 function mostrarLogin() {
   document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('appShell').style.display = 'none';
-  // Enfocar input automáticamente
-  setTimeout(() => {
-    const input = document.getElementById('inputEmail');
-    if (input) input.focus();
-  }, 100);
+  document.getElementById('appShell').style.display   = 'none';
+  setTimeout(() => { const i = document.getElementById('inputEmail'); if (i) i.focus(); }, 100);
 }
 
-/* ── Mostrar dashboard ─────────────────────────────────────────────── */
 function mostrarDashboard(usuario) {
   document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('appShell').style.display = 'flex';
-
+  document.getElementById('appShell').style.display   = 'flex';
   const badge = document.getElementById('userBadge');
-  if (badge) badge.textContent = usuario.email;
+  if (badge) { badge.textContent = usuario.email; badge.title = `Rol: ${usuario.rol}`; }
+  const btnAdmin = document.getElementById('btnAdmin');
+  if (btnAdmin) btnAdmin.style.display = usuario.rol === 'admin' ? 'inline-flex' : 'none';
 }
 
-/* ── Verificar correo ──────────────────────────────────────────────── */
-function verificarCorreo() {
+async function verificarCorreo() {
   const input    = document.getElementById('inputEmail');
   const errorMsg = document.getElementById('loginError');
-  const btnAcceder = document.getElementById('btnAcceder');
-
-  const email  = (input.value || '').trim().toLowerCase();
-  const dominio = email.split('@')[1] || '';
-
-  // Limpiar error previo
+  const btn      = document.getElementById('btnAcceder');
+  const email    = (input.value || '').trim().toLowerCase();
   errorMsg.style.display = 'none';
 
-  // Validar formato básico
   if (!email.includes('@')) {
     errorMsg.textContent = 'Ingresa un correo electrónico válido.';
-    errorMsg.style.display = 'block';
-    input.focus();
-    return;
+    errorMsg.style.display = 'block'; return;
+  }
+  if (!email.endsWith('@arauco.com')) {
+    errorMsg.textContent = 'Acceso restringido. Solo se permiten correos @arauco.com.';
+    errorMsg.style.display = 'block'; return;
   }
 
-  // Validar dominio
-  if (dominio !== DOMINIO_PERMITIDO) {
-    errorMsg.textContent = `Acceso restringido. Solo se permiten correos @${DOMINIO_PERMITIDO}. El correo "${email}" no está autorizado.`;
-    errorMsg.style.display = 'block';
-    input.focus();
-    return;
+  btn.textContent = '⏳ Verificando...'; btn.disabled = true;
+  if (!usuariosDB) await cargarUsuarios();
+
+  const encontrado = usuariosDB.find(u => u.email === email);
+  btn.textContent = 'Acceder →'; btn.disabled = false;
+
+  if (!encontrado) {
+    errorMsg.textContent = `El correo ${email} no está registrado. Contacta al administrador.`;
+    errorMsg.style.display = 'block'; return;
   }
 
-  // Acceso permitido — guardar sesión
-  const usuario = { email };
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
-  mostrarDashboard(usuario);
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(encontrado));
+  mostrarDashboard(encontrado);
 }
 
-/* ── Cerrar sesión ─────────────────────────────────────────────────── */
 function cerrarSesion() {
   sessionStorage.removeItem(SESSION_KEY);
   mostrarLogin();
 }
 
-/* ── Permitir Enter en el input ────────────────────────────────────── */
-function handleKeyDown(event) {
-  if (event.key === 'Enter') verificarCorreo();
+function handleKeyDown(e) { if (e.key === 'Enter') verificarCorreo(); }
+
+/* ── Panel Admin ── */
+function abrirAdmin() {
+  const u = verificarSesion();
+  if (!u || u.rol !== 'admin') return;
+  document.getElementById('adminPanel').style.display = 'flex';
+  cargarTablaUsuarios();
 }
 
-/* ── Inicializar ───────────────────────────────────────────────────── */
-window.addEventListener('DOMContentLoaded', () => {
-  const sesionActiva = verificarSesion();
-  if (sesionActiva) {
-    mostrarDashboard(sesionActiva);
-  } else {
-    mostrarLogin();
+function cerrarAdmin() {
+  document.getElementById('adminPanel').style.display = 'none';
+}
+
+function cargarTablaUsuarios() {
+  if (!usuariosDB) return;
+  const tbody = document.getElementById('adminTablaBody');
+  const usuario = verificarSesion();
+  tbody.innerHTML = usuariosDB.map((u, i) => `
+    <tr>
+      <td>${u.email}</td>
+      <td><span class="rol-badge rol-${u.rol}">${u.rol === 'admin' ? '⭐ Admin' : '👤 Usuario'}</span></td>
+      <td>${u.cargo || '-'}</td>
+      <td>${u.email !== usuario.email ? `<button class="admin-del-btn" onclick="eliminarUsuario(${i})">✕</button>` : '-'}</td>
+    </tr>
+  `).join('');
+}
+
+async function agregarUsuario() {
+  const emailInput = document.getElementById('adminNuevoEmail');
+  const rolInput   = document.getElementById('adminNuevoRol');
+  const cargoInput = document.getElementById('adminNuevoCargo');
+  const errorDiv   = document.getElementById('adminError');
+  const email      = (emailInput.value || '').trim().toLowerCase();
+  const rol        = rolInput.value;
+  const cargo      = cargoInput.value.trim();
+  errorDiv.style.display = 'none';
+
+  if (!email.endsWith('@arauco.com')) {
+    errorDiv.textContent = 'Solo se permiten correos @arauco.com';
+    errorDiv.style.display = 'block'; return;
   }
+  if (usuariosDB.find(u => u.email === email)) {
+    errorDiv.textContent = 'Este correo ya está registrado';
+    errorDiv.style.display = 'block'; return;
+  }
+  if (rol === 'admin' && usuariosDB.filter(u => u.rol === 'admin').length >= 5) {
+    errorDiv.textContent = 'Máximo 5 administradores permitidos';
+    errorDiv.style.display = 'block'; return;
+  }
+
+  usuariosDB.push({ email, rol, cargo });
+  emailInput.value = ''; cargoInput.value = '';
+  cargarTablaUsuarios();
+  await guardarUsuarios();
+}
+
+async function eliminarUsuario(idx) {
+  const aEliminar = usuariosDB[idx];
+  if (!confirm(`¿Eliminar a ${aEliminar.email}?`)) return;
+  usuariosDB.splice(idx, 1);
+  cargarTablaUsuarios();
+  await guardarUsuarios();
+}
+
+async function guardarUsuarios() {
+  const btn = document.getElementById('btnGuardarUsuarios');
+  if (btn) { btn.textContent = '⏳ Guardando...'; btn.disabled = true; }
+  try {
+    const tokenResp = await fetch('/api/token');
+    if (!tokenResp.ok) throw new Error('Token no disponible');
+    const { token } = await tokenResp.json();
+    const repo   = 'BlacKiller1/dashboard-rdcft';
+    const path   = 'data/usuarios.json';
+    const apiUrl = `https://api.github.com/repos/${repo}/contents/${path}`;
+    const getResp = await fetch(apiUrl, { headers: { 'Authorization': `token ${token}` } });
+    const { sha } = await getResp.json();
+    const contenido = btoa(unescape(encodeURIComponent(JSON.stringify({ usuarios: usuariosDB }, null, 2))));
+    const putResp = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: `actualizar usuarios ${new Date().toISOString()}`, content: contenido, sha })
+    });
+    if (!putResp.ok) throw new Error(`GitHub: ${putResp.status}`);
+    mostrarMensajeAdmin('✅ Usuarios guardados correctamente', 'success');
+  } catch (err) {
+    mostrarMensajeAdmin('❌ Error al guardar. Verifica el token en Vercel.', 'error');
+  } finally {
+    if (btn) { btn.textContent = '💾 Guardar cambios'; btn.disabled = false; }
+  }
+}
+
+function mostrarMensajeAdmin(msg, tipo) {
+  const div = document.getElementById('adminMensaje');
+  if (!div) return;
+  div.textContent = msg; div.className = `admin-mensaje admin-mensaje-${tipo}`;
+  div.style.display = 'block';
+  setTimeout(() => div.style.display = 'none', 4000);
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  await cargarUsuarios();
+  const sesion = verificarSesion();
+  sesion ? mostrarDashboard(sesion) : mostrarLogin();
 });

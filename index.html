@@ -127,6 +127,7 @@
         <p>Informe meteorológico · Open-Meteo API · Arauco RDCFT</p>
       </div>
       <span id="userBadge" class="user-badge"></span>
+      <button id="btnAdmin" class="admin-btn" onclick="abrirAdmin()" style="display:none;">⚙️ Gestionar usuarios</button>
       <button class="logout-btn" onclick="cerrarSesion()" title="Cerrar sesión">⎋ Salir</button>
       <button class="consulta-btn" onclick="abrirConsulta()">
         📍 Consultar coordenadas
@@ -235,6 +236,57 @@
   window.addEventListener("resize", actualizarMenuBtn);
   window.addEventListener("DOMContentLoaded", actualizarMenuBtn);
 </script>
+
+
+<!-- ══════════════════════════════════════
+     PANEL ADMINISTRACIÓN
+     ══════════════════════════════════════ -->
+<div id="adminPanel" class="admin-overlay" style="display:none;">
+  <div class="admin-modal">
+    <div class="admin-header">
+      <span class="admin-title">⚙️ Gestión de Usuarios</span>
+      <button class="modal-close" onclick="cerrarAdmin()">✕</button>
+    </div>
+    <div class="admin-body">
+
+      <!-- Agregar usuario -->
+      <div class="admin-form">
+        <div class="admin-form-title">Agregar nuevo usuario</div>
+        <div class="admin-form-row">
+          <input type="email" id="adminNuevoEmail" placeholder="correo@arauco.com" class="admin-input"/>
+          <select id="adminNuevoRol" class="admin-select">
+            <option value="usuario">👤 Usuario</option>
+            <option value="admin">⭐ Admin</option>
+          </select>
+          <input type="text" id="adminNuevoCargo" placeholder="Cargo (opcional)" class="admin-input"/>
+          <button class="admin-add-btn" onclick="agregarUsuario()">+ Agregar</button>
+        </div>
+        <div id="adminError" class="admin-error" style="display:none;"></div>
+      </div>
+
+      <div id="adminMensaje" style="display:none;"></div>
+
+      <!-- Tabla de usuarios -->
+      <div class="admin-tabla-wrap">
+        <table class="admin-tabla">
+          <thead>
+            <tr>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Cargo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="adminTablaBody"></tbody>
+        </table>
+      </div>
+
+      <div class="admin-footer">
+        <button id="btnGuardarUsuarios" class="admin-save-btn" onclick="guardarUsuarios()">💾 Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
