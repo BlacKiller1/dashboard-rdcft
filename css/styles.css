@@ -1681,3 +1681,20 @@ html, body {
     display: none;
   }
 }
+
+/* ── Topbar móvil ultra compacto ── */
+@media (max-width: 768px) {
+  /* Ocultar texto de botones, dejar solo ícono */
+  .admin-btn span.btn-text,
+  .logout-btn span.btn-text,
+  .consulta-btn span.btn-text { display: none; }
+
+  .admin-btn   { padding: 6px 8px; font-size: 14px; }
+  .logout-btn  { padding: 6px 8px; font-size: 14px; }
+  .consulta-btn { padding: 6px 8px; font-size: 14px; }
+
+  /* Badge solo mostrar email corto */
+  .user-badge  { max-width: 130px; }
+  .user-email  { font-size: 10px; }
+  .user-cargo  { display: none; }
+}
