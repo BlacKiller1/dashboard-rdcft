@@ -654,14 +654,17 @@ function descargarPDF(nombrePaisaje) {
 
   // Filas de la tabla
   const filas = days.map(d => {
-    const slot = d.slots[0] || {};
-    const est  = estadoDia(d);
-    const color = ESTADO_COLOR[est] || '#888';
-    const bg    = ESTADO_BG[est] || '#F1EFE8';
-    const label = ESTADO_LABEL[est] || '-';
+    const slot    = d.slots[0] || {};
+    const est     = estadoDia(d);
+    const color   = ESTADO_COLOR[est] || '#888';
+    const bg      = ESTADO_BG[est] || '#F1EFE8';
+    const label   = ESTADO_LABEL[est] || '-';
+    const dateObj = new Date(d.date + 'T12:00:00');
+    const dayAbbr = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'][dateObj.getDay()];
+    const fecha   = d.date.slice(5).replace('-','/');
     return `
       <tr>
-        <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;">${d.label}</td>
+        <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;">${dayAbbr} ${fecha}</td>
         <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;">${slot.temp !== undefined ? slot.temp+'°C' : '-'}</td>
         <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;">${slot.hum !== undefined ? slot.hum+'%' : '-'}</td>
         <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;">${slot.precip !== undefined ? slot.precip.toFixed(1)+' mm' : '-'}</td>
@@ -675,15 +678,18 @@ function descargarPDF(nombrePaisaje) {
 
   // Semáforo
   const semaforoCells = days.map(d => {
-    const est   = estadoDia(d);
-    const color = ESTADO_COLOR[est] || '#888';
-    const bg    = ESTADO_BG[est] || '#F1EFE8';
-    const icon  = ESTADO_ICON[est] || '-';
+    const est     = estadoDia(d);
+    const color   = ESTADO_COLOR[est] || '#888';
+    const bg      = ESTADO_BG[est] || '#F1EFE8';
+    const icon    = ESTADO_ICON[est] || '-';
+    const dateObj = new Date(d.date + 'T12:00:00');
+    const dayAbbr = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'][dateObj.getDay()];
+    const fecha   = d.date.slice(5).replace('-','/');
     return `
       <td style="width:13%;text-align:center;padding:4px;">
         <div style="background:${bg};border-radius:8px;padding:8px 4px;">
-          <div style="font-size:10px;font-weight:500;color:${color};">${d.label.split(' ')[0]}</div>
-          <div style="font-size:9px;color:#999;margin:2px 0;">${d.label.split(' ')[1]||''}</div>
+          <div style="font-size:10px;font-weight:500;color:${color};">${dayAbbr}</div>
+          <div style="font-size:9px;color:#999;margin:2px 0;">${fecha}</div>
           <div style="font-size:18px;color:${color};font-weight:500;">${icon}</div>
           <div style="font-size:8px;color:${color};font-weight:500;">${ESTADO_LABEL[est]||'-'}</div>
         </div>
