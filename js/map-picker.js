@@ -72,7 +72,7 @@ function iniciarMapa() {
   capaMapa.addTo(mapaInstance);
 
   // ── Cargar capa de predios ──────────────────────────────────────
-  fetch('https://arauco-rdcft.vercel.app/data/predios.geojson')
+  fetch('/data/predios.geojson')
     .then(r => r.json())
     .then(data => {
       capaPredios = L.geoJSON(data, {
@@ -105,7 +105,10 @@ function iniciarMapa() {
           layer.on('mouseout', function() {
             layer.setStyle({ fillOpacity: 0.12, weight: 1.2, color: '#2DB87A' });
           });
-          layer.on('click', function(e) {
+          layer.on('mousedown', function(e) {
+            L.DomEvent.stopPropagation(e);
+          });
+          layer.on('touchstart', function(e) {
             L.DomEvent.stopPropagation(e);
           });
         }
@@ -113,11 +116,43 @@ function iniciarMapa() {
     })
     .catch(err => console.warn('[RDCFT] Sin capa de predios:', err));
 
+  // ── Long press para asignar coordenadas (800ms) ──────────────────
+  let longPressTimer = null;
+  let longPressActivo = false;
+
+  function iniciarLongPress(e) {
+    longPressActivo = false;
+    longPressTimer = setTimeout(() => {
+      longPressActivo = true;
+      const lat = parseFloat(e.latlng.lat.toFixed(6));
+      const lon = parseFloat(e.latlng.lng.toFixed(6));
+      colocarMarcador(lat, lon);
+      rellenarCoordenadas(lat, lon);
+      // Vibración en móvil
+      if (navigator.vibrate) navigator.vibrate(60);
+    }, 800);
+  }
+
+  function cancelarLongPress() {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+  }
+
+  // Mouse (desktop)
+  mapaInstance.on('mousedown', iniciarLongPress);
+  mapaInstance.on('mouseup', cancelarLongPress);
+  mapaInstance.on('mousemove', cancelarLongPress);
+
+  // Touch (móvil)
+  mapaInstance.on('touchstart', iniciarLongPress);
+  mapaInstance.on('touchend', cancelarLongPress);
+  mapaInstance.on('touchmove', cancelarLongPress);
+
+  // Clic simple → solo si no fue long press
   mapaInstance.on('click', function(e) {
-    const lat = parseFloat(e.latlng.lat.toFixed(6));
-    const lon = parseFloat(e.latlng.lng.toFixed(6));
-    colocarMarcador(lat, lon);
-    rellenarCoordenadas(lat, lon);
+    if (longPressActivo) { longPressActivo = false; return; }
   });
 
   mapaIniciado = true;
