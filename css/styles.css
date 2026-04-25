@@ -1602,3 +1602,51 @@ html, body {
   color: var(--c-text-dim);
 }
 .admin-rol-quitar:hover { background: rgba(255,255,255,0.1); }
+
+/* ── Badge usuario con rol y cargo ── */
+.user-badge {
+  display: flex !important;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  max-width: 220px;
+}
+.user-email {
+  font-size: 11px;
+  color: var(--c-text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+.user-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.user-cargo {
+  font-size: 9px;
+  color: var(--c-text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+.user-rol {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.user-rol.rol-admin {
+  background: rgba(232,130,10,0.15);
+  color: var(--c-orange);
+  border: 0.5px solid rgba(232,130,10,0.3);
+}
+.user-rol.rol-usuario {
+  background: rgba(255,255,255,0.06);
+  color: var(--c-text-dim);
+  border: 0.5px solid var(--c-border);
+}

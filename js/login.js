@@ -35,8 +35,18 @@ function mostrarLogin() {
 function mostrarDashboard(usuario) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appShell').style.display   = 'flex';
+
   const badge = document.getElementById('userBadge');
-  if (badge) { badge.textContent = usuario.email; badge.title = `Rol: ${usuario.rol}`; }
+  if (badge) {
+    badge.innerHTML = `
+      <span class="user-email">${usuario.email}</span>
+      <span class="user-meta">
+        <span class="user-cargo">${usuario.cargo || ''}</span>
+        <span class="user-rol rol-${usuario.rol}">${usuario.rol === 'admin' ? '⭐ Admin' : '👤 Usuario'}</span>
+      </span>
+    `;
+  }
+
   const btnAdmin = document.getElementById('btnAdmin');
   if (btnAdmin) btnAdmin.style.display = usuario.rol === 'admin' ? 'inline-flex' : 'none';
 }
