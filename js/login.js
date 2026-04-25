@@ -4,10 +4,9 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 const SESSION_KEY  = 'rdcft_user';
-// En localhost usar archivo directo, en produccion usar API segura
-const USUARIOS_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'https://arauco-rdcft.vercel.app/api/token?type=usuarios'
-  : '/api/token?type=usuarios';
+// En localhost usar archivo local, en produccion usar API segura
+const ES_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const USUARIOS_URL = ES_LOCAL ? '/data/usuarios.json' : '/api/token?type=usuarios';
 let usuariosDB     = null;
 
 async function cargarUsuarios() {
