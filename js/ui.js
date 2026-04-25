@@ -676,20 +676,34 @@ function descargarPDF(nombrePaisaje) {
 
   document.body.appendChild(clone);
 
+  // Forzar colores claros en todos los elementos del clone
+  const allEls = clone.querySelectorAll('*');
+  allEls.forEach(el => {
+    el.style.setProperty('color', '#1a1a1a', 'important');
+    el.style.setProperty('background-color', 'transparent', 'important');
+    el.style.setProperty('border-color', '#ddd', 'important');
+  });
+  clone.style.setProperty('background-color', '#ffffff', 'important');
+
   const opt = {
     margin:      [8, 8, 8, 8],
     filename:    `RDCFT_${nombrePaisaje.replace(/ /g,'_')}.pdf`,
     image:       { type: 'jpeg', quality: 0.95 },
     html2canvas: {
-      scale: 1.5,
+      scale: 2,
       backgroundColor: '#ffffff',
       useCORS: true,
       allowTaint: true,
-      logging: false,
-      windowWidth: 840
+      logging: true,
+      onclone: function(doc) {
+        const el = doc.getElementById('pdfClone');
+        if (el) el.style.backgroundColor = '#ffffff';
+      }
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
+
+  clone.id = 'pdfClone';
 
   html2pdf().set(opt).from(clone).save().then(() => {
     document.body.removeChild(clone);
