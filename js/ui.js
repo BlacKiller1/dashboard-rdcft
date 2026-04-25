@@ -337,8 +337,8 @@ function buildWeatherTable(days, paisaje) {
       <th>🌧 Lluvia</th>
       <th>💨 Viento</th>
       <th>⚡ Racha</th>
-      <th class="col-dir">🧭 Dirección</th>
-      <th class="col-sug">🔥 Sugerencia Operacional</th>
+      <th>🧭 Dirección</th>
+      <th>🔥 Sugerencia Operacional</th>
     </tr>`;
 
   const tbody = days.map((day, di) => {
@@ -401,12 +401,12 @@ function buildWeatherTable(days, paisaje) {
         <td>
           <div class="w-gust">${slot.racha} km/h</div>
         </td>
-        <td class="col-dir">
+        <td>
           <div style="font-size:11px;color:var(--c-text-muted)">
             ${slot.direccion}° ${compassLabel(slot.direccion)}
           </div>
         </td>
-        <td class="col-sug">
+        <td>
           <div class="rdcft-cell" style="color:${rdcftColor}">
             <span class="rdcft-icon">${rdcftIcon}</span>
             <span class="rdcft-label">${rdcftLabel}</span>
@@ -804,6 +804,9 @@ async function ejecutarConsulta() {
     errDiv.style.display = 'block';
     return;
   }
+
+  // Cerrar mapa si está abierto
+  if (typeof resetMapa === 'function') resetMapa();
 
   // Loading
   btn.textContent  = '⏳ Consultando...';
