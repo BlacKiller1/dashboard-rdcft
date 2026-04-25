@@ -112,6 +112,7 @@
       <div class="leg-row"><span class="leg-d" style="background:var(--c-gray)"></span>Sin RDCFT programado</div>
     </div>
   </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="cerrarSidebar()"></div>
 
   <!-- ══════════════════════════════════════
        MAIN
@@ -119,6 +120,7 @@
   <main class="main">
 
     <header class="topbar">
+      <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()">☰</button>
       <div class="topbar-title">
         <h1 id="mainTitle">Selecciona un paisaje</h1>
         <p>Informe meteorológico · Open-Meteo API · Arauco RDCFT</p>
@@ -191,18 +193,26 @@
 <script src="js/login.js"></script>
 
 <script>
-  // Toggle sidebar en móvil
-  document.querySelector(".sidebar-header").addEventListener("click", function() {
-    if (window.innerWidth <= 768) {
-      document.querySelector(".sidebar").classList.toggle("open");
-    }
-  });
-  // Cerrar sidebar al seleccionar un paisaje en móvil
+  function toggleSidebar() {
+    if (window.innerWidth > 768) return;
+    document.querySelector(".sidebar").classList.toggle("open");
+    document.getElementById("sidebarOverlay").classList.toggle("open");
+  }
+  function cerrarSidebar() {
+    document.querySelector(".sidebar").classList.remove("open");
+    document.getElementById("sidebarOverlay").classList.remove("open");
+  }
+  // Cerrar al seleccionar paisaje
   document.querySelector("#sidebarList").addEventListener("click", function() {
-    if (window.innerWidth <= 768) {
-      document.querySelector(".sidebar").classList.remove("open");
-    }
+    if (window.innerWidth <= 768) cerrarSidebar();
   });
+  // Ocultar botón menú en desktop
+  function actualizarMenuBtn() {
+    var btn = document.getElementById("menuBtn");
+    if (btn) btn.style.display = window.innerWidth <= 768 ? "flex" : "none";
+  }
+  window.addEventListener("resize", actualizarMenuBtn);
+  window.addEventListener("DOMContentLoaded", actualizarMenuBtn);
 </script>
 
 </body>

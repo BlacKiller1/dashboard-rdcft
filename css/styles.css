@@ -861,201 +861,10 @@ html, body {
   font-size: 9.5px;
   font-weight: 500;
 }
-/* ═══════════════════════════════════════════════════════════════════════
-   RESPONSIVE — MÓVIL
-   Breakpoint principal: 768px
-   ═══════════════════════════════════════════════════════════════════════ */
-
-@media (max-width: 768px) {
-
-  /* ── Body: permitir scroll en móvil ── */
-  html, body {
-    overflow: auto;
-    height: auto;
-  }
-
-  /* ── Shell: apilado vertical ── */
-  .shell {
-    flex-direction: column;
-    height: auto;
-    min-height: 100vh;
-  }
-
-  /* ── Sidebar: barra superior colapsable ── */
-  .sidebar {
-    width: 100%;
-    min-width: unset;
-    border-right: none;
-    border-bottom: 0.5px solid var(--c-border);
-    max-height: 52px;
-    overflow: hidden;
-    transition: max-height .3s ease;
-  }
-  .sidebar.open {
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-
-  /* Header del sidebar con botón hamburguesa */
-  .sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    cursor: pointer;
-  }
-  .sidebar-header::after {
-    content: '☰';
-    font-size: 16px;
-    color: var(--c-text-dim);
-  }
-  .sidebar.open .sidebar-header::after {
-    content: '✕';
-  }
-
-  /* Lista de paisajes visible solo cuando abierto */
-  .sidebar-list {
-    padding: 4px 0 8px;
-  }
-
-  /* Leyenda oculta en móvil para ahorrar espacio */
-  .sidebar-legend {
-    display: none;
-  }
-
-  /* ── Main ocupa el resto ── */
-  .main {
-    overflow: visible;
-    height: auto;
-  }
-
-  /* ── Topbar ── */
-  .topbar {
-    padding: 10px 14px;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .topbar-title h1 {
-    font-size: 12px;
-    white-space: normal;
-  }
-  .consulta-btn {
-    font-size: 10px;
-    padding: 6px 11px;
-  }
-
-  /* Ocultar scards en móvil (demasiado espacio) */
-  .scard { display: none; }
-
-  /* ── Detail panel ── */
-  .detail {
-    padding: 12px 12px;
-    overflow-y: visible;
-    height: auto;
-  }
-
-  /* ── Cards ── */
-  .dcard {
-    padding: 14px 14px;
-  }
-  .detail-title {
-    font-size: 14px;
-  }
-  .detail-top {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  /* ── Semáforo: scroll horizontal ── */
-  .dias-row {
-    overflow-x: auto;
-    gap: 4px;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .dc {
-    min-width: 44px;
-    flex-shrink: 0;
-  }
-
-  /* ── Mini stats: 2 columnas ── */
-  .mini-stats {
-    flex-wrap: wrap;
-  }
-  .ms {
-    min-width: calc(50% - 4px);
-  }
-
-  /* ── Tabla meteorológica ── */
-  .wtable-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* ── Slots horarios: apilados verticalmente ── */
-  .slots-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  /* ── Resumen layout: una columna ── */
-  .resumen-layout {
-    grid-template-columns: 1fr;
-    height: auto;
-    gap: 10px;
-  }
-  .resumen-panel {
-    max-height: 350px;
-  }
-
-  /* ── Modal: pantalla completa en móvil ── */
-  .modal {
-    width: 100vw;
-    max-height: 100vh;
-    height: 100vh;
-    top: 0;
-    left: 0;
-    transform: none;
-    border-radius: 0;
-  }
-  .modal-fields {
-    flex-direction: column;
-  }
-  .modal-field {
-    min-width: unset;
-    width: 100%;
-  }
-  .modal-field input {
-    font-size: 16px; /* evita zoom automático en iOS */
-    padding: 10px 12px;
-  }
-
-  /* ── Decision stats: 2 por fila ── */
-  .decision-stats {
-    flex-wrap: wrap;
-  }
-  .dstat {
-    min-width: calc(50% - 4px);
-  }
-
-  /* ── Detalle día: slots apilados ── */
-  .detalle-dia-panel {
-    padding: 12px 12px;
-  }
-}
-
-/* ── Pantallas muy pequeñas (iPhone SE, etc.) ── */
-@media (max-width: 380px) {
-  .topbar-title h1 { font-size: 11px; }
-  .dcard { padding: 11px 11px; }
-  .detail { padding: 10px 10px; }
-  .ms { min-width: 100%; }
-}
 
 /* ═══════════════════════════════════════════════════════════════════════
    LOGIN SCREEN
    ═══════════════════════════════════════════════════════════════════════ */
-
 #loginScreen {
   position: fixed;
   inset: 0;
@@ -1065,17 +874,12 @@ html, body {
   justify-content: center;
   background: var(--c-bg);
 }
-
 .login-bg {
   position: absolute;
   inset: 0;
   overflow: hidden;
 }
-.login-bg svg {
-  width: 100%;
-  height: 100%;
-  opacity: .2;
-}
+.login-bg svg { width: 100%; height: 100%; opacity: .2; }
 
 .login-card {
   position: relative;
@@ -1092,117 +896,198 @@ html, body {
   text-align: center;
   backdrop-filter: blur(12px);
 }
-
-.login-brand {
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: .14em;
-  color: var(--c-orange);
-  text-transform: lowercase;
-}
-
-.login-brand-sub {
-  font-size: 10px;
-  color: var(--c-text-dim);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  margin-top: -10px;
-}
-
-.login-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--c-text);
-  margin-top: 4px;
-}
-
-.login-desc {
-  font-size: 12px;
-  color: var(--c-text-muted);
-  line-height: 1.6;
-  max-width: 280px;
-}
+.login-brand     { font-size: 28px; font-weight: 700; letter-spacing: .14em; color: var(--c-orange); text-transform: lowercase; }
+.login-brand-sub { font-size: 10px; color: var(--c-text-dim); letter-spacing: .1em; text-transform: uppercase; margin-top: -10px; }
+.login-title     { font-size: 15px; font-weight: 500; color: var(--c-text); margin-top: 4px; }
+.login-desc      { font-size: 12px; color: var(--c-text-muted); line-height: 1.6; max-width: 280px; }
 .login-desc strong { color: var(--c-orange); }
-
 .login-error {
-  font-size: 11px;
-  color: var(--c-red);
+  font-size: 11px; color: var(--c-red);
   background: var(--c-red-dim);
   border: 0.5px solid rgba(201,64,64,0.3);
-  border-radius: 8px;
-  padding: 10px 14px;
-  line-height: 1.5;
-  width: 100%;
-  text-align: left;
+  border-radius: 8px; padding: 10px 14px;
+  line-height: 1.5; width: 100%; text-align: left;
 }
-
-/* ── Botón cerrar sesión y badge usuario ── */
-.user-badge {
-  font-size: 11px;
-  color: var(--c-text-dim);
-  background: rgba(255,255,255,0.04);
-  border: 0.5px solid var(--c-border);
-  border-radius: 6px;
-  padding: 4px 10px;
-  flex-shrink: 0;
-  max-width: 160px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.logout-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 5px 11px;
-  border-radius: 7px;
-  border: 0.5px solid rgba(201,64,64,0.3);
-  background: rgba(201,64,64,0.07);
-  color: var(--c-red);
-  cursor: pointer;
-  transition: all .15s;
-  flex-shrink: 0;
-}
-.logout-btn:hover { background: rgba(201,64,64,0.15); }
-
-/* Responsive login */
-@media (max-width: 768px) {
-  .login-card {
-    padding: 28px 24px;
-  }
-  .user-badge { display: none; }
-}
-
-/* ── Input email login ── */
 .login-input {
   width: 100%;
   background: rgba(255,255,255,0.06);
   border: 0.5px solid var(--c-border-md);
-  border-radius: 9px;
-  padding: 12px 16px;
-  font-size: 14px;
-  color: var(--c-text);
-  outline: none;
-  transition: border-color .15s;
-  text-align: center;
+  border-radius: 9px; padding: 12px 16px;
+  font-size: 14px; color: var(--c-text);
+  outline: none; transition: border-color .15s; text-align: center;
 }
 .login-input:focus { border-color: var(--c-orange); }
 .login-input::placeholder { color: var(--c-text-dim); }
-
 .login-btn {
-  width: 100%;
-  padding: 12px;
-  border-radius: 9px;
+  width: 100%; padding: 12px; border-radius: 9px;
   border: 0.5px solid rgba(232,130,10,0.4);
   background: rgba(232,130,10,0.12);
-  color: var(--c-orange);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  letter-spacing: .04em;
-  transition: all .15s;
+  color: var(--c-orange); font-size: 13px; font-weight: 700;
+  cursor: pointer; letter-spacing: .04em; transition: all .15s;
 }
 .login-btn:hover { background: rgba(232,130,10,0.22); border-color: var(--c-orange); }
+
+/* Badge usuario + botón salir */
+.user-badge {
+  font-size: 11px; color: var(--c-text-dim);
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid var(--c-border);
+  border-radius: 6px; padding: 4px 10px; flex-shrink: 0;
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.logout-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 600; padding: 5px 11px;
+  border-radius: 7px; border: 0.5px solid rgba(201,64,64,0.3);
+  background: rgba(201,64,64,0.07); color: var(--c-red);
+  cursor: pointer; transition: all .15s; flex-shrink: 0;
+}
+.logout-btn:hover { background: rgba(201,64,64,0.15); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE MÓVIL — Rediseño completo
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Base ── */
+  html, body { overflow: auto; height: auto; }
+
+  /* ── Shell vertical ── */
+  .shell { flex-direction: column; height: auto; min-height: 100vh; }
+
+  /* ── Sidebar: drawer lateral oculto por defecto ── */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 80vw;
+    max-width: 280px;
+    height: 100vh;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    border-right: 0.5px solid var(--c-border-md);
+    overflow-y: auto;
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  /* Overlay oscuro detrás del drawer */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+  }
+  .sidebar-overlay.open { display: block; }
+
+  /* ── Topbar: fila compacta con botón menú ── */
+  .topbar {
+    padding: 10px 14px;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    flex-wrap: nowrap;
+  }
+
+  /* Botón hamburguesa */
+  .menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 0.5px solid var(--c-border-md);
+    background: rgba(255,255,255,0.04);
+    color: var(--c-text);
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .12s;
+  }
+  .menu-btn:hover { background: rgba(255,255,255,0.08); }
+
+  .topbar-title h1 { font-size: 12px; }
+  .topbar-title p  { font-size: 9px; }
+
+  /* Ocultar scards y badge en móvil */
+  .scard, .user-badge { display: none; }
+
+  /* Botones más compactos */
+  .consulta-btn { font-size: 10px; padding: 6px 10px; }
+  .logout-btn   { font-size: 10px; padding: 5px 9px; }
+
+  /* ── Main ── */
+  .main { overflow: visible; height: auto; }
+
+  /* ── Detail ── */
+  .detail { padding: 10px 10px; overflow-y: visible; height: auto; gap: 10px; }
+
+  /* ── Cards ── */
+  .dcard { padding: 12px 13px; }
+  .detail-title { font-size: 14px; }
+  .detail-top { flex-wrap: wrap; gap: 8px; }
+
+  /* ── Semáforo: scroll horizontal fluido ── */
+  .dias-row {
+    display: flex;
+    overflow-x: auto;
+    gap: 5px;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .dias-row::-webkit-scrollbar { display: none; }
+  .dc { min-width: 52px; flex-shrink: 0; }
+
+  /* ── Mini stats: 2x2 grid ── */
+  .mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .ms { flex: unset; }
+
+  /* ── Tabla meteorológica: scroll horizontal ── */
+  .wtable-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+    border-radius: 6px;
+  }
+  .wtable { min-width: 480px; }
+
+  /* ── Slots horarios: 1 columna ── */
+  .slots-row { grid-template-columns: 1fr; gap: 8px; }
+
+  /* ── Resumen layout: 1 columna ── */
+  .resumen-layout { grid-template-columns: 1fr; height: auto; gap: 10px; }
+  .resumen-panel  { max-height: 340px; }
+  .decision-stats { flex-wrap: wrap; }
+  .dstat          { min-width: calc(50% - 4px); }
+
+  /* ── Modal: pantalla completa ── */
+  .modal {
+    width: 100vw; height: 100dvh;
+    max-height: 100dvh;
+    top: 0; left: 0;
+    transform: none;
+    border-radius: 0;
+  }
+  .modal-fields   { flex-direction: column; }
+  .modal-field    { min-width: unset; width: 100%; }
+  .modal-field input { font-size: 16px; padding: 11px 13px; }
+
+  /* ── Detalle día ── */
+  .detalle-dia-panel { padding: 11px 11px; }
+
+  /* ── Login en móvil ── */
+  .login-card { padding: 28px 22px; }
+}
+
+@media (max-width: 380px) {
+  .topbar-title h1 { font-size: 11px; }
+  .dcard           { padding: 10px 10px; }
+  .detail          { padding: 8px 8px; }
+  .mini-stats      { grid-template-columns: 1fr; }
+}
