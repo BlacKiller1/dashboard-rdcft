@@ -805,6 +805,9 @@ async function ejecutarConsulta() {
     return;
   }
 
+  // Cerrar mapa si está abierto
+  if (typeof resetMapa === 'function') resetMapa();
+
   // Loading
   btn.textContent  = '⏳ Consultando...';
   btn.disabled     = true;
