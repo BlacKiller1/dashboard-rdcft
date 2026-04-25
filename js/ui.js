@@ -796,25 +796,42 @@ function descargarPDF(nombrePaisaje) {
 
     </div>`;
 
-  // Crear elemento temporal y generar PDF
+  // Crear elemento visible temporalmente para html2pdf
   const div = document.createElement('div');
   div.innerHTML = html;
-  div.style.position = 'absolute';
-  div.style.left = '-9999px';
+  div.style.position = 'fixed';
+  div.style.top      = '0';
+  div.style.left     = '0';
+  div.style.width    = '900px';
+  div.style.zIndex   = '-1';
+  div.style.opacity  = '0';
   document.body.appendChild(div);
 
-  const opt = {
-    margin:      [10, 10, 10, 10],
-    filename:    `RDCFT_${nombrePaisaje.replace(/ /g,'_')}_${new Date().toLocaleDateString('es-CL').replace(/\//g,'-')}.pdf`,
-    image:       { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false },
-    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
+  // Esperar a que las imágenes carguen
+  setTimeout(() => {
+    const opt = {
+      margin:      [10, 10, 10, 10],
+      filename:    `RDCFT_${nombrePaisaje.replace(/ /g,'_')}_${new Date().toLocaleDateString('es-CL').replace(/\//g,'-')}.pdf`,
+      image:       { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2, 
+        backgroundColor: '#ffffff', 
+        useCORS: true, 
+        logging: false,
+        allowTaint: true
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 
-  html2pdf().set(opt).from(div).save().then(() => {
-    document.body.removeChild(div);
-    if (btn) { btn.textContent = '⬇ Descargar PDF'; btn.disabled = false; }
-  });
+    html2pdf().set(opt).from(div).save().then(() => {
+      document.body.removeChild(div);
+      if (btn) { btn.textContent = '⬇ Descargar PDF'; btn.disabled = false; }
+    }).catch(err => {
+      console.error('[PDF] Error:', err);
+      document.body.removeChild(div);
+      if (btn) { btn.textContent = '⬇ Descargar PDF'; btn.disabled = false; }
+    });
+  }, 800);
 }
 
 // ── Render completo del detalle ───────────────────────────────────────────
