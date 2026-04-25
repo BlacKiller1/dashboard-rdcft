@@ -1331,3 +1331,31 @@ html, body {
 @media (max-width: 768px) {
   #mapContainer { height: 220px; }
 }
+
+/* ── Botones de capa del mapa ── */
+.map-layer-btns {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(14,12,9,0.95);
+  border-bottom: 0.5px solid var(--c-border);
+}
+.map-layer-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 7px;
+  border: 0.5px solid var(--c-border-md);
+  background: rgba(255,255,255,0.04);
+  color: var(--c-text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .03em;
+}
+.map-layer-btn:hover { background: rgba(255,255,255,0.08); color: var(--c-text); }
+.map-layer-btn.active {
+  background: rgba(232,130,10,0.12);
+  border-color: rgba(232,130,10,0.4);
+  color: var(--c-orange);
+}

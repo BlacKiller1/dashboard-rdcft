@@ -169,6 +169,10 @@
 
         <!-- Panel del mapa -->
         <div id="mapPanel" style="display:none;">
+          <div class="map-layer-btns">
+            <button id="btnCapaMapa" class="map-layer-btn active" onclick="cambiarCapa('mapa')">🗺️ Mapa</button>
+            <button id="btnCapaSatelite" class="map-layer-btn" onclick="cambiarCapa('satelite')">🛰️ Satélite</button>
+          </div>
           <div id="mapContainer"></div>
           <div id="mapConfirm" class="map-confirm" style="display:none;"></div>
         </div>
