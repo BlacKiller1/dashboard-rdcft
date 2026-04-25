@@ -1650,3 +1650,34 @@ html, body {
   color: var(--c-text-dim);
   border: 0.5px solid var(--c-border);
 }
+
+/* ── Badge usuario en móvil ── */
+@media (max-width: 768px) {
+  .user-badge {
+    max-width: 120px;
+  }
+  .user-email {
+    font-size: 10px;
+    max-width: 110px;
+  }
+  .user-cargo {
+    display: none;
+  }
+  .user-rol {
+    font-size: 8px;
+    padding: 1px 5px;
+  }
+  .admin-btn {
+    font-size: 9px;
+    padding: 4px 8px;
+  }
+  /* Topbar más compacto */
+  .topbar {
+    flex-wrap: nowrap;
+    overflow: hidden;
+    gap: 5px;
+  }
+  .topbar-title {
+    display: none;
+  }
+}
