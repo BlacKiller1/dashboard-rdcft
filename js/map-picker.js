@@ -77,18 +77,36 @@ function iniciarMapa() {
     .then(data => {
       capaPredios = L.geoJSON(data, {
         style: {
-          color: '#E8820A',
+          color: '#2DB87A',
           weight: 1.2,
-          opacity: 0.85,
-          fillColor: '#E8820A',
-          fillOpacity: 0.08
+          opacity: 0.9,
+          fillColor: '#2DB87A',
+          fillOpacity: 0.12
         },
         onEachFeature: function(feature, layer) {
+          const nombre = feature.properties.nombre || 'Sin nombre';
+          const id = feature.properties.id || '';
+
+          // Popup al hacer click
+          layer.bindPopup(
+            `<div style="font-family:'Segoe UI',sans-serif;min-width:140px;">
+              <div style="font-size:11px;font-weight:700;color:#2DB87A;margin-bottom:4px;">🌲 Predio</div>
+              <div style="font-size:13px;font-weight:600;color:#f0ede6;">${nombre}</div>
+              ${id ? `<div style="font-size:10px;color:#888;margin-top:3px;">ID: ${id}</div>` : ''}
+            </div>`,
+            { closeButton: true, maxWidth: 220 }
+          );
+
+          // Resaltar al pasar el mouse
           layer.on('mouseover', function() {
-            layer.setStyle({ fillOpacity: 0.25, weight: 2 });
+            layer.setStyle({ fillOpacity: 0.30, weight: 2, color: '#45d490' });
+            layer.openPopup();
           });
           layer.on('mouseout', function() {
-            layer.setStyle({ fillOpacity: 0.08, weight: 1.2 });
+            layer.setStyle({ fillOpacity: 0.12, weight: 1.2, color: '#2DB87A' });
+          });
+          layer.on('click', function(e) {
+            L.DomEvent.stopPropagation(e);
           });
         }
       }).addTo(mapaInstance);
