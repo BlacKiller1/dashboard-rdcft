@@ -91,18 +91,64 @@ function cerrarAdmin() {
   document.getElementById('adminPanel').style.display = 'none';
 }
 
+let filtroBusqueda = '';
+
 function cargarTablaUsuarios() {
   if (!usuariosDB) return;
-  const tbody = document.getElementById('adminTablaBody');
+  const tbody   = document.getElementById('adminTablaBody');
   const usuario = verificarSesion();
-  tbody.innerHTML = usuariosDB.map((u, i) => `
-    <tr>
-      <td>${u.email}</td>
-      <td><span class="rol-badge rol-${u.rol}">${u.rol === 'admin' ? '⭐ Admin' : '👤 Usuario'}</span></td>
-      <td>${u.cargo || '-'}</td>
-      <td>${u.email !== usuario.email ? `<button class="admin-del-btn" onclick="eliminarUsuario(${i})">✕</button>` : '-'}</td>
-    </tr>
-  `).join('');
+  const counter = document.getElementById('adminCounter');
+
+  const filtrados = usuariosDB.filter(u =>
+    u.email.toLowerCase().includes(filtroBusqueda) ||
+    (u.cargo || '').toLowerCase().includes(filtroBusqueda)
+  );
+
+  if (counter) counter.textContent = `${filtrados.length} de ${usuariosDB.length} usuarios`;
+
+  tbody.innerHTML = filtrados.length === 0
+    ? `<tr><td colspan="4" style="text-align:center;color:var(--c-text-dim);padding:20px;">No se encontraron usuarios</td></tr>`
+    : filtrados.map((u, i) => {
+        const idxReal = usuariosDB.indexOf(u);
+        const esSelf  = u.email === usuario.email;
+        const esAdmin = u.rol === 'admin';
+        return `
+          <tr>
+            <td>${u.email}</td>
+            <td><span class="rol-badge rol-${u.rol}">${esAdmin ? '⭐ Admin' : '👤 Usuario'}</span></td>
+            <td>${u.cargo || '-'}</td>
+            <td class="admin-acciones">
+              ${!esSelf ? `
+                <button class="admin-rol-btn ${esAdmin ? 'admin-rol-quitar' : 'admin-rol-dar'}"
+                  onclick="cambiarRol(${idxReal})"
+                  title="${esAdmin ? 'Quitar admin' : 'Dar admin'}">
+                  ${esAdmin ? '⬇ Usuario' : '⬆ Admin'}
+                </button>
+                <button class="admin-del-btn" onclick="eliminarUsuario(${idxReal})" title="Eliminar">✕</button>
+              ` : '<span style="color:var(--c-text-dim);font-size:11px;">Tú</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+}
+
+function buscarUsuario(valor) {
+  filtroBusqueda = valor.toLowerCase();
+  cargarTablaUsuarios();
+}
+
+function cambiarRol(idx) {
+  const u = usuariosDB[idx];
+  const nuevoRol = u.rol === 'admin' ? 'usuario' : 'admin';
+
+  // Verificar límite de admins
+  if (nuevoRol === 'admin' && usuariosDB.filter(u => u.rol === 'admin').length >= 5) {
+    alert('Máximo 5 administradores permitidos');
+    return;
+  }
+
+  usuariosDB[idx].rol = nuevoRol;
+  cargarTablaUsuarios();
 }
 
 async function agregarUsuario() {

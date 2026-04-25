@@ -266,6 +266,17 @@
 
       <div id="adminMensaje" style="display:none;"></div>
 
+      <!-- Buscador -->
+      <div class="admin-search-wrap">
+        <input
+          type="text"
+          class="admin-input admin-search"
+          placeholder="🔍 Buscar por correo o cargo..."
+          oninput="buscarUsuario(this.value)"
+        />
+        <span id="adminCounter" class="admin-counter"></span>
+      </div>
+
       <!-- Tabla de usuarios -->
       <div class="admin-tabla-wrap">
         <table class="admin-tabla">
@@ -274,7 +285,7 @@
               <th>Correo</th>
               <th>Rol</th>
               <th>Cargo</th>
-              <th></th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="adminTablaBody"></tbody>

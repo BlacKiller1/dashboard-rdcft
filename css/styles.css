@@ -1563,3 +1563,42 @@ html, body {
   border: 0.5px solid var(--c-border);
 }
 #mapPanel { position: relative; }
+
+/* ── Buscador y acciones admin ── */
+.admin-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.admin-search { flex: 1; }
+.admin-counter {
+  font-size: 11px;
+  color: var(--c-text-dim);
+  white-space: nowrap;
+}
+.admin-acciones {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.admin-rol-btn {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.admin-rol-dar {
+  border: 0.5px solid rgba(232,130,10,0.4);
+  background: rgba(232,130,10,0.08);
+  color: var(--c-orange);
+}
+.admin-rol-dar:hover { background: rgba(232,130,10,0.18); }
+.admin-rol-quitar {
+  border: 0.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: var(--c-text-dim);
+}
+.admin-rol-quitar:hover { background: rgba(255,255,255,0.1); }
