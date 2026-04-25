@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 const SESSION_KEY  = 'rdcft_user';
-const USUARIOS_URL = 'https://arauco-rdcft.vercel.app/data/usuarios.json';
+const USUARIOS_URL = '/api/token?type=usuarios';
 let usuariosDB     = null;
 
 async function cargarUsuarios() {
@@ -144,24 +144,15 @@ async function guardarUsuarios() {
   const btn = document.getElementById('btnGuardarUsuarios');
   if (btn) { btn.textContent = '⏳ Guardando...'; btn.disabled = true; }
   try {
-    const tokenResp = await fetch('/api/token');
-    if (!tokenResp.ok) throw new Error('Token no disponible');
-    const { token } = await tokenResp.json();
-    const repo   = 'BlacKiller1/dashboard-rdcft';
-    const path   = 'data/usuarios.json';
-    const apiUrl = `https://api.github.com/repos/${repo}/contents/${path}`;
-    const getResp = await fetch(apiUrl, { headers: { 'Authorization': `token ${token}` } });
-    const { sha } = await getResp.json();
-    const contenido = btoa(unescape(encodeURIComponent(JSON.stringify({ usuarios: usuariosDB }, null, 2))));
-    const putResp = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: `actualizar usuarios ${new Date().toISOString()}`, content: contenido, sha })
+    const resp = await fetch('/api/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuarios: usuariosDB })
     });
-    if (!putResp.ok) throw new Error(`GitHub: ${putResp.status}`);
+    if (!resp.ok) throw new Error(`Error: ${resp.status}`);
     mostrarMensajeAdmin('✅ Usuarios guardados correctamente', 'success');
   } catch (err) {
-    mostrarMensajeAdmin('❌ Error al guardar. Verifica el token en Vercel.', 'error');
+    mostrarMensajeAdmin('❌ Error al guardar: ' + err.message, 'error');
   } finally {
     if (btn) { btn.textContent = '💾 Guardar cambios'; btn.disabled = false; }
   }
