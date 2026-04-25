@@ -192,6 +192,13 @@ async function guardarUsuarios() {
   const btn = document.getElementById('btnGuardarUsuarios');
   if (btn) { btn.textContent = '⏳ Guardando...'; btn.disabled = true; }
   try {
+    // En localhost no llamar al API de Vercel
+    if (ES_LOCAL) {
+      mostrarMensajeAdmin('✅ Cambios aplicados localmente. En producción usa la URL de Vercel.', 'success');
+      if (btn) { btn.textContent = '💾 Guardar cambios'; btn.disabled = false; }
+      return;
+    }
+
     const resp = await fetch('/api/usuarios', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
