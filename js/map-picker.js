@@ -140,6 +140,48 @@ function rellenarCoordenadas(lat, lon) {
   }
 }
 
+
+/* ── Geolocalización ───────────────────────────────────────────────── */
+function miUbicacion() {
+  const btn = document.getElementById('btnGeo');
+  if (!navigator.geolocation) {
+    alert('Tu navegador no soporta geolocalización.');
+    return;
+  }
+
+  btn.textContent = '⏳';
+  btn.disabled = true;
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      const lat = parseFloat(pos.coords.latitude.toFixed(6));
+      const lon = parseFloat(pos.coords.longitude.toFixed(6));
+
+      // Iniciar mapa si no está listo
+      if (!mapaIniciado) iniciarMapa();
+
+      // Centrar y zoom
+      mapaInstance.setView([lat, lon], 14);
+      colocarMarcador(lat, lon);
+      rellenarCoordenadas(lat, lon);
+
+      btn.textContent = '📍';
+      btn.disabled = false;
+    },
+    function(err) {
+      btn.textContent = '📍';
+      btn.disabled = false;
+      const mensajes = {
+        1: 'Permiso de ubicación denegado. Actívalo en tu navegador.',
+        2: 'No se pudo obtener tu ubicación.',
+        3: 'Tiempo de espera agotado.'
+      };
+      alert(mensajes[err.code] || 'Error de geolocalización.');
+    },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+  );
+}
+
 /* ── Reset al cerrar ───────────────────────────────────────────────── */
 function resetMapa() {
   mapaVisible = false;

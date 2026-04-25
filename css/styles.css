@@ -1359,3 +1359,22 @@ html, body {
   border-color: rgba(232,130,10,0.4);
   color: var(--c-orange);
 }
+
+/* ── Botón geolocalización ── */
+.map-geo-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  border: 0.5px solid var(--c-border-md);
+  background: rgba(255,255,255,0.04);
+  color: var(--c-text);
+  font-size: 15px;
+  cursor: pointer;
+  transition: all .15s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.map-geo-btn:hover    { background: rgba(74,158,232,0.12); border-color: rgba(74,158,232,0.4); }
+.map-geo-btn:disabled { opacity: .5; cursor: not-allowed; }
