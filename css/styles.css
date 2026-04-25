@@ -1066,7 +1066,7 @@ html, body {
     scrollbar-color: rgba(255,255,255,0.1) transparent;
     border-radius: 6px;
   }
-  .wtable { min-width: 480px; }
+  .wtable { min-width: 420px; }
 
   /* ── Slots horarios: 1 columna ── */
   .slots-row { grid-template-columns: 1fr; gap: 8px; }
@@ -1096,6 +1096,18 @@ html, body {
   .login-card { padding: 28px 22px; }
 }
 
+
+  /* ── Ocultar columnas no esenciales en móvil ── */
+  .col-dir,
+  .col-sug,
+  th.col-dir,
+  th.col-sug,
+  td.col-dir,
+  td.col-sug  { display: none !important; }
+
+  /* Tabla con menos columnas cabe sin scroll */
+  .wtable { min-width: 320px; }
+
 @media (max-width: 380px) {
   .topbar-title h1 { font-size: 11px; }
   .dcard           { padding: 10px 10px; }
@@ -1111,17 +1123,25 @@ html, body {
 
   /* ── Base ── */
   html, body {
-    overflow: auto;
-    height: auto;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
     width: 100%;
+  }
+
+  /* ── App shell no limita altura en móvil ── */
+  #appShell {
+    height: auto !important;
+    overflow: visible !important;
   }
 
   /* ── Shell vertical, ancho completo ── */
   .shell {
     flex-direction: column;
-    height: auto;
+    height: auto !important;
     min-height: 100vh;
     width: 100%;
+    overflow: visible !important;
   }
 
   /* ── Sidebar: drawer lateral ── */
@@ -1181,16 +1201,17 @@ html, body {
 
   /* ── Main: ancho completo ── */
   .main {
-    overflow: visible;
-    height: auto;
+    overflow: visible !important;
+    height: auto !important;
     width: 100%;
   }
 
-  /* ── Detail: sin margen excesivo ── */
+  /* ── Detail: scroll en body, no aquí ── */
   .detail {
     padding: 10px 12px;
-    overflow-y: visible;
-    height: auto;
+    overflow: visible !important;
+    height: auto !important;
+    flex: none !important;
     gap: 10px;
     width: 100%;
     box-sizing: border-box;
@@ -1232,8 +1253,21 @@ html, body {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
   }
-  .wtable { min-width: 500px; }
+  .wtable { min-width: 420px; }
+  /* Reducir padding en celdas para móvil */
+  .wtable thead tr th { padding: 0 5px 8px; font-size: 8px; }
+  .wtable tbody tr td { padding: 8px 5px; }
+  .w-temp     { font-size: 12px; }
+  .w-humidity { font-size: 11px; }
+  .w-precip   { font-size: 11px; }
+  .w-wind-row { font-size: 10px; }
+  .w-gust     { font-size: 11px; }
+  .w-icon     { font-size: 17px; }
+  .rdcft-label  { font-size: 9px; }
+  .rdcft-reason { font-size: 9px; max-width: 90px; }
 
   /* ── Slots horarios: 1 columna ── */
   .slots-row { grid-template-columns: 1fr; gap: 8px; }
