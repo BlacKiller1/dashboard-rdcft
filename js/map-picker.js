@@ -59,11 +59,11 @@ function iniciarMapa() {
     maxZoom: 19
   });
 
-  // Capa de etiquetas para superponer sobre el satélite (ciudades, calles, pueblos)
-  capaEtiquetas = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+  // Capa de etiquetas detallada — pueblos, rutas, calles (OpenStreetMap híbrido)
+  capaEtiquetas = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,
     subdomains: 'abcd',
-    opacity: 0.9,
+    opacity: 1.0,
     pane: 'overlayPane'
   });
 
