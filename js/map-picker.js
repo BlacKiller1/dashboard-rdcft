@@ -130,7 +130,7 @@ function iniciarMapa() {
       rellenarCoordenadas(lat, lon);
       // Vibración en móvil
       if (navigator.vibrate) navigator.vibrate(60);
-    }, 800);
+    }, 500);
   }
 
   function cancelarLongPress() {
