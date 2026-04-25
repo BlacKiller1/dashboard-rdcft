@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard Meteorológico RDCFT — Arauco</title>
   <link rel="stylesheet" href="css/styles.css"/>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -36,8 +35,18 @@
     <div class="login-brand">arauco</div>
     <div class="login-brand-sub">RDCFT · Dashboard Meteorológico</div>
     <div class="login-title">Acceso restringido</div>
-    <div class="login-desc">Inicia sesión con tu cuenta corporativa <strong>@arauco.com</strong> para continuar.</div>
-    <div id="googleBtn"></div>
+    <div class="login-desc">Ingresa tu correo corporativo <strong>@arauco.com</strong> para acceder.</div>
+    <input
+      type="email"
+      id="inputEmail"
+      class="login-input"
+      placeholder="tucorreo@arauco.com"
+      onkeydown="handleKeyDown(event)"
+      autocomplete="email"
+    />
+    <button class="login-btn" id="btnAcceder" onclick="verificarCorreo()">
+      Acceder →
+    </button>
     <div id="loginError" class="login-error" style="display:none;"></div>
   </div>
 </div>
