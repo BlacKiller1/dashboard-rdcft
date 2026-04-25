@@ -150,7 +150,7 @@ async function guardarUsuarios() {
       body: JSON.stringify({ usuarios: usuariosDB })
     });
     if (!resp.ok) throw new Error(`Error: ${resp.status}`);
-    mostrarMensajeAdmin('✅ Usuarios guardados correctamente', 'success');
+    mostrarMensajeAdmin('✅ Usuarios guardados. El sistema se actualizará en ~1 minuto.', 'success');
   } catch (err) {
     mostrarMensajeAdmin('❌ Error al guardar: ' + err.message, 'error');
   } finally {
