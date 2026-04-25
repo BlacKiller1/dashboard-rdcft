@@ -12,6 +12,7 @@ let mapaVisible    = false;
 let capaActual     = 'mapa';
 let capaMapa       = null;
 let capaSatelite   = null;
+let capaEtiquetas  = null;
 
 /* ── Abrir / cerrar panel del mapa ─────────────────────────────────── */
 function toggleMapa() {
@@ -58,6 +59,14 @@ function iniciarMapa() {
     maxZoom: 19
   });
 
+  // Capa de etiquetas para superponer sobre el satélite (ciudades, calles, pueblos)
+  capaEtiquetas = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    subdomains: 'abcd',
+    opacity: 0.9,
+    pane: 'overlayPane'
+  });
+
   capaMapa.addTo(mapaInstance);
 
   mapaInstance.on('click', function(e) {
@@ -81,8 +90,10 @@ function cambiarCapa(modo) {
   if (modo === 'satelite') {
     mapaInstance.removeLayer(capaMapa);
     capaSatelite.addTo(mapaInstance);
+    capaEtiquetas.addTo(mapaInstance); // etiquetas sobre satélite
   } else {
     mapaInstance.removeLayer(capaSatelite);
+    mapaInstance.removeLayer(capaEtiquetas);
     capaMapa.addTo(mapaInstance);
   }
   actualizarBotonesCapas();
