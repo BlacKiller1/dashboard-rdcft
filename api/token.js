@@ -2,7 +2,12 @@
 // Expone token y usuarios desde variables de entorno de forma segura
 export default function handler(req, res) {
   // CORS
-  res.setHeader('Access-Control-Allow-Origin', 'https://arauco-rdcft.vercel.app');
+  // Permitir localhost y produccion
+  const origin = req.headers.origin || '';
+  const allowed = ['https://arauco-rdcft.vercel.app', 'http://localhost:5500', 'http://127.0.0.1:5500'];
+  if (allowed.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
   const { type } = req.query;
