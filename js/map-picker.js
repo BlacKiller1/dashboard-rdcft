@@ -13,6 +13,8 @@ let capaActual     = 'mapa';
 let capaMapa       = null;
 let capaSatelite   = null;
 let capaEtiquetas  = null;
+let capaPredios    = null;
+let prediosVisible = true;
 
 /* ── Abrir / cerrar panel del mapa ─────────────────────────────────── */
 function toggleMapa() {
@@ -69,6 +71,30 @@ function iniciarMapa() {
 
   capaMapa.addTo(mapaInstance);
 
+  // ── Cargar capa de predios ──────────────────────────────────────
+  fetch('/data/predios.geojson')
+    .then(r => r.json())
+    .then(data => {
+      capaPredios = L.geoJSON(data, {
+        style: {
+          color: '#E8820A',
+          weight: 1.2,
+          opacity: 0.85,
+          fillColor: '#E8820A',
+          fillOpacity: 0.08
+        },
+        onEachFeature: function(feature, layer) {
+          layer.on('mouseover', function() {
+            layer.setStyle({ fillOpacity: 0.25, weight: 2 });
+          });
+          layer.on('mouseout', function() {
+            layer.setStyle({ fillOpacity: 0.08, weight: 1.2 });
+          });
+        }
+      }).addTo(mapaInstance);
+    })
+    .catch(err => console.warn('[RDCFT] Sin capa de predios:', err));
+
   mapaInstance.on('click', function(e) {
     const lat = parseFloat(e.latlng.lat.toFixed(6));
     const lon = parseFloat(e.latlng.lng.toFixed(6));
@@ -105,6 +131,19 @@ function actualizarBotonesCapas() {
   if (!btnM || !btnS) return;
   btnM.classList.toggle('active', capaActual === 'mapa');
   btnS.classList.toggle('active', capaActual === 'satelite');
+}
+
+/* ── Toggle capa de predios ────────────────────────────────────────── */
+function togglePredios() {
+  if (!capaPredios || !mapaInstance) return;
+  prediosVisible = !prediosVisible;
+  if (prediosVisible) {
+    capaPredios.addTo(mapaInstance);
+  } else {
+    mapaInstance.removeLayer(capaPredios);
+  }
+  const btn = document.getElementById('btnPredios');
+  if (btn) btn.classList.toggle('active', prediosVisible);
 }
 
 /* ── Colocar marcador ──────────────────────────────────────────────── */
