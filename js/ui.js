@@ -580,7 +580,7 @@ function renderOperationalCard(paisaje, days) {
   const diasOk      = days.filter(d => estadoDia(d) === 'ok').length;
   const diasWarn    = days.filter(d => estadoDia(d) === 'warn').length;
   const diasBad     = days.filter(d => estadoDia(d) === 'bad').length;
-  const totalPrecip = days.reduce((s, d) => s + d.slots.reduce((a, x) => a + x.precip, 0), 0);
+  const totalPrecip = days.reduce((s, d) => s + d.slots.reduce((a, x) => a + (x.precip||0), 0), 0);
 
   return `
     <div class="dcard">
@@ -634,13 +634,16 @@ function descargarPDF(nombrePaisaje) {
 
   const idx  = activePaisajeIdx;
   const days = activeWeatherDays;
-  if (!days || !idx === undefined) return;
+  if (!days || idx === null || idx === undefined) {
+    if (btn) { btn.textContent = '⬇ Descargar PDF'; btn.disabled = false; }
+    return;
+  }
 
   const p           = PAISAJES[idx];
   const diasOk      = days.filter(d => estadoDia(d) === 'ok').length;
   const diasWarn    = days.filter(d => estadoDia(d) === 'warn').length;
   const diasBad     = days.filter(d => estadoDia(d) === 'bad').length;
-  const totalPrecip = days.reduce((s, d) => s + d.slots.reduce((a, x) => a + x.precip, 0), 0);
+  const totalPrecip = days.reduce((s, d) => s + d.slots.reduce((a, x) => a + (x.precip||0), 0), 0);
   const fecha       = new Date().toLocaleDateString('es-CL', {day:'2-digit', month:'long', year:'numeric'});
   const resumen     = generarResumenOperacional(days).replace(/<br><br>/g, ' ');
 
@@ -662,8 +665,8 @@ function descargarPDF(nombrePaisaje) {
         <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;">${slot.temp !== undefined ? slot.temp+'°C' : '-'}</td>
         <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;">${slot.hum !== undefined ? slot.hum+'%' : '-'}</td>
         <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;">${slot.precip !== undefined ? slot.precip.toFixed(1)+' mm' : '-'}</td>
-        <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;color:${slot.wind > VIENTO_LIMITE_RDCFT ? '#E24B4A' : '#333'};">${slot.wind !== undefined ? slot.wind+' km/h' : '-'}</td>
-        <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;">${slot.gust !== undefined ? slot.gust+' km/h' : '-'}</td>
+        <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;color:${slot.viento > VIENTO_LIMITE_RDCFT ? '#E24B4A' : '#333'};">${slot.viento !== undefined ? slot.viento+' km/h' : '-'}</td>
+        <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;">${slot.racha !== undefined ? slot.racha+' km/h' : '-'}</td>
         <td style="padding:6px 8px;border-bottom:0.5px solid #eee;font-size:11px;text-align:center;">
           <span style="background:${bg};color:${color};font-size:9px;padding:2px 7px;border-radius:10px;font-weight:500;">${label}</span>
         </td>
