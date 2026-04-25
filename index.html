@@ -5,9 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard Meteorológico RDCFT — Arauco</title>
   <link rel="stylesheet" href="css/styles.css"/>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
+
+<!-- ══════════════════════════════════════
+     PANTALLA DE LOGIN
+     ══════════════════════════════════════ -->
+<div id="loginScreen" style="display:none;">
+  <div class="login-bg">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="lg1" cx="22%" cy="88%" r="52%">
+          <stop offset="0%" stop-color="#E8520A" stop-opacity=".78"/>
+          <stop offset="100%" stop-color="#181714" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="1200" height="800" fill="#0d0c09"/>
+      <g fill="#1a1812" opacity=".97">
+        <rect x="0" y="510" width="19" height="290"/><polygon points="9,350 -10,528 29,528"/>
+        <rect x="200" y="517" width="18" height="283"/><polygon points="209,357 188,535 230,535"/>
+        <rect x="855" y="506" width="15" height="294"/><polygon points="862,346 842,524 882,524"/>
+        <rect x="965" y="517" width="15" height="283"/><polygon points="972,357 953,535 991,535"/>
+      </g>
+      <rect width="1200" height="800" fill="url(#lg1)"/>
+    </svg>
+  </div>
+  <div class="login-card">
+    <div class="login-brand">arauco</div>
+    <div class="login-brand-sub">RDCFT · Dashboard Meteorológico</div>
+    <div class="login-title">Acceso restringido</div>
+    <div class="login-desc">Inicia sesión con tu cuenta corporativa <strong>@arauco.com</strong> para continuar.</div>
+    <div id="googleBtn"></div>
+    <div id="loginError" class="login-error" style="display:none;"></div>
+  </div>
+</div>
+
+<div id="appShell" style="display:none;">
 <div class="shell">
 
   <!-- ── Fondo bosque ── -->
@@ -79,6 +114,8 @@
         <h1 id="mainTitle">Selecciona un paisaje</h1>
         <p>Informe meteorológico · Open-Meteo API · Arauco RDCFT</p>
       </div>
+      <span id="userBadge" class="user-badge"></span>
+      <button class="logout-btn" onclick="cerrarSesion()" title="Cerrar sesión">⎋ Salir</button>
       <button class="consulta-btn" onclick="abrirConsulta()">
         📍 Consultar coordenadas
       </button>
@@ -124,6 +161,7 @@
   </main>
 
 </div>
+</div>
 
 <!--
   ══════════════════════════════════════════
@@ -140,17 +178,7 @@
 <script src="js/weather.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
-<script>
-  // Toggle sidebar en móvil
-  document.querySelector(".sidebar-header").addEventListener("click", function() {
-    var sidebar = document.querySelector(".sidebar");
-    if (window.innerWidth <= 768) sidebar.classList.toggle("open");
-  });
-  // Cerrar sidebar al seleccionar un paisaje en móvil
-  document.querySelector("#sidebarList").addEventListener("click", function() {
-    if (window.innerWidth <= 768) document.querySelector(".sidebar").classList.remove("open");
-  });
-</script>
 
+<script src="js/login.js"></script>
 </body>
 </html>
