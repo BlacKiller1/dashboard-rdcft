@@ -189,5 +189,21 @@
 <script src="js/app.js"></script>
 
 <script src="js/login.js"></script>
+
+<script>
+  // Toggle sidebar en móvil
+  document.querySelector(".sidebar-header").addEventListener("click", function() {
+    if (window.innerWidth <= 768) {
+      document.querySelector(".sidebar").classList.toggle("open");
+    }
+  });
+  // Cerrar sidebar al seleccionar un paisaje en móvil
+  document.querySelector("#sidebarList").addEventListener("click", function() {
+    if (window.innerWidth <= 768) {
+      document.querySelector(".sidebar").classList.remove("open");
+    }
+  });
+</script>
+
 </body>
 </html>
