@@ -116,20 +116,43 @@ function iniciarMapa() {
     })
     .catch(err => console.warn('[RDCFT] Sin capa de predios:', err));
 
-  // ── Long press para asignar coordenadas (800ms) ──────────────────
+  // ── Long press para asignar coordenadas (500ms) ──────────────────
   let longPressTimer = null;
-  let longPressActivo = false;
+  let longPressLat   = null;
+  let longPressLon   = null;
+
+  // Capturar coordenadas desde el contenedor del mapa (más confiable)
+  const mapContainer = document.getElementById('mapContainer');
+
+  function getPosFromEvent(e) {
+    const rect = mapContainer.getBoundingClientRect();
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    return mapaInstance.containerPointToLatLng([x, y]);
+  }
 
   function iniciarLongPress(e) {
-    longPressActivo = false;
+    try {
+      const latlng = getPosFromEvent(e);
+      longPressLat = parseFloat(latlng.lat.toFixed(6));
+      longPressLon = parseFloat(latlng.lng.toFixed(6));
+    } catch(err) { return; }
+
     longPressTimer = setTimeout(() => {
-      longPressActivo = true;
-      const lat = parseFloat(e.latlng.lat.toFixed(6));
-      const lon = parseFloat(e.latlng.lng.toFixed(6));
-      colocarMarcador(lat, lon);
-      rellenarCoordenadas(lat, lon);
-      // Vibración en móvil
+      if (longPressLat === null) return;
+      colocarMarcador(longPressLat, longPressLon);
+      rellenarCoordenadas(longPressLat, longPressLon);
       if (navigator.vibrate) navigator.vibrate(60);
+      longPressLat = null;
+      longPressLon = null;
     }, 500);
   }
 
@@ -138,22 +161,17 @@ function iniciarMapa() {
       clearTimeout(longPressTimer);
       longPressTimer = null;
     }
+    longPressLat = null;
+    longPressLon = null;
   }
 
-  // Mouse (desktop)
-  mapaInstance.on('mousedown', iniciarLongPress);
-  mapaInstance.on('mouseup', cancelarLongPress);
-  mapaInstance.on('mousemove', cancelarLongPress);
-
-  // Touch (móvil)
-  mapaInstance.on('touchstart', iniciarLongPress);
-  mapaInstance.on('touchend', cancelarLongPress);
-  mapaInstance.on('touchmove', cancelarLongPress);
-
-  // Clic simple → solo si no fue long press
-  mapaInstance.on('click', function(e) {
-    if (longPressActivo) { longPressActivo = false; return; }
-  });
+  // Eventos en el contenedor del mapa directamente
+  mapContainer.addEventListener('mousedown', iniciarLongPress);
+  mapContainer.addEventListener('mouseup', cancelarLongPress);
+  mapContainer.addEventListener('mousemove', cancelarLongPress);
+  mapContainer.addEventListener('touchstart', iniciarLongPress, { passive: true });
+  mapContainer.addEventListener('touchend', cancelarLongPress);
+  mapContainer.addEventListener('touchmove', cancelarLongPress, { passive: true });
 
   mapaIniciado = true;
   setTimeout(() => {
