@@ -1545,6 +1545,132 @@ html, body {
   .admin-form-row { flex-direction: column; }
 }
 
+/* ── Botón tema claro / oscuro ───────────────────────────────────────── */
+.theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 0.5px solid var(--c-border-md);
+  background: transparent;
+  color: var(--c-text-dim);
+  cursor: pointer;
+  font-size: 15px;
+  flex-shrink: 0;
+  transition: all .15s;
+}
+.theme-btn:hover { background: rgba(128,128,128,0.1); color: var(--c-text); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TEMA CLARO
+   ═══════════════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  --c-bg:          #f4f1eb;
+  --c-sidebar:     #eae6de;
+  --c-border:      rgba(0,0,0,0.09);
+  --c-border-md:   rgba(0,0,0,0.15);
+  --c-orange:      #C86800;
+  --c-orange-dim:  rgba(200,104,0,0.12);
+  --c-green:       #17885A;
+  --c-green-dim:   rgba(23,136,90,0.12);
+  --c-yellow:      #9A7000;
+  --c-yellow-dim:  rgba(154,112,0,0.12);
+  --c-red:         #A82828;
+  --c-red-dim:     rgba(168,40,40,0.12);
+  --c-gray:        #5a5a52;
+  --c-gray-dim:    rgba(90,90,82,0.12);
+  --c-blue:        #1A6DB0;
+  --c-text:        #18150f;
+  --c-text-muted:  rgba(24,21,15,0.62);
+  --c-text-dim:    rgba(24,21,15,0.40);
+}
+
+/* Fondo y texto base */
+[data-theme="light"] html,
+[data-theme="light"] body { background: var(--c-bg); color: var(--c-text); }
+
+/* Topbar */
+[data-theme="light"] .topbar { background: rgba(234,230,222,0.97); }
+
+/* Cards principales */
+[data-theme="light"] .dcard,
+[data-theme="light"] .decision-panel,
+[data-theme="light"] .resumen-panel { background: rgba(255,255,255,0.88); }
+
+/* Panel día / login */
+[data-theme="light"] .detalle-dia-panel { background: rgba(255,255,255,0.97); border-color: var(--c-orange); }
+[data-theme="light"] .login-card        { background: rgba(255,255,255,0.94); }
+
+/* Modal */
+[data-theme="light"] .modal       { background: #ffffff; }
+[data-theme="light"] .admin-modal { background: #ffffff; }
+
+/* Slot cards */
+[data-theme="light"] .slot-card { background: rgba(0,0,0,0.04); }
+
+/* Mini stats, comentarios, hints */
+[data-theme="light"] .ms,
+[data-theme="light"] .mrs,
+[data-theme="light"] .dstat,
+[data-theme="light"] .comment-box,
+[data-theme="light"] .decision-hint,
+[data-theme="light"] .admin-form { background: rgba(0,0,0,0.04); }
+
+/* Inputs */
+[data-theme="light"] .modal-field input,
+[data-theme="light"] .login-input,
+[data-theme="light"] .admin-input,
+[data-theme="light"] .admin-select { background: rgba(0,0,0,0.05); }
+
+/* Hovers de lista */
+[data-theme="light"] .p-item:hover      { background: rgba(0,0,0,0.04); }
+[data-theme="light"] .zona-header:hover { background: rgba(0,0,0,0.04); }
+[data-theme="light"] .resumen-paisaje:hover { background: rgba(0,0,0,0.04); }
+
+/* Tabla */
+[data-theme="light"] .wtable tbody tr:hover td { background: rgba(0,0,0,0.025); }
+[data-theme="light"] .admin-tabla thead tr      { background: rgba(0,0,0,0.04); }
+[data-theme="light"] .admin-tabla tr:hover td   { background: rgba(0,0,0,0.025); }
+[data-theme="light"] .admin-tabla td            { border-bottom-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .rol-usuario               { background: rgba(0,0,0,0.05); }
+
+/* Botones de mapa y capas */
+[data-theme="light"] .map-layer-btns  { background: rgba(234,230,222,0.97); }
+[data-theme="light"] .map-layer-btn   { background: rgba(0,0,0,0.04); }
+[data-theme="light"] .map-layer-btn:hover { background: rgba(0,0,0,0.08); }
+[data-theme="light"] .map-geo-btn     { background: rgba(0,0,0,0.04); }
+
+/* Badge usuario */
+[data-theme="light"] .user-badge { background: rgba(0,0,0,0.05); }
+
+/* Menú hamburguesa */
+[data-theme="light"] .menu-btn       { background: rgba(0,0,0,0.05); }
+[data-theme="light"] .menu-btn:hover { background: rgba(0,0,0,0.09); }
+
+/* Popup Leaflet */
+[data-theme="light"] .leaflet-popup-content-wrapper,
+[data-theme="light"] .leaflet-popup-tip { background: rgba(255,255,255,0.98) !important; }
+[data-theme="light"] .leaflet-control-zoom a { background: rgba(255,255,255,0.97) !important; }
+[data-theme="light"] .leaflet-control-zoom a:hover { background: rgba(240,237,232,0.98) !important; }
+
+/* Scrollbars */
+[data-theme="light"] .sidebar-list::-webkit-scrollbar-thumb,
+[data-theme="light"] .detail::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
+[data-theme="light"] .wtable-scroll { scrollbar-color: rgba(0,0,0,0.15) transparent; }
+
+/* SVG decorativo — menos opaco en claro */
+[data-theme="light"] .bg-cover svg  { opacity: .07; }
+[data-theme="light"] .login-bg svg  { opacity: .09; }
+
+/* Date picker en modo claro */
+[data-theme="light"] .modal-field input[type="date"] { color-scheme: light; }
+[data-theme="light"] .modal-field input[type="date"]::-webkit-calendar-picker-indicator { filter: none; }
+
+/* Sidebar overlay */
+[data-theme="light"] .sidebar-overlay { background: rgba(0,0,0,0.45); }
+
 /* ── Hint long press en mapa ── */
 #mapContainer::after {
   content: 'mantén presionado para fijar coordenadas';

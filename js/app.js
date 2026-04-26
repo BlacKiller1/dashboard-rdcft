@@ -114,4 +114,21 @@ async function init() {
   cargarEstadosTodos();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  // Sincronizar ícono del botón con el tema guardado
+  const saved = localStorage.getItem('rdcft-theme');
+  const btn   = document.getElementById('themeBtn');
+  if (btn) btn.textContent = saved === 'light' ? '☀️' : '🌙';
+});
+
+// ── Tema claro / oscuro ──────────────────────────────────────────────────
+function toggleTheme() {
+  const html   = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  const next   = isLight ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('rdcft-theme', next);
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = next === 'light' ? '☀️' : '🌙';
+}

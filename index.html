@@ -6,6 +6,12 @@
   <title>Dashboard Meteorológico RDCFT — Arauco</title>
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script>
+    (function(){
+      var t = localStorage.getItem('rdcft-theme');
+      if (t === 'light') document.documentElement.setAttribute('data-theme','light');
+    })();
+  </script>
 </head>
 <body>
 
@@ -127,6 +133,7 @@
       </div>
       <span id="userBadge" class="user-badge"></span>
       <button id="btnAdmin" class="admin-btn" onclick="abrirAdmin()" style="display:none;" title="Gestionar usuarios">⚙️ <span class="btn-text">Gestionar usuarios</span></button>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema"></button>
       <button class="logout-btn" onclick="cerrarSesion()" title="Cerrar sesión">⎋ <span class="btn-text">Salir</span></button>
       <button class="consulta-btn" onclick="abrirConsulta()" title="Consultar coordenadas">📍 <span class="btn-text">Consultar coordenadas</span></button>
     </header>
