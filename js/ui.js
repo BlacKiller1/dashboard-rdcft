@@ -137,7 +137,6 @@ function renderEmpty() {
         <div class="resumen-paisaje" onclick="onSelectPaisaje(${idx})">
           <span class="resumen-dot" style="background:${colores[estado]}"></span>
           <span class="resumen-nombre">${nombre}</span>
-          ${tieneEstado ? `<span class="resumen-estado" style="color:${colores[estado]}">${etiquetas[estado]}</span>` : ''}
         </div>`;
     }).join('');
 
@@ -148,21 +147,6 @@ function renderEmpty() {
       </div>`;
   }).join('');
 
-  const totalConsultados = Object.keys(PAISAJE_ESTADO).length;
-  const favorable   = Object.values(PAISAJE_ESTADO).filter(e => e === 'favorable').length;
-  const restriccion = Object.values(PAISAJE_ESTADO).filter(e => e === 'restriccion').length;
-  const noFavorable = Object.values(PAISAJE_ESTADO).filter(e => e === 'no-favorable').length;
-
-  const decisionHTML = totalConsultados > 0 ? `
-    <div class="decision-stats">
-      <div class="dstat"><div class="dstat-v" style="color:var(--c-green)">${favorable}</div><div class="dstat-l">Favorable</div></div>
-      <div class="dstat"><div class="dstat-v" style="color:var(--c-yellow)">${restriccion}</div><div class="dstat-l">Con restricciones</div></div>
-      <div class="dstat"><div class="dstat-v" style="color:var(--c-red)">${noFavorable}</div><div class="dstat-l">No favorable</div></div>
-    </div>` : `
-    <div class="decision-hint">
-      Selecciona un paisaje en el panel izquierdo para cargar su pronóstico.<br>
-      Los estados se actualizarán automáticamente con datos de Open-Meteo.
-    </div>`;
 
   document.getElementById('detailPanel').innerHTML = `
     <div class="resumen-layout">
@@ -182,8 +166,6 @@ function renderEmpty() {
           <li>Semáforo operacional diario basado en datos reales de Open-Meteo</li>
           <li>Sugerencia operacional por horario</li>
         </ul>
-        <div class="decision-seccion">Estado actual de paisajes consultados</div>
-        ${decisionHTML}
         <div class="decision-leyenda">
           <div class="dl-item"><span class="resumen-dot" style="background:var(--c-green)"></span>Favorable</div>
           <div class="dl-item"><span class="resumen-dot" style="background:var(--c-yellow)"></span>Con restricciones</div>
