@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
   const email = ((req.body || {}).email || '').trim().toLowerCase();
   if (!email.endsWith('@arauco.com')) {
-    return res.status(400).json({ error: 'Correo inválido' });
+    return res.status(400).json({ error: 'Solo se permiten correos @arauco.com' });
   }
 
   const secret      = process.env.ADMIN_SECRET;
