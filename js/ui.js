@@ -645,8 +645,8 @@ async function descargarPDF(nombrePaisaje) {
     const resumen     = generarResumenOperacional(days).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
     const fecha       = new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'});
 
-    const ECOLOR = { ok:'#1D9E75', warn:'#BA7517', bad:'#E24B4A', neutral:'#888' };
-    const EBG    = { ok:'#EAF3DE', warn:'#FAEEDA', bad:'#FCEBEB', neutral:'#F1EFE8' };
+    const ECOLOR = { ok:'#1D9E75', warn:'#BFB800', bad:'#E24B4A', neutral:'#696158' };
+    const EBG    = { ok:'#EAF3DE', warn:'#F5F2D0', bad:'#FCEBEB', neutral:'#EDE8DF' };
     const ELABEL = { ok:'Favorable', warn:'Con restricciones', bad:'No favorable', neutral:'Sin RDCFT' };
     const EICON  = { ok:'✓', warn:'!', bad:'✕', neutral:'-' };
     const DAYS   = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
@@ -665,23 +665,23 @@ async function descargarPDF(nombrePaisaje) {
       const slotRows = d.slots.map((slot, si) => {
         const vcolor = (slot.viento||0) > VIENTO_LIMITE_RDCFT ? '#E24B4A' : '#1D9E75';
         const slotEst = slot.rdcft && slot.rdcft.operable ? 'ok' : 'bad';
-        return `<tr style="background:${si%2===0?'#fafafa':'#fff'};">
-          <td style="padding:4px 8px 4px 20px;font-size:9px;color:#aaa;border-bottom:0.5px solid #f0f0f0;">${HORAS[si]||''}</td>
-          <td style="padding:4px 8px;font-size:9px;text-align:center;color:#333;border-bottom:0.5px solid #f0f0f0;">${slot.temp!==undefined?slot.temp+'°C':'-'}</td>
-          <td style="padding:4px 8px;font-size:9px;text-align:center;color:#185FA5;border-bottom:0.5px solid #f0f0f0;">${slot.hum!==undefined?slot.hum+'%':'-'}</td>
-          <td style="padding:4px 8px;font-size:9px;text-align:center;color:#185FA5;border-bottom:0.5px solid #f0f0f0;">${slot.precip!==undefined?slot.precip.toFixed(1)+' mm':'-'}</td>
-          <td style="padding:4px 8px;font-size:9px;text-align:center;color:${vcolor};font-weight:600;border-bottom:0.5px solid #f0f0f0;">${slot.viento!==undefined?slot.viento+' km/h':'-'}</td>
-          <td style="padding:4px 8px;font-size:9px;text-align:center;color:#BA7517;border-bottom:0.5px solid #f0f0f0;">${slot.racha!==undefined?slot.racha+' km/h':'-'}</td>
-          <td style="padding:4px 8px;text-align:center;border-bottom:0.5px solid #f0f0f0;">
-            <span style="background:${EBG[slotEst]};color:${ECOLOR[slotEst]};font-size:8px;padding:2px 6px;border-radius:8px;font-weight:600;">${ELABEL[slotEst]}</span>
+        return `<tr style="background:#fff;">
+          <td style="padding:2px 6px 2px 14px;font-size:8.5px;color:#aaa;border-bottom:0.5px solid #f0f0f0;">${HORAS[si]||''}</td>
+          <td style="padding:2px 6px;font-size:8.5px;text-align:center;color:#333;border-bottom:0.5px solid #f0f0f0;">${slot.temp!==undefined?slot.temp+'°C':'-'}</td>
+          <td style="padding:2px 6px;font-size:8.5px;text-align:center;color:#696158;border-bottom:0.5px solid #f0f0f0;">${slot.hum!==undefined?slot.hum+'%':'-'}</td>
+          <td style="padding:2px 6px;font-size:8.5px;text-align:center;color:#696158;border-bottom:0.5px solid #f0f0f0;">${slot.precip!==undefined?slot.precip.toFixed(1)+' mm':'-'}</td>
+          <td style="padding:2px 6px;font-size:8.5px;text-align:center;color:${vcolor};font-weight:600;border-bottom:0.5px solid #f0f0f0;">${slot.viento!==undefined?slot.viento+' km/h':'-'}</td>
+          <td style="padding:2px 6px;font-size:8.5px;text-align:center;color:#EA7600;border-bottom:0.5px solid #f0f0f0;">${slot.racha!==undefined?slot.racha+' km/h':'-'}</td>
+          <td style="padding:2px 6px;text-align:center;border-bottom:0.5px solid #f0f0f0;">
+            <span style="background:${EBG[slotEst]};color:${ECOLOR[slotEst]};font-size:7.5px;padding:1px 5px;border-radius:6px;font-weight:700;">${ELABEL[slotEst]}</span>
           </td>
         </tr>`;
       }).join('');
 
-      return `<tr style="background:#f8f8f8;">
-        <td colspan="7" style="padding:6px 8px;font-size:10px;font-weight:700;color:#333;border-top:1px solid #e0e0e0;border-bottom:0.5px solid #e8e8e8;">
+      return `<tr style="background:#EDE8DF;">
+        <td colspan="7" style="padding:3px 8px;font-size:9px;font-weight:700;color:#333;border-top:1px solid #DFD1A7;border-bottom:0.5px solid #DFD1A7;">
           <span style="margin-right:8px;">${dLabel}</span>
-          <span style="background:${ebg};color:${ecolor};font-size:8px;padding:2px 7px;border-radius:8px;font-weight:600;">${ELABEL[est]||'-'}</span>
+          <span style="background:${ebg};color:${ecolor};font-size:7.5px;padding:1px 6px;border-radius:6px;font-weight:700;">${ELABEL[est]||'-'}</span>
         </td>
       </tr>${slotRows}`;
     }).join('');
@@ -692,11 +692,11 @@ async function descargarPDF(nombrePaisaje) {
       const dateObj = new Date(d.date + 'T12:00:00');
       const ecolor  = ECOLOR[est]||'#888';
       const ebg     = EBG[est]||'#F1EFE8';
-      return `<div style="flex:1;text-align:center;background:${ebg};border-radius:8px;padding:9px 4px;">
-        <div style="font-size:10px;font-weight:800;color:${ecolor};">${DAYS[dateObj.getDay()]}</div>
-        <div style="font-size:8px;color:#aaa;margin:2px 0;">${dateObj.getDate()}/${dateObj.getMonth()+1}</div>
-        <div style="font-size:22px;line-height:1.1;color:${ecolor};font-weight:700;">${EICON[est]||'-'}</div>
-        <div style="font-size:7.5px;color:${ecolor};font-weight:700;margin-top:2px;">${ELABEL[est]||'-'}</div>
+      return `<div style="flex:1;text-align:center;background:${ebg};border-radius:7px;padding:7px 3px;">
+        <div style="font-size:9.5px;font-weight:800;color:${ecolor};">${DAYS[dateObj.getDay()]}</div>
+        <div style="font-size:7.5px;color:#aaa;margin:1px 0;">${dateObj.getDate()}/${dateObj.getMonth()+1}</div>
+        <div style="font-size:18px;line-height:1.1;color:${ecolor};font-weight:700;">${EICON[est]||'-'}</div>
+        <div style="font-size:7px;color:${ecolor};font-weight:700;margin-top:1px;">${ELABEL[est]||'-'}</div>
       </div>`;
     }).join('');
 
@@ -710,34 +710,34 @@ async function descargarPDF(nombrePaisaje) {
 
       const thFechas = fechas.map(f => {
         const d = new Date(f + 'T12:00:00');
-        return `<th style="padding:5px 6px;text-align:center;font-size:8px;color:#666;font-weight:700;background:#f0ede8;">${DAYS_S[d.getDay()]}<br><span style="font-weight:400;color:#999;">${d.getDate()}/${d.getMonth()+1}</span></th>`;
+        return `<th style="padding:3px 4px;text-align:center;font-size:7.5px;color:#696158;font-weight:700;background:#DFD1A7;">${DAYS_S[d.getDay()]}<br><span style="font-weight:400;color:#8a7f72;">${d.getDate()}/${d.getMonth()+1}</span></th>`;
       }).join('');
 
       const filasPrecip = ests.map(([nom, datos]) => {
         const tds = fechas.map(f => {
           const vf = (datos[f] !== null && datos[f] !== undefined) ? parseFloat(datos[f]) : null;
-          const c  = vf === null ? '#ccc' : vf === 0 ? '#bbb' : vf < 5 ? '#4A9EE8' : '#185FA5';
+          const c  = vf === null ? '#ccc' : vf === 0 ? '#bbb' : vf < 5 ? '#EA7600' : '#696158';
           const fw = vf > 0 ? '700' : '400';
-          return `<td style="padding:4px 6px;text-align:center;border-bottom:0.5px solid #f0f0f0;font-size:8.5px;color:${c};font-weight:${fw};">${vf !== null ? vf.toFixed(1) : '—'}</td>`;
+          return `<td style="padding:2px 4px;text-align:center;border-bottom:0.5px solid #f0f0f0;font-size:8px;color:${c};font-weight:${fw};">${vf !== null ? vf.toFixed(1) : '—'}</td>`;
         }).join('');
         const total = fechas.reduce((a, f) => a + (parseFloat(datos[f]) || 0), 0);
-        const tc = total === 0 ? '#bbb' : total < 10 ? '#4A9EE8' : '#185FA5';
+        const tc = total === 0 ? '#bbb' : total < 10 ? '#EA7600' : '#696158';
         return `<tr>
-          <td style="padding:4px 8px;font-size:8.5px;font-weight:600;color:#333;border-bottom:0.5px solid #f0f0f0;white-space:nowrap;">${nom}</td>
+          <td style="padding:2px 6px;font-size:8px;font-weight:600;color:#333;border-bottom:0.5px solid #f0f0f0;white-space:nowrap;">${nom}</td>
           ${tds}
-          <td style="padding:4px 8px;text-align:center;font-size:9px;font-weight:700;color:${tc};border-bottom:0.5px solid #f0f0f0;border-left:1px solid #e8e8e8;">${total.toFixed(1)}</td>
+          <td style="padding:2px 6px;text-align:center;font-size:8.5px;font-weight:700;color:${tc};border-bottom:0.5px solid #f0f0f0;border-left:1px solid #DFD1A7;">${total.toFixed(1)}</td>
         </tr>`;
       }).join('');
 
       const per = window.precipData.periodo;
       const perLabel = per ? `${per.inicio} al ${per.fin}` : 'última semana';
       precipHTML = `
-        <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin:16px 0 10px;">Precipitaciones históricas — ${perLabel}</div>
-        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+        <div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin:10px 0 6px;">Precipitaciones históricas — ${perLabel}</div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:10px;">
           <thead><tr>
-            <th style="padding:5px 8px;text-align:left;font-size:8px;color:#666;font-weight:700;background:#f0ede8;">Estación</th>
+            <th style="padding:3px 6px;text-align:left;font-size:7.5px;color:#696158;font-weight:700;background:#DFD1A7;">Estación</th>
             ${thFechas}
-            <th style="padding:5px 8px;text-align:center;font-size:8px;color:#185FA5;font-weight:700;background:#f0ede8;border-left:1px solid #e0dcd8;">Total mm</th>
+            <th style="padding:3px 6px;text-align:center;font-size:7.5px;color:#696158;font-weight:700;background:#DFD1A7;border-left:1px solid #c8bea8;">Total mm</th>
           </tr></thead>
           <tbody>${filasPrecip}</tbody>
         </table>`;
@@ -749,74 +749,74 @@ async function descargarPDF(nombrePaisaje) {
       body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #fff; }
     </style>
     </head><body>
-    <div style="padding:28px 32px;background:#fff;max-width:860px;">
+    <div style="padding:16px 22px;background:#fff;max-width:860px;">
 
       <!-- HEADER -->
-      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #7a6e65;padding-bottom:14px;margin-bottom:20px;">
-        <img src="data:image/png;base64,${LOGO_ARAUCO_B64}" style="height:38px;object-fit:contain;background:transparent;"/>
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #696158;padding-bottom:10px;margin-bottom:12px;">
+        <img src="data:image/png;base64,${LOGO_ARAUCO_B64}" style="height:34px;object-fit:contain;background:transparent;"/>
         <div style="text-align:right;">
-          <div style="font-size:18px;font-weight:800;color:#1a1a1a;letter-spacing:-0.3px;">${nombrePaisaje}</div>
-          <div style="font-size:9px;color:#999;margin-top:3px;">Informe RDCFT · Lat ${p.lat} · Lon ${p.lon} · Límite viento ${VIENTO_LIMITE_RDCFT} km/h</div>
-          <div style="font-size:9px;color:#bbb;margin-top:2px;">${fecha}</div>
+          <div style="font-size:17px;font-weight:800;color:#1a1a1a;letter-spacing:-0.3px;">${nombrePaisaje}</div>
+          <div style="font-size:8.5px;color:#696158;margin-top:2px;">Informe RDCFT · Lat ${p.lat} · Lon ${p.lon} · Límite viento ${VIENTO_LIMITE_RDCFT} km/h</div>
+          <div style="font-size:8.5px;color:#aaa;margin-top:1px;">${fecha}</div>
         </div>
       </div>
 
       <!-- KPI -->
-      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Resumen operacional semanal</div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px;">
-        <div style="background:#f8f7f5;border-radius:8px;padding:10px 12px;border-top:3px solid #1D9E75;">
-          <div style="font-size:8px;color:#999;margin-bottom:5px;font-weight:600;">Días operables</div>
-          <div style="font-size:28px;font-weight:800;color:#1D9E75;line-height:1;">${diasOk}</div>
+      <div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">Resumen operacional semanal</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px;">
+        <div style="background:#EDE8DF;border-radius:7px;padding:7px 10px;border-top:3px solid #1D9E75;">
+          <div style="font-size:7.5px;color:#696158;margin-bottom:3px;font-weight:600;">Días operables</div>
+          <div style="font-size:24px;font-weight:800;color:#1D9E75;line-height:1;">${diasOk}</div>
         </div>
-        <div style="background:#f8f7f5;border-radius:8px;padding:10px 12px;border-top:3px solid #BA7517;">
-          <div style="font-size:8px;color:#999;margin-bottom:5px;font-weight:600;">Con restricciones</div>
-          <div style="font-size:28px;font-weight:800;color:#BA7517;line-height:1;">${diasWarn}</div>
+        <div style="background:#EDE8DF;border-radius:7px;padding:7px 10px;border-top:3px solid #BFB800;">
+          <div style="font-size:7.5px;color:#696158;margin-bottom:3px;font-weight:600;">Con restricciones</div>
+          <div style="font-size:24px;font-weight:800;color:#BFB800;line-height:1;">${diasWarn}</div>
         </div>
-        <div style="background:#f8f7f5;border-radius:8px;padding:10px 12px;border-top:3px solid #E24B4A;">
-          <div style="font-size:8px;color:#999;margin-bottom:5px;font-weight:600;">No operables</div>
-          <div style="font-size:28px;font-weight:800;color:#E24B4A;line-height:1;">${diasBad}</div>
+        <div style="background:#EDE8DF;border-radius:7px;padding:7px 10px;border-top:3px solid #E24B4A;">
+          <div style="font-size:7.5px;color:#696158;margin-bottom:3px;font-weight:600;">No operables</div>
+          <div style="font-size:24px;font-weight:800;color:#E24B4A;line-height:1;">${diasBad}</div>
         </div>
-        <div style="background:#f8f7f5;border-radius:8px;padding:10px 12px;border-top:3px solid #185FA5;">
-          <div style="font-size:8px;color:#999;margin-bottom:5px;font-weight:600;">Precip. total pronosticada</div>
-          <div style="font-size:20px;font-weight:800;color:#185FA5;line-height:1;">${totalPrecip.toFixed(1)} mm</div>
+        <div style="background:#EDE8DF;border-radius:7px;padding:7px 10px;border-top:3px solid #696158;">
+          <div style="font-size:7.5px;color:#696158;margin-bottom:3px;font-weight:600;">Precip. total pronosticada</div>
+          <div style="font-size:17px;font-weight:800;color:#696158;line-height:1;">${totalPrecip.toFixed(1)} mm</div>
         </div>
-        <div style="background:#f8f7f5;border-radius:8px;padding:10px 12px;border-top:3px solid #E8820A;">
-          <div style="font-size:8px;color:#999;margin-bottom:5px;font-weight:600;">Límite viento</div>
-          <div style="font-size:20px;font-weight:800;color:#E8820A;line-height:1;">${VIENTO_LIMITE_RDCFT} km/h</div>
+        <div style="background:#EDE8DF;border-radius:7px;padding:7px 10px;border-top:3px solid #EA7600;">
+          <div style="font-size:7.5px;color:#696158;margin-bottom:3px;font-weight:600;">Límite viento</div>
+          <div style="font-size:17px;font-weight:800;color:#EA7600;line-height:1;">${VIENTO_LIMITE_RDCFT} km/h</div>
         </div>
       </div>
 
       <!-- SEMÁFORO -->
-      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Ventana operacional — 7 días</div>
-      <div style="display:flex;gap:6px;margin-bottom:20px;">${semaforo}</div>
+      <div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">Ventana operacional — 7 días</div>
+      <div style="display:flex;gap:5px;margin-bottom:12px;">${semaforo}</div>
 
       <!-- PRONÓSTICO -->
-      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Pronóstico meteorológico por horario</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      <div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">Pronóstico meteorológico por horario</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:12px;">
         <thead>
-          <tr style="background:#f0ede8;">
-            <th style="padding:6px 8px;text-align:left;font-size:8px;color:#666;font-weight:700;text-transform:uppercase;">Día / Hora</th>
-            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Temp.</th>
-            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Humedad</th>
-            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Lluvia</th>
-            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Viento</th>
-            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Racha</th>
-            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Estado RDCFT</th>
+          <tr style="background:#DFD1A7;">
+            <th style="padding:4px 8px;text-align:left;font-size:7.5px;color:#696158;font-weight:700;">Día / Hora</th>
+            <th style="padding:4px 8px;text-align:center;font-size:7.5px;color:#696158;font-weight:700;">Temp.</th>
+            <th style="padding:4px 8px;text-align:center;font-size:7.5px;color:#696158;font-weight:700;">Humedad</th>
+            <th style="padding:4px 8px;text-align:center;font-size:7.5px;color:#696158;font-weight:700;">Lluvia</th>
+            <th style="padding:4px 8px;text-align:center;font-size:7.5px;color:#696158;font-weight:700;">Viento</th>
+            <th style="padding:4px 8px;text-align:center;font-size:7.5px;color:#696158;font-weight:700;">Racha</th>
+            <th style="padding:4px 8px;text-align:center;font-size:7.5px;color:#696158;font-weight:700;">Estado RDCFT</th>
           </tr>
         </thead>
         <tbody>${filas}</tbody>
       </table>
 
       <!-- COMENTARIO -->
-      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Comentario operacional</div>
-      <div style="background:#f8f7f5;border-left:3px solid #7a6e65;padding:12px 16px;font-size:10px;line-height:1.75;color:#444;margin-bottom:20px;border-radius:0 8px 8px 0;">
+      <div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">Comentario operacional</div>
+      <div style="background:#EDE8DF;border-left:3px solid #696158;padding:8px 12px;font-size:9px;line-height:1.65;color:#444;margin-bottom:12px;border-radius:0 7px 7px 0;">
         ${resumen}
       </div>
 
       ${precipHTML}
 
       <!-- FOOTER -->
-      <div style="border-top:0.5px solid #eee;padding-top:10px;display:flex;justify-content:space-between;font-size:7.5px;color:#bbb;">
+      <div style="border-top:1px solid #DFD1A7;padding-top:7px;display:flex;justify-content:space-between;font-size:7px;color:#aaa;">
         <span>Datos meteorológicos: Open-Meteo (CC BY 4.0) · Precipitaciones: agrometeorologia.cl</span>
         <span>Generado: ${fecha}</span>
       </div>
