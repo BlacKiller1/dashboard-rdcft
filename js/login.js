@@ -5,8 +5,8 @@
 
 const SESSION_KEY  = 'rdcft_user';
 // En localhost usar archivo local, en produccion usar API segura
-const ES_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const USUARIOS_URL = ES_LOCAL ? '/data/usuarios.json' : '/api/token?type=usuarios';
+const ES_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+const USUARIOS_URL = ES_LOCAL ? 'data/usuarios.json' : '/api/token?type=usuarios';
 let usuariosDB     = null;
 
 async function cargarUsuarios() {
