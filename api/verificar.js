@@ -36,7 +36,8 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Correo no registrado. Contacta al administrador.' });
   }
 
-  const token = crypto.createHmac('sha256', secret).update(email).digest('hex');
+  const fecha = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const token = crypto.createHmac('sha256', secret).update(`${email}:${fecha}`).digest('hex');
   return res.status(200).json({
     email: usuario.email,
     rol:   usuario.rol,

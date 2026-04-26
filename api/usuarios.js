@@ -17,9 +17,14 @@ function parseAuth(req) {
 
 function verificarToken(email, token, secret) {
   try {
-    const expected = crypto.createHmac('sha256', secret).update(email).digest('hex');
-    if (token.length !== expected.length) return false;
-    return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+    const hoy  = new Date().toISOString().slice(0, 10);
+    const ayer = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    for (const fecha of [hoy, ayer]) {
+      const expected = crypto.createHmac('sha256', secret).update(`${email}:${fecha}`).digest('hex');
+      if (token.length === expected.length &&
+          crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected))) return true;
+    }
+    return false;
   } catch { return false; }
 }
 
