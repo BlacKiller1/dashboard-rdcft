@@ -12,7 +12,7 @@ jobs:
   descargar:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write   # necesario solo para el commit/push final
 
     steps:
       - name: Checkout repositorio
