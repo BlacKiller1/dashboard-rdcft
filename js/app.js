@@ -76,14 +76,13 @@ async function cargarEstadosTodos() {
       })
   );
 
-  // Ir actualizando el sidebar a medida que llegan respuestas
-  // usando Promise.allSettled para no bloquear si alguna falla
+  // Actualizar el panel resumen a medida que llegan respuestas
+  // No tocar el sidebar para no cerrar zonas abiertas por el usuario
   let completados = 0;
   promesas.forEach(p => {
     p.finally(() => {
       completados++;
-      renderSidebar(activePaisaje);
-      // Mostrar progreso en consola
+      if (!activePaisaje) renderEmpty();
       if (completados === PAISAJES.length) {
         console.log('[RDCFT] Estados de todos los paisajes cargados.');
       }
