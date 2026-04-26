@@ -4,9 +4,42 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 const SESSION_KEY = 'rdcft_user';
+const LOCK_KEY    = 'rdcft_session_lock';
 const ES_LOCAL    = window.location.hostname === 'localhost'
                  || window.location.hostname === '127.0.0.1'
                  || window.location.protocol === 'file:';
+
+// ── Control de sesión única ───────────────────────────────────────────────
+
+function obtenerTabId() {
+  let id = sessionStorage.getItem('rdcft_tab_id');
+  if (!id) { id = Math.random().toString(36).slice(2); sessionStorage.setItem('rdcft_tab_id', id); }
+  return id;
+}
+
+function haySessionDuplicada(email) {
+  try {
+    const lock = JSON.parse(localStorage.getItem(LOCK_KEY));
+    if (!lock || lock.email !== email) return false;
+    return lock.tabId !== obtenerTabId();
+  } catch { return false; }
+}
+
+function registrarSession(email) {
+  localStorage.setItem(LOCK_KEY, JSON.stringify({ email, tabId: obtenerTabId() }));
+}
+
+function liberarSession(email) {
+  try {
+    const lock = JSON.parse(localStorage.getItem(LOCK_KEY));
+    if (lock?.email === email && lock?.tabId === obtenerTabId()) localStorage.removeItem(LOCK_KEY);
+  } catch {}
+}
+
+function forzarLogin() {
+  localStorage.removeItem(LOCK_KEY);
+  verificarCorreo();
+}
 
 let usuariosDB = null;
 
@@ -111,6 +144,13 @@ async function verificarCorreo() {
     errorMsg.style.display = 'block'; return;
   }
 
+  if (haySessionDuplicada(email)) {
+    errorMsg.innerHTML = 'Ya existe una sesión activa con este correo. ' +
+      '<a href="#" onclick="forzarLogin();return false;" style="color:var(--c-orange);text-decoration:underline;">Cerrar la otra sesión e ingresar</a>';
+    errorMsg.style.display = 'block';
+    return;
+  }
+
   btn.textContent = '⏳ Verificando...'; btn.disabled = true;
 
   try {
@@ -136,6 +176,7 @@ async function verificarCorreo() {
     }
 
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
+    registrarSession(usuario.email);
     mostrarDashboard(usuario);
   } catch (err) {
     errorMsg.textContent = err.message;
@@ -146,6 +187,8 @@ async function verificarCorreo() {
 }
 
 function cerrarSesion() {
+  const sesion = verificarSesion();
+  if (sesion) liberarSession(sesion.email);
   sessionStorage.removeItem(SESSION_KEY);
   usuariosDB = null;
   mostrarLogin();
@@ -314,5 +357,10 @@ function mostrarMensajeAdmin(msg, tipo) {
 window.addEventListener('DOMContentLoaded', async () => {
   if (ES_LOCAL) await cargarUsuarios();
   const sesion = verificarSesion();
-  sesion ? mostrarDashboard(sesion) : mostrarLogin();
+  if (sesion) {
+    registrarSession(sesion.email); // re-registrar al recargar la misma pestaña
+    mostrarDashboard(sesion);
+  } else {
+    mostrarLogin();
+  }
 });
