@@ -59,13 +59,8 @@ function renderSidebar(activeIdx) {
       const idx = PAISAJES.findIndex(p => p.n === nombre);
       if (idx === -1) return '';
       const p      = PAISAJES[idx];
-      const estado = PAISAJE_ESTADO[idx];
-      const dotHTML = estado
-        ? `<span class="dot ${estado}"></span>`
-        : `<span class="dot-empty"></span>`;
       return `
         <div class="p-item${activeIdx === idx ? ' active' : ''}" onclick="onSelectPaisaje(${idx})">
-          ${dotHTML}
           <span class="pname">${p.n}</span>
         </div>`;
     }).join('');
