@@ -12,8 +12,7 @@ const DAY_NAMES  = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
 const LABELS = {
   favorable:      'Favorable',
   restriccion:    'Con restricciones',
-  'no-favorable': 'No favorable',
-  'sin-rdcft':    'Sin RDCFT programado'
+  'no-favorable': 'No favorable'
 };
 
 const SEM_COLORS = {
@@ -27,7 +26,7 @@ const SEM_LABELS = {
   ok:      'Favorable',
   warn:    'Con restricciones',
   bad:     'No favorable',
-  neutral: 'Sin RDCFT programado'
+  neutral: 'Sin datos'
 };
 
 // ── Calcular estado real de un día desde datos de la API ─────────────────
@@ -128,16 +127,15 @@ function renderEmpty() {
       if (idx === -1) return '';
       const estado = PAISAJE_ESTADO[idx] || 'sin-rdcft';
       const colores = {
-        favorable:    'var(--c-green)',
-        restriccion:  'var(--c-yellow)',
+        favorable:      'var(--c-green)',
+        restriccion:    'var(--c-yellow)',
         'no-favorable': 'var(--c-red)',
-        'sin-rdcft':  'var(--c-gray)'
+        'sin-rdcft':    'var(--c-gray)'
       };
       const etiquetas = {
         favorable:      'Favorable',
         restriccion:    'Con restricciones',
-        'no-favorable': 'No favorable',
-        'sin-rdcft':    'Sin RDCFT programado'
+        'no-favorable': 'No favorable'
       };
       const tieneEstado = PAISAJE_ESTADO[idx] !== undefined;
       return `
@@ -165,7 +163,6 @@ function renderEmpty() {
       <div class="dstat"><div class="dstat-v" style="color:var(--c-green)">${favorable}</div><div class="dstat-l">Favorable</div></div>
       <div class="dstat"><div class="dstat-v" style="color:var(--c-yellow)">${restriccion}</div><div class="dstat-l">Con restricciones</div></div>
       <div class="dstat"><div class="dstat-v" style="color:var(--c-red)">${noFavorable}</div><div class="dstat-l">No favorable</div></div>
-      <div class="dstat"><div class="dstat-v" style="color:var(--c-gray)">${PAISAJES.length - totalConsultados}</div><div class="dstat-l">Sin consultar</div></div>
     </div>` : `
     <div class="decision-hint">
       Selecciona un paisaje en el panel izquierdo para cargar su pronóstico.<br>
@@ -196,7 +193,6 @@ function renderEmpty() {
           <div class="dl-item"><span class="resumen-dot" style="background:var(--c-green)"></span>Favorable</div>
           <div class="dl-item"><span class="resumen-dot" style="background:var(--c-yellow)"></span>Con restricciones</div>
           <div class="dl-item"><span class="resumen-dot" style="background:var(--c-red)"></span>No favorable</div>
-          <div class="dl-item"><span class="resumen-dot" style="background:var(--c-gray)"></span>Sin RDCFT programado</div>
         </div>
       </div>
 
@@ -261,7 +257,7 @@ function mostrarDetalleDia(idx) {
   const mes       = MESES_F[dateObj.getMonth()];
   const estado    = estadoDia(day);
   const estColor  = { ok:'var(--c-green)', warn:'var(--c-yellow)', bad:'var(--c-red)', neutral:'var(--c-text-dim)' };
-  const estLabel  = { ok:'Favorable', warn:'Con restricciones', bad:'No favorable', neutral:'Sin RDCFT programado' };
+  const estLabel  = { ok:'Favorable', warn:'Con restricciones', bad:'No favorable', neutral:'Sin datos' };
 
   // Generar comentario por slot horario
   const comentarioSlots = day.slots.map(s => {
