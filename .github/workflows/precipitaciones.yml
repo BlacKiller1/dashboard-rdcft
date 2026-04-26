@@ -40,16 +40,22 @@ jobs:
         env:
           CI: true   # Activa modo headless en el script
 
-      - name: Mostrar resultado
+      - name: Validar output generado
         run: |
-          echo "=== precipitaciones.json ==="
-          cat data/precipitaciones.json | python3 -c "
-          import json,sys
-          d=json.load(sys.stdin)
-          print(f'Período: {d[\"periodo\"][\"inicio\"]} → {d[\"periodo\"][\"fin\"]}')
-          print(f'Estaciones: {len(d[\"estaciones\"])}')
-          print(f'Paisajes: {len(d[\"por_paisaje\"])}')
-          print(f'Generado: {d[\"generado\"]}')
+          test -f data/precipitaciones.json || { echo "ERROR: precipitaciones.json no fue generado"; exit 1; }
+          python3 -c "
+          import json, sys
+          try:
+            d = json.load(open('data/precipitaciones.json'))
+            assert d.get('estaciones'), 'Sin estaciones'
+            assert d.get('por_paisaje'), 'Sin datos por paisaje'
+            assert d.get('periodo'), 'Sin período'
+            print(f'OK — Período: {d[\"periodo\"][\"inicio\"]} a {d[\"periodo\"][\"fin\"]}')
+            print(f'OK — Estaciones: {len(d[\"estaciones\"])}')
+            print(f'OK — Paisajes: {len(d[\"por_paisaje\"])}')
+          except Exception as e:
+            print(f'ERROR validando JSON: {e}')
+            sys.exit(1)
           "
 
       - name: Commit y push

@@ -3,15 +3,36 @@
    Dashboard Meteorológico RDCFT — Arauco
    ═══════════════════════════════════════════════════════════════════════ */
 
-const SESSION_KEY  = 'rdcft_user';
-// En localhost usar archivo local, en produccion usar API segura
-const ES_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
-const USUARIOS_URL = ES_LOCAL ? 'data/usuarios.json' : '/api/token?type=usuarios';
-let usuariosDB     = null;
+const SESSION_KEY = 'rdcft_user';
+const ES_LOCAL    = window.location.hostname === 'localhost'
+                 || window.location.hostname === '127.0.0.1'
+                 || window.location.protocol === 'file:';
 
+let usuariosDB = null;
+
+// ── Utilidades ────────────────────────────────────────────────────────────────
+
+function escapeHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Codifica {email, token} en base64 para el header Authorization
+function crearCredenciales(sesion) {
+  return btoa(JSON.stringify({ email: sesion.email, token: sesion.token }));
+}
+
+// ── Carga de usuarios ─────────────────────────────────────────────────────────
+
+// Solo en modo local (en producción la verificación ocurre en el servidor)
 async function cargarUsuarios() {
+  if (!ES_LOCAL) return;
   try {
-    const resp = await fetch(USUARIOS_URL);
+    const resp = await fetch('data/usuarios.json');
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     usuariosDB = data.usuarios || [];
@@ -21,9 +42,30 @@ async function cargarUsuarios() {
   }
 }
 
+// Carga usuarios completos para el panel admin (solo producción, requiere auth)
+async function cargarUsuariosConAuth() {
+  try {
+    const sesion = verificarSesion();
+    if (!sesion?.token) throw new Error('Sin sesión válida');
+    const resp = await fetch('/api/token?type=usuarios', {
+      headers: { 'Authorization': `Bearer ${crearCredenciales(sesion)}` }
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    usuariosDB = data.usuarios || [];
+  } catch (err) {
+    console.warn('[RDCFT] Error cargando usuarios (admin):', err);
+    usuariosDB = [];
+  }
+}
+
+// ── Sesión ────────────────────────────────────────────────────────────────────
+
 function verificarSesion() {
-  const u = sessionStorage.getItem(SESSION_KEY);
-  return u ? JSON.parse(u) : null;
+  try {
+    const u = sessionStorage.getItem(SESSION_KEY);
+    return u ? JSON.parse(u) : null;
+  } catch { return null; }
 }
 
 function mostrarLogin() {
@@ -39,10 +81,10 @@ function mostrarDashboard(usuario) {
   const badge = document.getElementById('userBadge');
   if (badge) {
     badge.innerHTML = `
-      <span class="user-email">${usuario.email}</span>
+      <span class="user-email">${escapeHtml(usuario.email)}</span>
       <span class="user-meta">
-        <span class="user-cargo">${usuario.cargo || ''}</span>
-        <span class="user-rol rol-${usuario.rol}">${usuario.rol === 'admin' ? '⭐ Admin' : '👤 Usuario'}</span>
+        <span class="user-cargo">${escapeHtml(usuario.cargo || '')}</span>
+        <span class="user-rol rol-${escapeHtml(usuario.rol)}">${usuario.rol === 'admin' ? '⭐ Admin' : '👤 Usuario'}</span>
       </span>
     `;
   }
@@ -50,6 +92,8 @@ function mostrarDashboard(usuario) {
   const btnAdmin = document.getElementById('btnAdmin');
   if (btnAdmin) btnAdmin.style.display = usuario.rol === 'admin' ? 'inline-flex' : 'none';
 }
+
+// ── Login ─────────────────────────────────────────────────────────────────────
 
 async function verificarCorreo() {
   const input    = document.getElementById('inputEmail');
@@ -68,32 +112,58 @@ async function verificarCorreo() {
   }
 
   btn.textContent = '⏳ Verificando...'; btn.disabled = true;
-  if (!usuariosDB) await cargarUsuarios();
 
-  const encontrado = usuariosDB.find(u => u.email === email);
-  btn.textContent = 'Acceder →'; btn.disabled = false;
+  try {
+    let usuario;
 
-  if (!encontrado) {
-    errorMsg.textContent = `El correo ${email} no está registrado. Contacta al administrador.`;
-    errorMsg.style.display = 'block'; return;
+    if (ES_LOCAL) {
+      // Local: verificar contra JSON local
+      if (!usuariosDB) await cargarUsuarios();
+      usuario = usuariosDB.find(u => u.email === email);
+      if (!usuario) throw new Error(`El correo ${email} no está registrado. Contacta al administrador.`);
+    } else {
+      // Producción: el servidor verifica y emite token firmado
+      const resp = await fetch('/api/verificar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || `Error del servidor (${resp.status})`);
+      }
+      usuario = await resp.json();
+    }
+
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
+    mostrarDashboard(usuario);
+  } catch (err) {
+    errorMsg.textContent = err.message;
+    errorMsg.style.display = 'block';
+  } finally {
+    btn.textContent = 'Acceder →'; btn.disabled = false;
   }
-
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(encontrado));
-  mostrarDashboard(encontrado);
 }
 
 function cerrarSesion() {
   sessionStorage.removeItem(SESSION_KEY);
+  usuariosDB = null;
   mostrarLogin();
 }
 
 function handleKeyDown(e) { if (e.key === 'Enter') verificarCorreo(); }
 
-/* ── Panel Admin ── */
-function abrirAdmin() {
+// ── Panel Admin ───────────────────────────────────────────────────────────────
+
+async function abrirAdmin() {
   const u = verificarSesion();
   if (!u || u.rol !== 'admin') return;
   document.getElementById('adminPanel').style.display = 'flex';
+  if (ES_LOCAL) {
+    if (!usuariosDB) await cargarUsuarios();
+  } else {
+    await cargarUsuariosConAuth();
+  }
   cargarTablaUsuarios();
 }
 
@@ -118,15 +188,15 @@ function cargarTablaUsuarios() {
 
   tbody.innerHTML = filtrados.length === 0
     ? `<tr><td colspan="4" style="text-align:center;color:var(--c-text-dim);padding:20px;">No se encontraron usuarios</td></tr>`
-    : filtrados.map((u, i) => {
+    : filtrados.map(u => {
         const idxReal = usuariosDB.indexOf(u);
         const esSelf  = u.email === usuario.email;
         const esAdmin = u.rol === 'admin';
         return `
           <tr>
-            <td>${u.email}</td>
-            <td><span class="rol-badge rol-${u.rol}">${esAdmin ? '⭐ Admin' : '👤 Usuario'}</span></td>
-            <td>${u.cargo || '-'}</td>
+            <td>${escapeHtml(u.email)}</td>
+            <td><span class="rol-badge rol-${escapeHtml(u.rol)}">${esAdmin ? '⭐ Admin' : '👤 Usuario'}</span></td>
+            <td>${escapeHtml(u.cargo || '-')}</td>
             <td class="admin-acciones">
               ${!esSelf ? `
                 <button class="admin-rol-btn ${esAdmin ? 'admin-rol-quitar' : 'admin-rol-dar'}"
@@ -148,10 +218,9 @@ function buscarUsuario(valor) {
 }
 
 function cambiarRol(idx) {
-  const u = usuariosDB[idx];
+  const u      = usuariosDB[idx];
   const nuevoRol = u.rol === 'admin' ? 'usuario' : 'admin';
 
-  // Verificar límite de admins
   if (nuevoRol === 'admin' && usuariosDB.filter(u => u.rol === 'admin').length >= 5) {
     alert('Máximo 5 administradores permitidos');
     return;
@@ -201,20 +270,29 @@ async function eliminarUsuario(idx) {
 async function guardarUsuarios() {
   const btn = document.getElementById('btnGuardarUsuarios');
   if (btn) { btn.textContent = '⏳ Guardando...'; btn.disabled = true; }
+
   try {
-    // En localhost no llamar al API de Vercel
     if (ES_LOCAL) {
       mostrarMensajeAdmin('✅ Cambios aplicados localmente. En producción usa la URL de Vercel.', 'success');
       if (btn) { btn.textContent = '💾 Guardar cambios'; btn.disabled = false; }
       return;
     }
 
+    const sesion = verificarSesion();
+    if (!sesion?.token) throw new Error('Sesión inválida. Vuelve a iniciar sesión.');
+
     const resp = await fetch('/api/usuarios', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${crearCredenciales(sesion)}`
+      },
       body: JSON.stringify({ usuarios: usuariosDB })
     });
-    if (!resp.ok) throw new Error(`Error: ${resp.status}`);
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `Error: ${resp.status}`);
+    }
     mostrarMensajeAdmin('✅ Usuarios guardados. El sistema se actualizará en ~1 minuto.', 'success');
   } catch (err) {
     mostrarMensajeAdmin('❌ Error al guardar: ' + err.message, 'error');
@@ -231,8 +309,10 @@ function mostrarMensajeAdmin(msg, tipo) {
   setTimeout(() => div.style.display = 'none', 4000);
 }
 
+// ── Inicialización ────────────────────────────────────────────────────────────
+
 window.addEventListener('DOMContentLoaded', async () => {
-  await cargarUsuarios();
+  if (ES_LOCAL) await cargarUsuarios();
   const sesion = verificarSesion();
   sesion ? mostrarDashboard(sesion) : mostrarLogin();
 });

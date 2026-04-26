@@ -1,18 +1,66 @@
-// api/usuarios.js — Actualizar usuarios y redesplegar Vercel automáticamente
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', 'https://arauco-rdcft.vercel.app');
+// api/usuarios.js — Actualizar usuarios (requiere sesión de admin firmada)
+import crypto from 'crypto';
 
+const ALLOWED_ORIGINS = [
+  'https://arauco-rdcft.vercel.app',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500'
+];
+
+function parseAuth(req) {
+  try {
+    const parts = (req.headers.authorization || '').split(' ');
+    if (parts[0] !== 'Bearer' || !parts[1]) return null;
+    return JSON.parse(Buffer.from(parts[1], 'base64').toString());
+  } catch { return null; }
+}
+
+function verificarToken(email, token, secret) {
+  try {
+    const expected = crypto.createHmac('sha256', secret).update(email).digest('hex');
+    if (token.length !== expected.length) return false;
+    return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+  } catch { return false; }
+}
+
+export default async function handler(req, res) {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
-  const { usuarios } = req.body;
-  if (!usuarios) return res.status(400).json({ error: 'Datos inválidos' });
-
-  const VERCEL_TOKEN  = process.env.VERCEL_TOKEN;
-  const PROJECT_ID    = process.env.VERCEL_PROJECT_ID;
-
-  if (!VERCEL_TOKEN || !PROJECT_ID) {
-    return res.status(500).json({ error: 'Variables de Vercel no configuradas' });
+  // ── Autenticación ──────────────────────────────────────────────────────────
+  const creds = parseAuth(req);
+  if (!creds?.email || !creds?.token) {
+    return res.status(401).json({ error: 'No autorizado' });
   }
+
+  const secret       = process.env.ADMIN_SECRET;
+  const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
+  const PROJECT_ID   = process.env.VERCEL_PROJECT_ID;
+
+  if (!secret || !VERCEL_TOKEN || !PROJECT_ID) {
+    return res.status(500).json({ error: 'Variables no configuradas' });
+  }
+
+  if (!verificarToken(creds.email, creds.token, secret)) {
+    return res.status(401).json({ error: 'Token inválido' });
+  }
+
+  // Verificar rol admin en la BD actual
+  let existingUsuarios = [];
+  try { existingUsuarios = JSON.parse(process.env.USUARIOS_DB || '{}').usuarios || []; } catch {}
+  const requestUser = existingUsuarios.find(u => u.email === creds.email);
+  if (!requestUser || requestUser.rol !== 'admin') {
+    return res.status(403).json({ error: 'Sin permisos de administrador' });
+  }
+
+  // ── Validar payload ────────────────────────────────────────────────────────
+  const { usuarios } = req.body || {};
+  if (!Array.isArray(usuarios)) return res.status(400).json({ error: 'Datos inválidos' });
 
   try {
     const nuevoValor = JSON.stringify({ usuarios });
@@ -62,11 +110,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         name: 'dashboard-rdcft',
-        gitSource: {
-          type: 'github',
-          repoId: PROJECT_ID,
-          ref: 'main'
-        },
+        gitSource: { type: 'github', repoId: PROJECT_ID, ref: 'main' },
         projectId: PROJECT_ID,
         target: 'production'
       })
