@@ -38,7 +38,7 @@ function liberarSession(email) {
 
 function forzarLogin() {
   localStorage.removeItem(LOCK_KEY);
-  verificarCorreo();
+  _doLogin(true);
 }
 
 let usuariosDB = null;
@@ -54,9 +54,9 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-// Codifica {email, token} en base64 para el header Authorization
+// Codifica {email, token, sessionId} en base64 para el header Authorization
 function crearCredenciales(sesion) {
-  return btoa(JSON.stringify({ email: sesion.email, token: sesion.token }));
+  return btoa(JSON.stringify({ email: sesion.email, token: sesion.token, sessionId: sesion.sessionId }));
 }
 
 // ── Carga de usuarios ─────────────────────────────────────────────────────────
@@ -128,7 +128,9 @@ function mostrarDashboard(usuario) {
 
 // ── Login ─────────────────────────────────────────────────────────────────────
 
-async function verificarCorreo() {
+function verificarCorreo() { _doLogin(false); }
+
+async function _doLogin(force) {
   const input    = document.getElementById('inputEmail');
   const errorMsg = document.getElementById('loginError');
   const btn      = document.getElementById('btnAcceder');
@@ -144,10 +146,9 @@ async function verificarCorreo() {
     errorMsg.style.display = 'block'; return;
   }
 
-  if (haySessionDuplicada(email)) {
-    errorMsg.innerHTML = 'Ya existe una sesión activa con este correo. ' +
-      '<a href="#" onclick="forzarLogin();return false;" style="color:var(--c-orange);text-decoration:underline;">Cerrar la otra sesión e ingresar</a>';
-    errorMsg.style.display = 'block';
+  // Verificación rápida en el mismo navegador (sin hit al servidor)
+  if (!force && haySessionDuplicada(email)) {
+    _mostrarErrorConFuerza('Ya existe una sesión activa con este correo en este navegador.');
     return;
   }
 
@@ -157,17 +158,19 @@ async function verificarCorreo() {
     let usuario;
 
     if (ES_LOCAL) {
-      // Local: verificar contra JSON local
       if (!usuariosDB) await cargarUsuarios();
       usuario = usuariosDB.find(u => u.email === email);
       if (!usuario) throw new Error(`El correo ${email} no está registrado. Contacta al administrador.`);
     } else {
-      // Producción: el servidor verifica y emite token firmado
       const resp = await fetch('/api/verificar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, force: force || false })
       });
+      if (resp.status === 409) {
+        _mostrarErrorConFuerza('Ya existe una sesión activa con este correo en otro dispositivo.');
+        return;
+      }
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
         throw new Error(err.error || `Error del servidor (${resp.status})`);
@@ -186,8 +189,21 @@ async function verificarCorreo() {
   }
 }
 
+function _mostrarErrorConFuerza(mensaje) {
+  const errorMsg = document.getElementById('loginError');
+  errorMsg.innerHTML = escapeHtml(mensaje) + ' ' +
+    '<a href="#" onclick="forzarLogin();return false;" style="color:var(--c-orange);text-decoration:underline;">Cerrar la otra sesión e ingresar</a>';
+  errorMsg.style.display = 'block';
+}
+
 function cerrarSesion() {
   const sesion = verificarSesion();
+  if (sesion && !ES_LOCAL) {
+    fetch('/api/logout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${crearCredenciales(sesion)}` }
+    }).catch(() => {});
+  }
   if (sesion) liberarSession(sesion.email);
   sessionStorage.removeItem(SESSION_KEY);
   usuariosDB = null;

@@ -2,6 +2,18 @@
 // Retorna lista de usuarios solo a admins autenticados
 import crypto from 'crypto';
 
+async function redis(command) {
+  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(command)
+  });
+  return (await res.json()).result;
+}
+
 const ALLOWED_ORIGINS = [
   'https://arauco-rdcft.vercel.app',
   'http://localhost:5500',
@@ -29,7 +41,7 @@ function verificarToken(email, token, secret) {
   } catch { return false; }
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   const origin = req.headers.origin || '';
   if (ALLOWED_ORIGINS.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'GET');
@@ -48,6 +60,14 @@ export default function handler(req, res) {
 
     if (!verificarToken(creds.email, creds.token, secret)) {
       return res.status(401).json({ error: 'Token inválido' });
+    }
+
+    // Validar sessionId contra Redis (si fue provisto)
+    if (creds.sessionId) {
+      const stored = await redis(['GET', `session:${creds.email}`]);
+      if (!stored || stored !== creds.sessionId) {
+        return res.status(401).json({ error: 'Sesión inválida o expirada. Vuelve a iniciar sesión.' });
+      }
     }
 
     try {
