@@ -704,8 +704,9 @@ async function descargarPDF(nombrePaisaje) {
 
     // Precipitaciones
     let precipHTML = '';
-    if (window.precipData && window.precipData.estaciones) {
-      const ests = Object.entries(window.precipData.estaciones).slice(0,6);
+    const precipPaisaje = window.precipData && window.precipData.por_paisaje && window.precipData.por_paisaje[nombrePaisaje];
+    if (precipPaisaje) {
+      const ests = Object.entries(precipPaisaje).slice(0,6);
       const cells = ests.map(([nom,datos]) => {
         const total = Object.values(datos).reduce((a,b)=>a+(parseFloat(b)||0),0);
         return `<td style="text-align:center;padding:4px;">
