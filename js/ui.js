@@ -692,101 +692,131 @@ async function descargarPDF(nombrePaisaje) {
       const dateObj = new Date(d.date + 'T12:00:00');
       const ecolor  = ECOLOR[est]||'#888';
       const ebg     = EBG[est]||'#F1EFE8';
-      return `<td style="width:13%;text-align:center;padding:3px;">
-        <div style="background:${ebg};border-radius:6px;padding:6px 3px;">
-          <div style="font-size:9px;font-weight:700;color:${ecolor};">${DAYS[dateObj.getDay()]}</div>
-          <div style="font-size:8px;color:#999;margin:1px 0;">${dateObj.getDate()+'/'+(dateObj.getMonth()+1)}</div>
-          <div style="font-size:16px;color:${ecolor};font-weight:700;">${EICON[est]||'-'}</div>
-          <div style="font-size:7px;color:${ecolor};font-weight:600;">${ELABEL[est]||'-'}</div>
-        </div>
-      </td>`;
+      return `<div style="flex:1;text-align:center;background:${ebg};border-radius:8px;padding:9px 4px;">
+        <div style="font-size:10px;font-weight:800;color:${ecolor};">${DAYS[dateObj.getDay()]}</div>
+        <div style="font-size:8px;color:#aaa;margin:2px 0;">${dateObj.getDate()}/${dateObj.getMonth()+1}</div>
+        <div style="font-size:22px;line-height:1.1;color:${ecolor};font-weight:700;">${EICON[est]||'-'}</div>
+        <div style="font-size:7.5px;color:${ecolor};font-weight:700;margin-top:2px;">${ELABEL[est]||'-'}</div>
+      </div>`;
     }).join('');
 
-    // Precipitaciones
+    // Precipitaciones históricas — tabla estaciones × fechas
     let precipHTML = '';
     const precipPaisaje = window.precipData && window.precipData.por_paisaje && window.precipData.por_paisaje[nombrePaisaje];
     if (precipPaisaje) {
-      const ests = Object.entries(precipPaisaje).slice(0,6);
-      const cells = ests.map(([nom,datos]) => {
-        const total = Object.values(datos).reduce((a,b)=>a+(parseFloat(b)||0),0);
-        return `<td style="text-align:center;padding:4px;">
-          <div style="background:#f0f4f8;border-radius:6px;padding:6px;">
-            <div style="font-size:8px;color:#888;margin-bottom:3px;">${nom}</div>
-            <div style="font-size:14px;font-weight:600;color:#185FA5;">${total.toFixed(1)}</div>
-            <div style="font-size:7px;color:#888;">mm</div>
-          </div>
-        </td>`;
+      const ests   = Object.entries(precipPaisaje);
+      const fechas = ests.length ? Object.keys(ests[0][1]).sort() : [];
+      const DAYS_S = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+      const thFechas = fechas.map(f => {
+        const d = new Date(f + 'T12:00:00');
+        return `<th style="padding:5px 6px;text-align:center;font-size:8px;color:#666;font-weight:700;background:#f0ede8;">${DAYS_S[d.getDay()]}<br><span style="font-weight:400;color:#999;">${d.getDate()}/${d.getMonth()+1}</span></th>`;
       }).join('');
+
+      const filasPrecip = ests.map(([nom, datos]) => {
+        const tds = fechas.map(f => {
+          const vf = (datos[f] !== null && datos[f] !== undefined) ? parseFloat(datos[f]) : null;
+          const c  = vf === null ? '#ccc' : vf === 0 ? '#bbb' : vf < 5 ? '#4A9EE8' : '#185FA5';
+          const fw = vf > 0 ? '700' : '400';
+          return `<td style="padding:4px 6px;text-align:center;border-bottom:0.5px solid #f0f0f0;font-size:8.5px;color:${c};font-weight:${fw};">${vf !== null ? vf.toFixed(1) : '—'}</td>`;
+        }).join('');
+        const total = fechas.reduce((a, f) => a + (parseFloat(datos[f]) || 0), 0);
+        const tc = total === 0 ? '#bbb' : total < 10 ? '#4A9EE8' : '#185FA5';
+        return `<tr>
+          <td style="padding:4px 8px;font-size:8.5px;font-weight:600;color:#333;border-bottom:0.5px solid #f0f0f0;white-space:nowrap;">${nom}</td>
+          ${tds}
+          <td style="padding:4px 8px;text-align:center;font-size:9px;font-weight:700;color:${tc};border-bottom:0.5px solid #f0f0f0;border-left:1px solid #e8e8e8;">${total.toFixed(1)}</td>
+        </tr>`;
+      }).join('');
+
+      const per = window.precipData.periodo;
+      const perLabel = per ? `${per.inicio} al ${per.fin}` : 'última semana';
       precipHTML = `
-        <div style="font-size:9px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.07em;margin:14px 0 6px;">Precipitaciones históricas — últimos 7 días</div>
-        <table style="width:100%;border-collapse:collapse;margin-bottom:14px;"><tr>${cells}</tr></table>`;
+        <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin:16px 0 10px;">Precipitaciones históricas — ${perLabel}</div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+          <thead><tr>
+            <th style="padding:5px 8px;text-align:left;font-size:8px;color:#666;font-weight:700;background:#f0ede8;">Estación</th>
+            ${thFechas}
+            <th style="padding:5px 8px;text-align:center;font-size:8px;color:#185FA5;font-weight:700;background:#f0ede8;border-left:1px solid #e0dcd8;">Total mm</th>
+          </tr></thead>
+          <tbody>${filasPrecip}</tbody>
+        </table>`;
     }
 
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <style>body{margin:0;padding:0;font-family:Arial,sans-serif;background:#fff;}</style>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #fff; }
+    </style>
     </head><body>
-    <div style="padding:24px;background:#fff;max-width:860px;">
+    <div style="padding:28px 32px;background:#fff;max-width:860px;">
 
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #7a6e65;padding-bottom:12px;margin-bottom:18px;">
-        <img src="data:image/png;base64,${LOGO_ARAUCO_B64}" style="height:36px;object-fit:contain;background:transparent;"/>
+      <!-- HEADER -->
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #7a6e65;padding-bottom:14px;margin-bottom:20px;">
+        <img src="data:image/png;base64,${LOGO_ARAUCO_B64}" style="height:38px;object-fit:contain;background:transparent;"/>
         <div style="text-align:right;">
-          <div style="font-size:15px;font-weight:700;color:#1a1a1a;">${nombrePaisaje}</div>
-          <div style="font-size:10px;color:#888;margin-top:2px;">Informe meteorológico RDCFT · ${fecha}</div>
-          <div style="font-size:9px;color:#aaa;">Lat: ${p.lat} · Lon: ${p.lon} · Límite viento: ${VIENTO_LIMITE_RDCFT} km/h</div>
+          <div style="font-size:18px;font-weight:800;color:#1a1a1a;letter-spacing:-0.3px;">${nombrePaisaje}</div>
+          <div style="font-size:9px;color:#999;margin-top:3px;">Informe RDCFT · Lat ${p.lat} · Lon ${p.lon} · Límite viento ${VIENTO_LIMITE_RDCFT} km/h</div>
+          <div style="font-size:9px;color:#bbb;margin-top:2px;">${fecha}</div>
         </div>
       </div>
 
-      <div style="font-size:9px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Resumen operacional semanal</div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:18px;">
-        <div style="background:#f8f7f5;border-radius:7px;padding:9px 10px;">
-          <div style="font-size:9px;color:#888;margin-bottom:3px;">Operables</div>
-          <div style="font-size:22px;font-weight:700;color:#1D9E75;">${diasOk}</div>
+      <!-- KPI -->
+      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Resumen operacional semanal</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px;">
+        <div style="background:#f8f7f5;border-radius:8px;padding:10px 12px;border-top:3px solid #1D9E75;">
+          <div style="font-size:8px;color:#999;margin-bottom:5px;font-weight:600;">Días operables</div>
+          <div style="font-size:28px;font-weight:800;color:#1D9E75;line-height:1;">${diasOk}</div>
         </div>
-        <div style="background:#f8f7f5;border-radius:7px;padding:9px 10px;">
-          <div style="font-size:9px;color:#888;margin-bottom:3px;">Con restricciones</div>
-          <div style="font-size:22px;font-weight:700;color:#BA7517;">${diasWarn}</div>
+        <div style="background:#f8f7f5;border-radius:8px;padding:10px 12px;border-top:3px solid #BA7517;">
+          <div style="font-size:8px;color:#999;margin-bottom:5px;font-weight:600;">Con restricciones</div>
+          <div style="font-size:28px;font-weight:800;color:#BA7517;line-height:1;">${diasWarn}</div>
         </div>
-        <div style="background:#f8f7f5;border-radius:7px;padding:9px 10px;">
-          <div style="font-size:9px;color:#888;margin-bottom:3px;">No operables</div>
-          <div style="font-size:22px;font-weight:700;color:#E24B4A;">${diasBad}</div>
+        <div style="background:#f8f7f5;border-radius:8px;padding:10px 12px;border-top:3px solid #E24B4A;">
+          <div style="font-size:8px;color:#999;margin-bottom:5px;font-weight:600;">No operables</div>
+          <div style="font-size:28px;font-weight:800;color:#E24B4A;line-height:1;">${diasBad}</div>
         </div>
-        <div style="background:#f8f7f5;border-radius:7px;padding:9px 10px;">
-          <div style="font-size:9px;color:#888;margin-bottom:3px;">Precip. total</div>
-          <div style="font-size:22px;font-weight:700;color:#185FA5;">${totalPrecip.toFixed(1)} mm</div>
+        <div style="background:#f8f7f5;border-radius:8px;padding:10px 12px;border-top:3px solid #185FA5;">
+          <div style="font-size:8px;color:#999;margin-bottom:5px;font-weight:600;">Precip. total pronosticada</div>
+          <div style="font-size:20px;font-weight:800;color:#185FA5;line-height:1;">${totalPrecip.toFixed(1)} mm</div>
         </div>
-        <div style="background:#f8f7f5;border-radius:7px;padding:9px 10px;">
-          <div style="font-size:9px;color:#888;margin-bottom:3px;">Límite viento</div>
-          <div style="font-size:22px;font-weight:700;color:#E8820A;">${VIENTO_LIMITE_RDCFT} km/h</div>
+        <div style="background:#f8f7f5;border-radius:8px;padding:10px 12px;border-top:3px solid #E8820A;">
+          <div style="font-size:8px;color:#999;margin-bottom:5px;font-weight:600;">Límite viento</div>
+          <div style="font-size:20px;font-weight:800;color:#E8820A;line-height:1;">${VIENTO_LIMITE_RDCFT} km/h</div>
         </div>
       </div>
 
-      <div style="font-size:9px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Ventana operacional — 7 días</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:18px;"><tr>${semaforo}</tr></table>
+      <!-- SEMÁFORO -->
+      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Ventana operacional — 7 días</div>
+      <div style="display:flex;gap:6px;margin-bottom:20px;">${semaforo}</div>
 
-      <div style="font-size:9px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Pronóstico meteorológico por horario</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
+      <!-- PRONÓSTICO -->
+      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Pronóstico meteorológico por horario</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
         <thead>
           <tr style="background:#f0ede8;">
-            <th style="padding:6px 8px;text-align:left;font-size:9px;color:#666;font-weight:600;">Día / Hora</th>
-            <th style="padding:6px 8px;text-align:center;font-size:9px;color:#666;font-weight:600;">Temp.</th>
-            <th style="padding:6px 8px;text-align:center;font-size:9px;color:#666;font-weight:600;">Humedad</th>
-            <th style="padding:6px 8px;text-align:center;font-size:9px;color:#666;font-weight:600;">Lluvia</th>
-            <th style="padding:6px 8px;text-align:center;font-size:9px;color:#666;font-weight:600;">Viento</th>
-            <th style="padding:6px 8px;text-align:center;font-size:9px;color:#666;font-weight:600;">Racha</th>
-            <th style="padding:6px 8px;text-align:center;font-size:9px;color:#666;font-weight:600;">Estado</th>
+            <th style="padding:6px 8px;text-align:left;font-size:8px;color:#666;font-weight:700;text-transform:uppercase;">Día / Hora</th>
+            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Temp.</th>
+            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Humedad</th>
+            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Lluvia</th>
+            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Viento</th>
+            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Racha</th>
+            <th style="padding:6px 8px;text-align:center;font-size:8px;color:#666;font-weight:700;">Estado RDCFT</th>
           </tr>
         </thead>
         <tbody>${filas}</tbody>
       </table>
 
-      <div style="font-size:9px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">Comentario operacional</div>
-      <div style="background:#f8f7f5;border-left:3px solid #7a6e65;padding:10px 14px;font-size:10px;line-height:1.7;color:#444;margin-bottom:18px;border-radius:0 6px 6px 0;">
+      <!-- COMENTARIO -->
+      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Comentario operacional</div>
+      <div style="background:#f8f7f5;border-left:3px solid #7a6e65;padding:12px 16px;font-size:10px;line-height:1.75;color:#444;margin-bottom:20px;border-radius:0 8px 8px 0;">
         ${resumen}
       </div>
 
       ${precipHTML}
 
-      <div style="border-top:0.5px solid #eee;padding-top:8px;display:flex;justify-content:space-between;font-size:8px;color:#aaa;">
+      <!-- FOOTER -->
+      <div style="border-top:0.5px solid #eee;padding-top:10px;display:flex;justify-content:space-between;font-size:7.5px;color:#bbb;">
         <span>Datos meteorológicos: Open-Meteo (CC BY 4.0) · Precipitaciones: agrometeorologia.cl</span>
         <span>Generado: ${fecha}</span>
       </div>
