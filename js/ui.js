@@ -578,7 +578,6 @@ function renderOperationalCard(paisaje, days) {
       <div class="detail-top">
         <span class="detail-title">${paisaje.n}</span>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span class="ebadge ${paisaje.e}">${LABELS[paisaje.e]}</span>
           <button class="pdf-btn" onclick="descargarPDF('${paisaje.n}')">
             ⬇ Descargar PDF
           </button>
