@@ -7,22 +7,24 @@ on:
 jobs:
   update-cache-version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/checkout@v4
 
-      - name: Actualizar CACHE_NAME con timestamp
+      - name: Actualizar CACHE_NAME y hacer commit
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          sed -i "s/{{CACHE_VERSION}}/$TIMESTAMP/g" service-worker.js
+
+          # Reemplaza cualquier versión existente (placeholder o timestamp anterior)
+          sed -i "s/const CACHE_NAME *= *'rdcft-[^']*'/const CACHE_NAME = 'rdcft-$TIMESTAMP'/" service-worker.js
+
           echo "Cache version: rdcft-$TIMESTAMP"
 
-      - name: Commit y push
-        run: |
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add service-worker.js
-          git diff --staged --quiet || git commit -m "auto: actualizar cache PWA $TIMESTAMP"
+          git diff --staged --quiet || git commit -m "auto: cache PWA $TIMESTAMP"
           git push
