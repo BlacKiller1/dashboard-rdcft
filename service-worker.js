@@ -4,7 +4,7 @@
    Estrategia: Cache First para assets estáticos, Network First para API
    ═══════════════════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'rdcft-20260427093049';
+const CACHE_NAME = 'rdcft-20260427094446';
 const CACHE_OFFLINE = 'rdcft-offline-v1';
 
 // Assets estáticos que se cachean al instalar
