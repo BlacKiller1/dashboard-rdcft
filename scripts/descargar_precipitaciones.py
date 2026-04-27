@@ -5,7 +5,7 @@ Descarga precipitaciones acumuladas de los últimos 7 días
 desde agrometeorologia.cl/PP usando Selenium.
 
 Ejecución manual:
-    pip install selenium webdriver-manager pandas openpyxl
+    pip install "selenium>=4.18" pandas openpyxl requests
     python scripts/descargar_precipitaciones.py
 
 Ejecución automática:
@@ -21,10 +21,8 @@ from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  ESTACIONES — nombre completo → código del sitio agrometeorologia.cl
@@ -208,10 +206,7 @@ def crear_driver(dl_dir):
         "safebrowsing.enabled": True,
     }
     opts.add_experimental_option("prefs", prefs)
-    return webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=opts
-    )
+    return webdriver.Chrome(options=opts)
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  DESCARGA SELENIUM — agrometeorologia.cl/PP

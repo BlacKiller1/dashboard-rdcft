@@ -23,14 +23,14 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Instalar Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
       - name: Instalar dependencias Python
         run: |
-          pip install selenium webdriver-manager pandas openpyxl requests
-
-      - name: Instalar Google Chrome
-        run: |
-          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
+          pip install "selenium>=4.18" pandas openpyxl requests
 
       - name: Verificar Chrome instalado
         run: google-chrome --version
