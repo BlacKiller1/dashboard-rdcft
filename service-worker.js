@@ -4,7 +4,7 @@
    Estrategia: Cache First para assets estáticos, Network First para API
    ═══════════════════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'rdcft-20260427103801';
+const CACHE_NAME = 'rdcft-20260427104003';
 const CACHE_OFFLINE = 'rdcft-offline-v1';
 
 // Solo el shell HTML para offline — los JS/CSS se sirven siempre frescos
