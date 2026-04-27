@@ -18,8 +18,8 @@ jobs:
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
 
-          # Reemplaza cualquier versión existente (placeholder o timestamp anterior)
-          sed -i "s/const CACHE_NAME *= *'rdcft-[^']*'/const CACHE_NAME = 'rdcft-$TIMESTAMP'/" service-worker.js
+          # Reemplaza la línea completa de CACHE_NAME con el nuevo timestamp
+          sed -i "s/const CACHE_NAME = 'rdcft-[^']*';/const CACHE_NAME = 'rdcft-$TIMESTAMP';/" service-worker.js
 
           echo "Cache version: rdcft-$TIMESTAMP"
 
