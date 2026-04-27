@@ -604,6 +604,10 @@ async function descargarPDF(nombrePaisaje) {
   const btn = document.querySelector('.pdf-btn');
   if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
 
+  // iOS Safari bloquea window.open() tras await — abrir ventana aquí (gesto del usuario)
+  const esIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const ventanaIOS = esIOS ? window.open('', '_blank') : null;
+
   try {
     const idx  = activePaisajeIdx;
     const days = activeWeatherDays;
@@ -841,18 +845,18 @@ async function descargarPDF(nombrePaisaje) {
       }
     }
 
-    const esIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (esIOS) {
-      // iOS Safari bloquea el atributo download — abrir en nueva pestaña
+    if (esIOS && ventanaIOS) {
       const blob    = pdf.output('blob');
       const blobUrl = URL.createObjectURL(blob);
-      window.open(blobUrl, '_blank');
+      ventanaIOS.location.href = blobUrl;
       setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
     } else {
+      if (ventanaIOS) ventanaIOS.close();
       pdf.save('RDCFT_' + nombrePaisaje.replace(/ /g,'_') + '.pdf');
     }
 
   } catch(err) {
+    if (ventanaIOS) ventanaIOS.close();
     console.error('[PDF]', err);
     alert('Error al generar PDF: ' + err.message);
   } finally {
