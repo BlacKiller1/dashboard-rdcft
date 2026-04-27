@@ -7,22 +7,14 @@
 const CACHE_NAME = 'rdcft-20260427101213';
 const CACHE_OFFLINE = 'rdcft-offline-v1';
 
-// Assets estáticos que se cachean al instalar
+// Solo el shell HTML para offline — los JS/CSS se sirven siempre frescos
 const ASSETS_ESTATICOS = [
-  '/',
   '/index.html',
-  '/css/styles.css',
-  '/js/paisajes.js',
-  '/js/weather.js',
-  '/js/ui.js',
-  '/js/app.js',
-  '/js/login.js',
-  '/js/map-picker.js',
   '/manifest.json',
 ];
 
-// Archivos de datos — Network First (siempre intentar red, caché solo offline)
-const DATA_PATHS = ['/data/'];
+// JS, CSS y datos → Network First (siempre frescos, caché solo offline)
+const NETWORK_FIRST_PATHS = ['/js/', '/css/', '/data/'];
 
 // URLs de API — nunca se cachean (siempre red)
 const API_URLS = [
@@ -68,8 +60,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Archivos de datos → Network First (datos siempre frescos, caché solo offline)
-  if (DATA_PATHS.some(p => url.pathname.startsWith(p))) {
+  // JS, CSS y datos → Network First (siempre frescos, caché solo offline)
+  if (NETWORK_FIRST_PATHS.some(p => url.pathname.startsWith(p))) {
     event.respondWith(
       fetch(event.request).then(response => {
         if (response && response.status === 200) {
@@ -82,23 +74,18 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Assets estáticos → Cache First (rápido)
+  // Resto → Cache First con fallback a red
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
-
       return fetch(event.request).then(response => {
-        // Cachear solo respuestas válidas
         if (response && response.status === 200 && response.type === 'basic') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       }).catch(() => {
-        // Sin red y sin caché → página offline
-        if (event.request.destination === 'document') {
-          return caches.match('/index.html');
-        }
+        if (event.request.destination === 'document') return caches.match('/index.html');
       });
     })
   );

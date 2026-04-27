@@ -312,9 +312,21 @@
 
 <script>
   if ('serviceWorker' in navigator) {
+    // Auto-reload cuando un nuevo SW toma el control (garantiza JS siempre fresco)
+    let swRefreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!swRefreshing) { swRefreshing = true; window.location.reload(); }
+    });
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('[RDCFT] Service Worker registrado:', reg.scope))
+        .then(reg => {
+          console.log('[RDCFT] Service Worker registrado:', reg.scope);
+          // Verificar actualizaciones cada vez que el usuario vuelve a la pestaña
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') reg.update();
+          });
+        })
         .catch(err => console.warn('[RDCFT] Service Worker error:', err));
     });
   }
