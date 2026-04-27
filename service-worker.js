@@ -16,12 +16,14 @@ const ASSETS_ESTATICOS = [
 // JS, CSS y datos → Network First (siempre frescos, caché solo offline)
 const NETWORK_FIRST_PATHS = ['/js/', '/css/', '/data/'];
 
-// URLs de API — nunca se cachean (siempre red)
+// URLs externas — nunca se cachean (siempre red, browser maneja su propia caché HTTP)
 const API_URLS = [
   'api.open-meteo.com',
   'accounts.google.com',
   'basemaps.cartocdn.com',
   'server.arcgisonline.com',
+  'cdnjs.cloudflare.com',
+  'unpkg.com',
 ];
 
 /* ── Instalación: cachear assets estáticos ─────────────────────────── */
@@ -86,6 +88,7 @@ self.addEventListener('fetch', event => {
         return response;
       }).catch(() => {
         if (event.request.destination === 'document') return caches.match('/index.html');
+        return caches.match(event.request);
       });
     })
   );
