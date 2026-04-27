@@ -12,12 +12,17 @@ Ejecución automática:
     GitHub Actions cada lunes a las 00:30
 """
 
+import io
 import json
 import os
+import sys
 import tempfile
 import time
 import shutil
 from datetime import datetime, timedelta
+
+# Forzar UTF-8 en stdout para compatibilidad Windows/Linux
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -371,8 +376,8 @@ def parsear_excel(arch):
 # ═══════════════════════════════════════════════════════════════════════════
 def main():
     f_ini_web, f_fin_web, f_ini_iso, f_fin_iso = calcular_fechas()
-    print(f"Período: {f_ini_iso} → {f_fin_iso}")
-    print(f"Fechas web: {f_ini_web} → {f_fin_web}")
+    print(f"Periodo: {f_ini_iso} -> {f_fin_iso}")
+    print(f"Fechas web: {f_ini_web} -> {f_fin_web}")
 
     dl_dir      = tempfile.mkdtemp()
     todos_datos = {}
