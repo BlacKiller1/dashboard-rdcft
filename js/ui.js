@@ -794,16 +794,18 @@ async function descargarPDF(nombrePaisaje) {
       </div>
     </div></body></html>`;
 
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed;top:0;left:0;width:900px;height:100vh;opacity:0;z-index:-1;border:none;';
-    document.body.appendChild(iframe);
-    iframe.contentDocument.open();
-    iframe.contentDocument.write(html);
-    iframe.contentDocument.close();
+    // Extraer sólo el body — compatible con móvil (iframe.contentDocument falla en iOS)
+    const bodyMatch = html.match(/<body>([\s\S]*)<\/body>/);
+    const bodyHTML  = bodyMatch ? bodyMatch[1] : html;
 
-    await new Promise(r => setTimeout(r, 1000));
+    const tmpDiv = document.createElement('div');
+    tmpDiv.style.cssText = 'position:absolute;left:-9999px;top:0;width:900px;background:#fff;';
+    tmpDiv.innerHTML = bodyHTML;
+    document.body.appendChild(tmpDiv);
 
-    const canvas = await html2canvas(iframe.contentDocument.body, {
+    await new Promise(r => setTimeout(r, 800));
+
+    const canvas = await html2canvas(tmpDiv, {
       scale: 2,
       backgroundColor: '#ffffff',
       useCORS: true,
@@ -812,7 +814,7 @@ async function descargarPDF(nombrePaisaje) {
       windowWidth: 900
     });
 
-    document.body.removeChild(iframe);
+    document.body.removeChild(tmpDiv);
 
     const imgData = canvas.toDataURL('image/jpeg', 0.97);
     const { jsPDF } = window.jspdf;
@@ -839,7 +841,16 @@ async function descargarPDF(nombrePaisaje) {
       }
     }
 
-    pdf.save('RDCFT_' + nombrePaisaje.replace(/ /g,'_') + '.pdf');
+    const esMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (esMobile) {
+      // iOS Safari bloquea el atributo download — abrir en nueva pestaña
+      const blob    = pdf.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank');
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+    } else {
+      pdf.save('RDCFT_' + nombrePaisaje.replace(/ /g,'_') + '.pdf');
+    }
 
   } catch(err) {
     console.error('[PDF]', err);

@@ -72,9 +72,13 @@ function iniciarMapa() {
   capaMapa.addTo(mapaInstance);
 
   // ── Cargar capa de predios ──────────────────────────────────────
+  const btnPredios = document.getElementById('btnPredios');
+  if (btnPredios) btnPredios.textContent = '⏳ Predios';
+
   fetch('data/predios.geojson')
     .then(r => r.json())
     .then(data => {
+      if (btnPredios) btnPredios.textContent = '🟧 Predios';
       capaPredios = L.geoJSON(data, {
         style: {
           color: '#2DB87A',
@@ -114,7 +118,10 @@ function iniciarMapa() {
         }
       }).addTo(mapaInstance);
     })
-    .catch(err => console.warn('[RDCFT] Sin capa de predios:', err));
+    .catch(err => {
+      console.warn('[RDCFT] Sin capa de predios:', err);
+      if (btnPredios) btnPredios.textContent = '⚠ Predios';
+    });
 
   // ── Long press para asignar coordenadas (500ms) ──────────────────
   let longPressTimer = null;
@@ -174,10 +181,11 @@ function iniciarMapa() {
   mapContainer.addEventListener('touchmove', cancelarLongPress, { passive: true });
 
   mapaIniciado = true;
+  setTimeout(() => { mapaInstance && mapaInstance.invalidateSize(); }, 150);
   setTimeout(() => {
-    mapaInstance.invalidateSize();
+    mapaInstance && mapaInstance.invalidateSize();
     actualizarBotonesCapas();
-  }, 150);
+  }, 500);
 }
 
 /* ── Cambiar capa ──────────────────────────────────────────────────── */
