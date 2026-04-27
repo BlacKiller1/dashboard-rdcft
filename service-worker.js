@@ -16,16 +16,6 @@ const ASSETS_ESTATICOS = [
 // JS, CSS y datos → Network First (siempre frescos, caché solo offline)
 const NETWORK_FIRST_PATHS = ['/js/', '/css/', '/data/'];
 
-// URLs externas — nunca se cachean (siempre red, browser maneja su propia caché HTTP)
-const API_URLS = [
-  'api.open-meteo.com',
-  'accounts.google.com',
-  'basemaps.cartocdn.com',
-  'server.arcgisonline.com',
-  'cdnjs.cloudflare.com',
-  'unpkg.com',
-];
-
 /* ── Instalación: cachear assets estáticos ─────────────────────────── */
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -56,11 +46,8 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // API calls → siempre red, sin caché
-  if (API_URLS.some(api => url.hostname.includes(api))) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
+  // Peticiones cross-origin → no interceptar, el browser las maneja nativamente
+  if (url.origin !== location.origin) return;
 
   // JS, CSS y datos → Network First (siempre frescos, caché solo offline)
   if (NETWORK_FIRST_PATHS.some(p => url.pathname.startsWith(p))) {
