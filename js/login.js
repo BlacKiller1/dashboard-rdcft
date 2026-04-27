@@ -110,6 +110,7 @@ function mostrarLogin() {
 function mostrarDashboard(usuario) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appShell').style.display   = 'flex';
+  setTimeout(() => { if (typeof precargarPredios === 'function') precargarPredios(); }, 2000);
 
   const badge = document.getElementById('userBadge');
   if (badge) {

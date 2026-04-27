@@ -841,8 +841,8 @@ async function descargarPDF(nombrePaisaje) {
       }
     }
 
-    const esMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (esMobile) {
+    const esIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (esIOS) {
       // iOS Safari bloquea el atributo download — abrir en nueva pestaña
       const blob    = pdf.output('blob');
       const blobUrl = URL.createObjectURL(blob);

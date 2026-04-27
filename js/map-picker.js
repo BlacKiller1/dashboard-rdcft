@@ -15,6 +15,16 @@ let capaSatelite   = null;
 let capaEtiquetas  = null;
 let capaPredios    = null;
 let prediosVisible = true;
+let prediosCache   = null;
+
+/* ── Precarga GeoJSON en background (se llama al mostrar dashboard) ─── */
+function precargarPredios() {
+  if (prediosCache) return;
+  fetch('data/predios.geojson')
+    .then(r => r.json())
+    .then(data => { prediosCache = data; })
+    .catch(() => {});
+}
 
 /* ── Abrir / cerrar panel del mapa ─────────────────────────────────── */
 function toggleMapa() {
@@ -71,57 +81,55 @@ function iniciarMapa() {
 
   capaMapa.addTo(mapaInstance);
 
-  // ── Cargar capa de predios ──────────────────────────────────────
+  // ── Cargar capa de predios (usa caché si ya fue descargado) ────────
   const btnPredios = document.getElementById('btnPredios');
-  if (btnPredios) btnPredios.textContent = '⏳ Predios';
 
-  fetch('data/predios.geojson')
-    .then(r => r.json())
-    .then(data => {
-      if (btnPredios) btnPredios.textContent = '🟧 Predios';
-      capaPredios = L.geoJSON(data, {
-        style: {
-          color: '#2DB87A',
-          weight: 1.2,
-          opacity: 0.9,
-          fillColor: '#2DB87A',
-          fillOpacity: 0.12
-        },
-        onEachFeature: function(feature, layer) {
-          const nombre = feature.properties.nombre || 'Sin nombre';
-          const id = feature.properties.id || '';
+  const renderPredios = (data) => {
+    if (btnPredios) btnPredios.textContent = '🟧 Predios';
+    capaPredios = L.geoJSON(data, {
+      style: {
+        color: '#2DB87A',
+        weight: 1.2,
+        opacity: 0.9,
+        fillColor: '#2DB87A',
+        fillOpacity: 0.12
+      },
+      onEachFeature: function(feature, layer) {
+        const nombre = feature.properties.nombre || 'Sin nombre';
+        const id = feature.properties.id || '';
+        layer.bindPopup(
+          `<div style="font-family:'Segoe UI',sans-serif;min-width:140px;">
+            <div style="font-size:11px;font-weight:700;color:#2DB87A;margin-bottom:4px;">🌲 Predio</div>
+            <div style="font-size:13px;font-weight:600;color:#f0ede6;">${nombre}</div>
+            ${id ? `<div style="font-size:10px;color:#888;margin-top:3px;">ID: ${id}</div>` : ''}
+          </div>`,
+          { closeButton: true, maxWidth: 220 }
+        );
+        layer.on('mouseover', function() {
+          layer.setStyle({ fillOpacity: 0.30, weight: 2, color: '#45d490' });
+          layer.openPopup();
+        });
+        layer.on('mouseout', function() {
+          layer.setStyle({ fillOpacity: 0.12, weight: 1.2, color: '#2DB87A' });
+        });
+        layer.on('mousedown', function(e) { L.DomEvent.stopPropagation(e); });
+        layer.on('touchstart', function(e) { L.DomEvent.stopPropagation(e); });
+      }
+    }).addTo(mapaInstance);
+  };
 
-          // Popup al hacer click
-          layer.bindPopup(
-            `<div style="font-family:'Segoe UI',sans-serif;min-width:140px;">
-              <div style="font-size:11px;font-weight:700;color:#2DB87A;margin-bottom:4px;">🌲 Predio</div>
-              <div style="font-size:13px;font-weight:600;color:#f0ede6;">${nombre}</div>
-              ${id ? `<div style="font-size:10px;color:#888;margin-top:3px;">ID: ${id}</div>` : ''}
-            </div>`,
-            { closeButton: true, maxWidth: 220 }
-          );
-
-          // Resaltar al pasar el mouse
-          layer.on('mouseover', function() {
-            layer.setStyle({ fillOpacity: 0.30, weight: 2, color: '#45d490' });
-            layer.openPopup();
-          });
-          layer.on('mouseout', function() {
-            layer.setStyle({ fillOpacity: 0.12, weight: 1.2, color: '#2DB87A' });
-          });
-          layer.on('mousedown', function(e) {
-            L.DomEvent.stopPropagation(e);
-          });
-          layer.on('touchstart', function(e) {
-            L.DomEvent.stopPropagation(e);
-          });
-        }
-      }).addTo(mapaInstance);
-    })
-    .catch(err => {
-      console.warn('[RDCFT] Sin capa de predios:', err);
-      if (btnPredios) btnPredios.textContent = '⚠ Predios';
-    });
+  if (prediosCache) {
+    renderPredios(prediosCache);
+  } else {
+    if (btnPredios) btnPredios.textContent = '⏳ Predios';
+    fetch('data/predios.geojson')
+      .then(r => r.json())
+      .then(data => { prediosCache = data; renderPredios(data); })
+      .catch(err => {
+        console.warn('[RDCFT] Sin capa de predios:', err);
+        if (btnPredios) btnPredios.textContent = '⚠ Predios';
+      });
+  }
 
   // ── Long press para asignar coordenadas (500ms) ──────────────────
   let longPressTimer = null;
