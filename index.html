@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="RDCFT Arauco"/>
   <link rel="stylesheet" href="css/styles.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="css/leaflet.css"/>
   <script>
     (function(){
       var t = localStorage.getItem('rdcft-theme');
@@ -212,15 +212,15 @@
   3. ui.js        → define renderSidebar(), renderDetail(), etc.
   4. app.js       → arranca la app, maneja eventos
 -->
-<!-- PDF: html2canvas + jsPDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- PDF: html2canvas + jsPDF (local) -->
+<script src="js/vendor/html2canvas.min.js"></script>
+<script src="js/vendor/jspdf.umd.min.js"></script>
 <script src="js/paisajes.js"></script>
 <script src="js/weather.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/vendor/leaflet.js"></script>
 <script src="js/map-picker.js"></script>
 <script src="js/login.js"></script>
 
