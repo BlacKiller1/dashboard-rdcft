@@ -18,9 +18,11 @@ const ASSETS_ESTATICOS = [
   '/js/app.js',
   '/js/login.js',
   '/js/map-picker.js',
-  '/data/precipitaciones.json',
   '/manifest.json',
 ];
+
+// Archivos de datos — Network First (siempre intentar red, caché solo offline)
+const DATA_PATHS = ['/data/'];
 
 // URLs de API — nunca se cachean (siempre red)
 const API_URLS = [
@@ -63,6 +65,20 @@ self.addEventListener('fetch', event => {
   // API calls → siempre red, sin caché
   if (API_URLS.some(api => url.hostname.includes(api))) {
     event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Archivos de datos → Network First (datos siempre frescos, caché solo offline)
+  if (DATA_PATHS.some(p => url.pathname.startsWith(p))) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
     return;
   }
 
