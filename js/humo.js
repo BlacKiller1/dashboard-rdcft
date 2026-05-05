@@ -10,13 +10,15 @@ const HUMO_BASE   = 'https://dashboard-rdcft-production.up.railway.app';
 const HUMO_API    = `${HUMO_BASE}/api/simular-humo`;
 const HUMO_HEALTH = `${HUMO_BASE}/api/health`;
 
-let humoMap        = null;
-let humoMarcador   = null;
-let humoCapaActual = 'mapa';
-let humoCapaMapa   = null;
-let humoCapaSat    = null;
-let humoCapaEtiq   = null;
-let humoIniciado   = false;
+let humoMap            = null;
+let humoMarcador       = null;
+let humoCapaActual     = 'mapa';
+let humoCapaMapa       = null;
+let humoCapaSat        = null;
+let humoCapaEtiq       = null;
+let humoCapaPredios    = null;
+let humoPrediosVisible = true;
+let humoIniciado       = false;
 let humoServidor   = false;   // true cuando el servidor responde
 let humoHealthTimer = null;   // intervalo de reintento de health check
 
@@ -87,6 +89,39 @@ function initHumoMap() {
     { maxZoom: 19, subdomains: 'abcd', pane: 'overlayPane' }
   );
 
+  // ── Capa predios Arauco ─────────────────────────────────────────────
+  const renderHumoPredios = (data) => {
+    const btn = document.getElementById('hBtnPredios');
+    if (btn) btn.textContent = '🟧 Predios';
+    humoCapaPredios = L.geoJSON(data, {
+      style: { color: '#2DB87A', weight: 1.2, opacity: 0.9, fillColor: '#2DB87A', fillOpacity: 0.12 },
+      onEachFeature: function(feature, layer) {
+        const nombre = feature.properties.nombre || 'Sin nombre';
+        const id     = feature.properties.id || '';
+        layer.bindPopup(
+          `<div style="font-family:'Segoe UI',sans-serif;min-width:140px;">
+            <div style="font-size:11px;font-weight:700;color:#2DB87A;margin-bottom:4px;">🌲 Predio</div>
+            <div style="font-size:13px;font-weight:600;color:#f0ede6;">${nombre}</div>
+            ${id ? `<div style="font-size:10px;color:#888;margin-top:3px;">ID: ${id}</div>` : ''}
+          </div>`,
+          { closeButton: true, maxWidth: 220 }
+        );
+        layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.30, weight: 2, color: '#45d490' }));
+        layer.on('mouseout',  () => layer.setStyle({ fillOpacity: 0.12, weight: 1.2, color: '#2DB87A' }));
+        layer.on('mousedown', (e) => L.DomEvent.stopPropagation(e));
+        layer.on('touchstart', (e) => L.DomEvent.stopPropagation(e));
+      }
+    }).addTo(humoMap);
+  };
+
+  fetch('data/predios.geojson')
+    .then(r => r.json())
+    .then(data => renderHumoPredios(data))
+    .catch(() => {
+      const btn = document.getElementById('hBtnPredios');
+      if (btn) btn.textContent = '⚠ Predios';
+    });
+
   humoMap.on('click', function(e) {
     const lat = parseFloat(e.latlng.lat.toFixed(6));
     const lon = parseFloat(e.latlng.lng.toFixed(6));
@@ -118,6 +153,19 @@ function humoSetCapa(modo) {
   }
   document.getElementById('hBtnMapa').classList.toggle('active', modo === 'mapa');
   document.getElementById('hBtnSatelite').classList.toggle('active', modo === 'satelite');
+}
+
+// ── Toggle predios ────────────────────────────────────────────────────
+function humoTogglePredios() {
+  if (!humoCapaPredios || !humoMap) return;
+  humoPrediosVisible = !humoPrediosVisible;
+  if (humoPrediosVisible) {
+    humoCapaPredios.addTo(humoMap);
+  } else {
+    humoMap.removeLayer(humoCapaPredios);
+  }
+  const btn = document.getElementById('hBtnPredios');
+  if (btn) btn.classList.toggle('active', humoPrediosVisible);
 }
 
 // ── Colocar marcador naranja ──────────────────────────────────────────
