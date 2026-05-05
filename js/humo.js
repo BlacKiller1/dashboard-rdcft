@@ -221,7 +221,7 @@ async function ejecutarSimulacion() {
       setHumoStatus('error', '❌ Tiempo de espera agotado (3 min). El servidor NOAA tardó demasiado.');
     } else {
       setServidorOnline(false);
-      setHumoStatus('error', '❌ Se perdió la conexión con el servidor local.');
+      setHumoStatus('error', '❌ Se perdió la conexión con el servidor. Reintentando...');
     }
   } finally {
     clearInterval(intervalo);
