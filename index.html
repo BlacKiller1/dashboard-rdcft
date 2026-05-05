@@ -247,6 +247,10 @@
             🌫️ Iniciar simulación
           </button>
 
+          <button class="humo-pdf-btn" id="btnAbrirPdfHumo" onclick="abrirModalPdfHumo()" disabled>
+            📄 Generar informe PDF
+          </button>
+
           <div class="humo-status" id="humoStatus" style="display:none;"></div>
 
           <div class="humo-result" id="humoResult" style="display:none;">
@@ -380,6 +384,33 @@
   </div>
 </div>
 
+
+<!-- ══════════════════════════════════════
+     MODAL PDF SIMULACIÓN DE HUMO
+     ══════════════════════════════════════ -->
+<div id="humoPdfModal" class="humo-pdf-overlay" style="display:none;" onclick="if(event.target===this)cerrarModalPdfHumo()">
+  <div class="humo-pdf-modal">
+    <div class="humo-pdf-modal-header">
+      <span>Generar informe PDF</span>
+      <button class="modal-close" onclick="cerrarModalPdfHumo()">✕</button>
+    </div>
+    <div class="humo-pdf-modal-body">
+      <div class="humo-field">
+        <label>Condiciones de viento</label>
+        <textarea id="pdfComentViento" class="humo-textarea"
+          placeholder="Describe la velocidad, dirección y rachas de viento esperadas para la operación..."></textarea>
+      </div>
+      <div class="humo-field">
+        <label>Condiciones para la quema</label>
+        <textarea id="pdfComentQuema" class="humo-textarea"
+          placeholder="Estado operacional, restricciones activas o recomendaciones para el uso del fuego técnico..."></textarea>
+      </div>
+      <button id="btnGenerarPdf" class="humo-simular-btn" onclick="generarPdfHumo()">
+        📄 Generar PDF
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
   if ('serviceWorker' in navigator) {

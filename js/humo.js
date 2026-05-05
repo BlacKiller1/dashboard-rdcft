@@ -94,6 +94,7 @@ function initHumoMap() {
     document.getElementById('humoLat').value = lat;
     document.getElementById('humoLon').value = lon;
     document.getElementById('btnSimular').disabled = false;
+    document.getElementById('btnAbrirPdfHumo').disabled = false;
   });
 
   humoIniciado = true;
@@ -158,6 +159,7 @@ function humoGeolocate() {
       document.getElementById('humoLat').value = lat;
       document.getElementById('humoLon').value = lon;
       document.getElementById('btnSimular').disabled = false;
+      document.getElementById('btnAbrirPdfHumo').disabled = false;
       btn.textContent = '📍';
       btn.disabled    = false;
     },
@@ -228,6 +230,165 @@ function setHumoStatus(tipo, msg) {
   el.textContent   = msg;
   el.className     = `humo-status humo-status--${tipo}`;
   el.style.display = msg ? 'block' : 'none';
+}
+
+// ── Modal PDF ─────────────────────────────────────────────────────────
+function abrirModalPdfHumo() {
+  const lat = document.getElementById('humoLat').value;
+  const lon = document.getElementById('humoLon').value;
+  if (!lat || !lon) {
+    setHumoStatus('error', '❌ Selecciona un punto en el mapa primero.');
+    return;
+  }
+  document.getElementById('pdfComentViento').value = '';
+  document.getElementById('pdfComentQuema').value  = '';
+  document.getElementById('humoPdfModal').style.display = 'flex';
+}
+
+function cerrarModalPdfHumo() {
+  document.getElementById('humoPdfModal').style.display = 'none';
+}
+
+async function generarPdfHumo() {
+  const lat    = document.getElementById('humoLat').value;
+  const lon    = document.getElementById('humoLon').value;
+  const altura = document.getElementById('humoAltura').value || '500';
+  const comentViento = document.getElementById('pdfComentViento').value.trim();
+  const comentQuema  = document.getElementById('pdfComentQuema').value.trim();
+  const kmzHref      = document.getElementById('humoDownloadLink').href;
+  const tieneKmz     = kmzHref && kmzHref !== '#' && !kmzHref.endsWith(window.location.pathname);
+
+  const btn = document.getElementById('btnGenerarPdf');
+  btn.textContent = '⏳ Generando...';
+  btn.disabled    = true;
+
+  const esIOS      = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const ventanaIOS = esIOS ? window.open('', '_blank') : null;
+
+  try {
+    // Capturar snapshot del mapa Leaflet
+    let mapImgData = null;
+    try {
+      const mapEl = document.getElementById('humoMapContainer');
+      if (mapEl && humoMap) {
+        humoMap.invalidateSize();
+        await new Promise(r => setTimeout(r, 300));
+        const mc = await html2canvas(mapEl, {
+          scale: 1.5, useCORS: true, allowTaint: true, logging: false
+        });
+        mapImgData = mc.toDataURL('image/jpeg', 0.88);
+      }
+    } catch (_) { /* captura de mapa opcional */ }
+
+    const fecha = new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    const mapHTML = mapImgData
+      ? `<img src="${mapImgData}" style="width:100%;height:200px;object-fit:cover;border-radius:6px;border:0.5px solid #DFD1A7;"/>`
+      : `<div style="width:100%;height:60px;background:#EDE8DF;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#696158;">📍 Lat ${lat} · Lon ${lon}</div>`;
+
+    const kmzHTML = tieneKmz
+      ? `<div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">Trayectoria HYSPLIT</div>
+         <div style="background:#EAF3DE;border-left:3px solid #1D9E75;padding:8px 12px;border-radius:0 6px 6px 0;font-size:8.5px;color:#444;margin-bottom:12px;">
+           Archivo KMZ disponible para visualización en Google Earth:<br/>
+           <span style="color:#1D9E75;word-break:break-all;">${kmzHref}</span>
+         </div>`
+      : '';
+
+    const bloque = (titulo, texto, acento) =>
+      `<div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">${titulo}</div>
+       <div style="background:#EDE8DF;border-left:3px solid ${acento};padding:8px 12px;font-size:9px;line-height:1.65;color:#444;margin-bottom:12px;border-radius:0 7px 7px 0;min-height:44px;">
+         ${texto || '<span style="color:#bbb;font-style:italic;">Sin comentarios.</span>'}
+       </div>`;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <style>* { box-sizing:border-box; } body { margin:0; padding:0; font-family:Arial,sans-serif; background:#fff; }</style>
+      </head><body><div style="padding:16px 22px;background:#fff;max-width:860px;">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #696158;padding-bottom:10px;margin-bottom:12px;">
+          <img src="data:image/png;base64,${LOGO_ARAUCO_B64}" style="height:34px;object-fit:contain;"/>
+          <div style="text-align:right;">
+            <div style="font-size:15px;font-weight:800;color:#1a1a1a;">Simulación de Dispersión de Humo</div>
+            <div style="font-size:8.5px;color:#696158;margin-top:2px;">HYSPLIT Ensemble · Lat ${lat} · Lon ${lon} · Altura ${altura} m</div>
+            <div style="font-size:8.5px;color:#aaa;margin-top:1px;">${fecha}</div>
+          </div>
+        </div>
+
+        <div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">Punto de emisión</div>
+        ${mapHTML}
+        <div style="display:flex;gap:16px;margin:8px 0 14px;font-size:8.5px;color:#696158;">
+          <span>📍 Latitud: <strong style="color:#333;">${lat}</strong></span>
+          <span>📍 Longitud: <strong style="color:#333;">${lon}</strong></span>
+          <span>↑ Altura emisión: <strong style="color:#333;">${altura} m</strong></span>
+        </div>
+
+        ${bloque('Condiciones de viento', comentViento.replace(/\n/g,'<br/>'), '#696158')}
+        ${bloque('Condiciones para la quema', comentQuema.replace(/\n/g,'<br/>'), '#EA7600')}
+        ${kmzHTML}
+
+        <div style="border-top:1px solid #DFD1A7;padding-top:7px;display:flex;justify-content:space-between;font-size:7px;color:#aaa;">
+          <span>Modelo: NOAA HYSPLIT Ensemble · Meteorología: GFS Global</span>
+          <span>Generado: ${fecha}</span>
+        </div>
+      </div></body></html>`;
+
+    const bodyHTML = (html.match(/<body>([\s\S]*)<\/body>/) || [,''])[1];
+    const tmp = document.createElement('div');
+    tmp.style.cssText = 'position:absolute;left:-9999px;top:0;width:900px;background:#fff;';
+    tmp.innerHTML = bodyHTML;
+    document.body.appendChild(tmp);
+
+    await new Promise(r => setTimeout(r, 600));
+
+    const canvas = await html2canvas(tmp, {
+      scale: 2, backgroundColor: '#ffffff',
+      useCORS: true, allowTaint: true, logging: false, windowWidth: 900
+    });
+    document.body.removeChild(tmp);
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.97);
+    const { jsPDF } = window.jspdf;
+    const pdf  = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = pdf.internal.pageSize.getHeight();
+    const imgW = pdfW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    if (imgH <= pdfH) {
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
+    } else {
+      let yOff = 0;
+      while (yOff < imgH) {
+        if (yOff > 0) pdf.addPage();
+        const srcY = (yOff / imgH) * canvas.height;
+        const srcH = Math.min((pdfH / imgH) * canvas.height, canvas.height - srcY);
+        const pc   = document.createElement('canvas');
+        pc.width   = canvas.width; pc.height = srcH;
+        pc.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+        pdf.addImage(pc.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, imgW, (srcH * imgW) / canvas.width);
+        yOff += pdfH;
+      }
+    }
+
+    const nombre = `RDCFT_Humo_${lat}_${lon}_${new Date().toISOString().slice(0,10)}.pdf`;
+    if (esIOS && ventanaIOS) {
+      const blobUrl = URL.createObjectURL(pdf.output('blob'));
+      ventanaIOS.location.href = blobUrl;
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+    } else {
+      if (ventanaIOS) ventanaIOS.close();
+      pdf.save(nombre);
+    }
+
+    cerrarModalPdfHumo();
+
+  } catch (err) {
+    console.error('[HUMO PDF]', err);
+    if (ventanaIOS) ventanaIOS.close();
+    setHumoStatus('error', '❌ Error al generar el PDF.');
+  } finally {
+    btn.textContent = '📄 Generar PDF';
+    btn.disabled    = false;
+  }
 }
 
 // ── Llamado desde ui.js al mostrar la pestaña ────────────────────────
