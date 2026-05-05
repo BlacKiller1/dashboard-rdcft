@@ -2,23 +2,16 @@
 """
 generar_pdf_humo.py
 ═══════════════════
-Genera un reporte PDF profesional (Carta Horizontal, 792×612 pt) para
-simulaciones de dispersión de humo NOAA HYSPLIT.
+Reporte PDF profesional (Carta Portrait) para simulaciones HYSPLIT.
+Replica el diseño del dashboard RDCFT: logo Arauco arriba, mapa satelital,
+coordenadas, bloques de condiciones y trayectoria, pie de página.
 
 Dependencias:
     pip install reportlab pillow folium selenium webdriver-manager
 
-Uso como módulo:
+Uso:
     from scripts.generar_pdf_humo import generar_pdf
-
-    ruta = generar_pdf(
-        lat=-37.45, lon=-73.35, altura=500,
-        kmz_url='https://www.ready.noaa.gov/...',
-        fecha_str='05/05/2026',
-        comentario_viento='Viento SO 12 km/h.',
-        comentario_quema='Condiciones favorables.',
-        nombre_punto='Predio San Pedro',
-    )
+    ruta = generar_pdf(lat=-37.45, lon=-73.35, altura=500, kmz_url='...')
 """
 
 from __future__ import annotations
@@ -29,7 +22,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-# ── Selenium / webdriver-manager (opcional pero recomendado) ───────────
+# ── Selenium ───────────────────────────────────────────────────────────
 try:
     from selenium import webdriver
     from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -53,27 +46,29 @@ except ImportError:
 
 # ── ReportLab ──────────────────────────────────────────────────────────
 from reportlab.pdfgen.canvas import Canvas
-from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.platypus import Table, TableStyle, Paragraph
+from reportlab.platypus import Paragraph
 from reportlab.lib.utils import ImageReader
 
 
 # ══════════════════════════════════════════════════════════════════════
-# Paleta de diseño
+# Paleta — alineada con el diseño de referencia
 # ══════════════════════════════════════════════════════════════════════
-C_HEAD1  = colors.HexColor('#2C3E50')   # cabecera principal
-C_HEAD2  = colors.HexColor('#34495E')   # cabecera secundaria
-C_BG     = colors.HexColor('#F4F6F7')   # fondo celda datos
-C_BG_LBL = colors.HexColor('#E8EDF0')   # fondo sub-etiqueta
-C_BORDER = colors.HexColor('#BDC3C7')   # borde tabla
-C_TEXT   = colors.HexColor('#2C3E50')   # texto principal
-C_GRAY   = colors.HexColor('#7F8C8D')   # texto secundario
-C_LINK   = colors.HexColor('#2980B9')   # enlace KMZ
-C_ACCENT = colors.HexColor('#E8820A')   # naranja Arauco
-C_WHITE  = colors.white
-C_FOOTER = colors.HexColor('#EAE8E4')
+C_TEXT    = colors.HexColor('#222222')
+C_DARK    = colors.HexColor('#333333')
+C_GRAY    = colors.HexColor('#666666')
+C_LGRAY   = colors.HexColor('#999999')
+C_LOGO    = colors.HexColor('#AAAAAA')   # gris logo Arauco
+C_DIV     = colors.HexColor('#DDDDDD')   # línea divisora
+C_BORDER  = colors.HexColor('#E0E0E0')   # borde caja
+C_BG      = colors.HexColor('#F8F9FA')   # fondo caja
+C_ACCENT  = colors.HexColor('#5CB85C')   # acento verde izquierdo
+C_LABEL   = colors.HexColor('#444444')   # etiqueta sección
+C_PINK    = colors.HexColor('#D9534F')   # icono lat/lon
+C_LINK    = colors.HexColor('#2E7D32')   # enlace KMZ
+C_WHITE   = colors.white
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -81,18 +76,14 @@ C_FOOTER = colors.HexColor('#EAE8E4')
 # ══════════════════════════════════════════════════════════════════════
 
 def _capturar_mapa(lat: float, lon: float, zoom: int, tmp_dir: str) -> str | None:
-    """
-    Genera mapa folium con tiles Esri World Imagery y lo captura con
-    Selenium headless a 1920×1080. Retorna ruta del PNG o None si falla.
-    """
+    """Genera mapa folium con tiles Esri y lo captura con Selenium headless."""
     if not _FOLIUM_OK or not _SELENIUM_OK:
-        print('[PDF] ⚠ folium o selenium no disponibles — se usará mapa placeholder.')
+        print('[PDF] ⚠ folium/selenium no disponibles — mapa placeholder.')
         return None
 
     html_path = os.path.join(tmp_dir, '_mapa.html')
     img_path  = os.path.join(tmp_dir, '_mapa.png')
 
-    # ── Mapa folium ──────────────────────────────────────────────────
     m = folium.Map(
         location=[lat, lon],
         zoom_start=zoom,
@@ -103,30 +94,28 @@ def _capturar_mapa(lat: float, lon: float, zoom: int, tmp_dir: str) -> str | Non
         attr='Esri World Imagery',
         prefer_canvas=True,
     )
-
-    # Ícono de fuego
     folium.Marker(
         location=[lat, lon],
         icon=folium.DivIcon(
             html=(
-                '<div style="font-size:30px;line-height:1;'
+                '<div style="font-size:28px;line-height:1;'
                 'filter:drop-shadow(0 0 8px rgba(255,60,0,.95));'
-                'margin-top:-30px;margin-left:-15px;">🔥</div>'
+                'margin-top:-28px;margin-left:-14px;">🔥</div>'
             ),
-            icon_size=(30, 30),
-            icon_anchor=(15, 30),
+            icon_size=(28, 28),
+            icon_anchor=(14, 28),
         ),
     ).add_to(m)
-
-    # Círculo de referencia naranja
     folium.CircleMarker(
         location=[lat, lon],
-        radius=16, color='#FF3300', fill=False, weight=2.5, opacity=0.9,
+        radius=14, color='#FF3300', fill=False, weight=2.5, opacity=0.9,
+        popup=folium.Popup(
+            f'<b style="color:#E8820A">Punto de emisión</b><br>{lat:.6f}, {lon:.6f}',
+            max_width=180,
+        ),
     ).add_to(m)
-
     m.save(html_path)
 
-    # ── Selenium headless Chrome ─────────────────────────────────────
     opts = ChromeOptions()
     opts.add_argument('--headless=new')
     opts.add_argument('--no-sandbox')
@@ -136,148 +125,80 @@ def _capturar_mapa(lat: float, lon: float, zoom: int, tmp_dir: str) -> str | Non
     opts.add_argument('--hide-scrollbars')
 
     try:
-        if _WDM:
-            driver = webdriver.Chrome(
+        driver = (
+            webdriver.Chrome(
                 service=ChromeService(ChromeDriverManager().install()),
                 options=opts,
-            )
-        else:
-            driver = webdriver.Chrome(options=opts)
-
+            ) if _WDM else webdriver.Chrome(options=opts)
+        )
         try:
             driver.get(Path(html_path).as_uri())
-            time.sleep(4)   # esperar que los tiles satelitales carguen
+            time.sleep(4)
             driver.save_screenshot(img_path)
         finally:
             driver.quit()
-
         return img_path
-
     except Exception as e:
         print(f'[PDF] ⚠ Error capturando mapa: {e}')
         return None
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 2. Helpers de estilo para tablas
+# 2. Helpers de dibujo (canvas directo)
 # ══════════════════════════════════════════════════════════════════════
 
-def _p(text: str, size: float = 8, color=None, bold: bool = False,
-       leading: float = None) -> Paragraph:
-    """Paragraph simple. Escapa HTML y convierte \\n → <br/>."""
-    clr   = color or C_TEXT
-    ld    = leading or (size + 4)
-    font  = 'Helvetica-Bold' if bold else 'Helvetica'
+def _paragraph(text: str, size: float = 9, color=None,
+               bold: bool = False, italic: bool = False,
+               leading: float = None) -> Paragraph:
+    """Paragraph simple con escapado HTML y soporte \\n → <br/>."""
+    clr  = color or C_DARK
+    ld   = leading or (size + 4)
+    font = {(False, False): 'Helvetica',
+            (True,  False): 'Helvetica-Bold',
+            (False, True):  'Helvetica-Oblique',
+            (True,  True):  'Helvetica-BoldOblique'}[(bold, italic)]
     style = ParagraphStyle(
-        'cell',
-        fontName=font, fontSize=size, textColor=clr,
+        'p', fontName=font, fontSize=size, textColor=clr,
         leading=ld, spaceAfter=0, spaceBefore=0,
     )
-    safe = (text or '')
-    safe = safe.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    safe = (text or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
     safe = safe.replace('\n', '<br/>')
     return Paragraph(safe, style)
 
 
-def _estilo_base() -> list:
-    """Estilo TableStyle base para todas las tablas."""
-    return [
-        # Cabecera (fila 0)
-        ('BACKGROUND',    (0, 0), (-1, 0), C_HEAD1),
-        ('TEXTCOLOR',     (0, 0), (-1, 0), C_WHITE),
-        ('FONTNAME',      (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE',      (0, 0), (-1, 0), 8),
-        ('TOPPADDING',    (0, 0), (-1, 0), 7),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 7),
-        ('LEFTPADDING',   (0, 0), (-1, 0), 9),
-        ('RIGHTPADDING',  (0, 0), (-1, 0), 9),
-        # Datos (filas 1+)
-        ('BACKGROUND',    (0, 1), (-1, -1), C_BG),
-        ('TOPPADDING',    (0, 1), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 5),
-        ('LEFTPADDING',   (0, 1), (-1, -1), 9),
-        ('RIGHTPADDING',  (0, 1), (-1, -1), 9),
-        ('VALIGN',        (0, 0), (-1, -1), 'TOP'),
-        # Bordes
-        ('GRID', (0, 0), (-1, -1), 0.5, C_BORDER),
-        ('BOX',  (0, 0), (-1, -1), 1.2, C_HEAD1),
-    ]
+def _label(c: Canvas, x: float, y: float, text: str) -> None:
+    """Dibuja etiqueta de sección: uppercase bold pequeño."""
+    c.setFont('Helvetica-Bold', 7.5)
+    c.setFillColor(C_LABEL)
+    c.drawString(x, y, text)
+
+
+def _box(c: Canvas, x: float, y_bot: float, w: float, h: float) -> None:
+    """Caja de contenido: fondo gris claro, borde sutil, acento verde izquierdo."""
+    c.setFillColor(C_BG)
+    c.setStrokeColor(C_BORDER)
+    c.setLineWidth(0.5)
+    c.rect(x, y_bot, w, h, fill=1, stroke=1)
+    # Línea de acento (izquierda)
+    c.setStrokeColor(C_ACCENT)
+    c.setLineWidth(2.5)
+    c.line(x + 1.25, y_bot + 4, x + 1.25, y_bot + h - 4)
+
+
+def _text_in_box(c: Canvas, x: float, y_bot: float, w: float, h: float,
+                 text: str, placeholder: bool = False, link: bool = False) -> None:
+    """Renderiza párrafo dentro de una caja, alineado al top con padding."""
+    color   = C_LGRAY if placeholder else (C_LINK if link else C_DARK)
+    italic  = placeholder
+    p       = _paragraph(text, size=9, color=color, italic=italic, leading=13)
+    inner_w = w - 22          # 14 izquierda (después del acento) + 8 derecha
+    _, ph   = p.wrapOn(c, inner_w, h - 12)
+    y_draw  = max(y_bot + 6, y_bot + h - ph - 10)   # top-aligned, padding 10
+    p.drawOn(c, x + 14, y_draw)
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 3. Construcción de los tres bloques de información
-# ══════════════════════════════════════════════════════════════════════
-
-def _bloque_emision(lat: float, lon: float, col_w: float) -> Table:
-    """Bloque 1 — PUNTO DE EMISIÓN."""
-    data = [
-        [_p('PUNTO DE EMISIÓN', 8, C_WHITE, bold=True)],
-        [_p('Latitud',          7, C_GRAY,  bold=True)],
-        [_p(f'{lat:.6f}°',     11, C_TEXT)],
-        [_p('Longitud',         7, C_GRAY,  bold=True)],
-        [_p(f'{lon:.6f}°',     11, C_TEXT)],
-    ]
-    st = _estilo_base()
-    st += [
-        ('BACKGROUND',    (0, 1), (-1, 1), C_BG_LBL),
-        ('BACKGROUND',    (0, 3), (-1, 3), C_BG_LBL),
-        ('TOPPADDING',    (0, 1), (-1, 1), 3),
-        ('BOTTOMPADDING', (0, 1), (-1, 1), 2),
-        ('TOPPADDING',    (0, 3), (-1, 3), 3),
-        ('BOTTOMPADDING', (0, 3), (-1, 3), 2),
-    ]
-    t = Table(data, colWidths=[col_w])
-    t.setStyle(TableStyle(st))
-    return t
-
-
-def _bloque_condiciones(altura: int, coment_viento: str,
-                        coment_quema: str, col_w: float) -> Table:
-    """Bloque 2 — CONDICIONES DE VIENTO + CONDICIONES PARA LA QUEMA."""
-    cv = coment_viento or 'No especificado.'
-    cq = coment_quema  or 'No especificado.'
-    data = [
-        [_p('CONDICIONES DE VIENTO',       8,   C_WHITE, bold=True)],
-        [_p(f'Altura de emisión: {altura} m', 8.5, C_TEXT,  bold=True)],
-        [_p(cv,                            7.5, C_TEXT)],
-        [_p('CONDICIONES PARA LA QUEMA',   8,   C_WHITE, bold=True)],
-        [_p(cq,                            7.5, C_TEXT)],
-    ]
-    st = _estilo_base()
-    st += [
-        ('BACKGROUND',    (0, 3), (-1, 3), C_HEAD2),
-        ('TEXTCOLOR',     (0, 3), (-1, 3), C_WHITE),
-        ('FONTNAME',      (0, 3), (-1, 3), 'Helvetica-Bold'),
-        ('TOPPADDING',    (0, 3), (-1, 3), 7),
-        ('BOTTOMPADDING', (0, 3), (-1, 3), 7),
-    ]
-    t = Table(data, colWidths=[col_w])
-    t.setStyle(TableStyle(st))
-    return t
-
-
-def _bloque_trayectoria(kmz_url: str, col_w: float) -> Table:
-    """Bloque 3 — TRAYECTORIA HYSPLIT + enlace KMZ."""
-    url_display = kmz_url if len(kmz_url) < 72 else kmz_url[:69] + '…'
-    data = [
-        [_p('TRAYECTORIA HYSPLIT',                               8,   C_WHITE, bold=True)],
-        [_p('Modelo: HYSPLIT Ensemble',                          8.5, C_TEXT,  bold=True)],
-        [_p('Fuente: NOAA ARL  ·  GFS Global',                  7.5, C_GRAY)],
-        [_p('Archivo KMZ disponible para\nvisualización en Google Earth:', 7.5, C_TEXT)],
-        [_p(url_display,                                          6.5, C_LINK)],
-    ]
-    st = _estilo_base()
-    st += [
-        ('TEXTCOLOR', (0, 4), (-1, 4), C_LINK),
-        ('FONTNAME',  (0, 4), (-1, 4), 'Helvetica-Oblique'),
-    ]
-    t = Table(data, colWidths=[col_w])
-    t.setStyle(TableStyle(st))
-    return t
-
-
-# ══════════════════════════════════════════════════════════════════════
-# 4. Ensamblaje del PDF con canvas directo
+# 3. Ensamblaje del PDF
 # ══════════════════════════════════════════════════════════════════════
 
 def _ensamblar_pdf(
@@ -294,139 +215,155 @@ def _ensamblar_pdf(
     logo_path: str | None,
 ) -> None:
 
-    pW, pH = landscape(letter)   # 792 × 612 pt
-    M   = 18.0                   # margen exterior
-    GAP =  6.0                   # hueco entre zonas
-
-    # ── Distribución vertical (origen = borde inferior de página) ─────
-    #
-    #   pH=612 ┌─────────────────────┐  pH - M  = 594
-    #          │     MAPA            │
-    #   MAP_BOT┼─────────────────────┼  225
-    #   DIV_Y  │  ─── divisor ───    │  219
-    #   TABLE  │  bloque1│blo2│blo3  │  48 → 213
-    #   FOOTER ├─────────────────────┤  42
-    #       0  └─────────────────────┘
-    #
-    FOOTER_H  = 42.0
-    TABLE_H   = 165.0
-    TABLE_BOT = FOOTER_H + GAP           # 48
-    TABLE_TOP = TABLE_BOT + TABLE_H      # 213
-    DIV_Y     = TABLE_TOP + GAP          # 219
-    MAP_BOT   = DIV_Y + GAP              # 225
-    MAP_H     = pH - M - MAP_BOT         # ≈ 369
+    pW, pH = letter          # 612 × 792 pt  (Portrait)
+    ML = MR = 25.0           # márgenes laterales
+    CW = pW - ML - MR        # 562 pt  — ancho útil
 
     c = Canvas(pdf_path, pagesize=(pW, pH))
     c.setFillColor(C_WHITE)
     c.rect(0, 0, pW, pH, fill=1, stroke=0)
 
-    # ── 1. Imagen del mapa ────────────────────────────────────────────
-    avail_w = pW - 2 * M   # 756 pt
+    # ── 1. HEADER ─────────────────────────────────────────────────────
+    #   y = 792 (top) → 774 (top margin) → 712 (header bottom / divider)
+    HDR_TOP = pH - 18        # 774
+    HDR_H   = 62
+    HDR_DIV = HDR_TOP - HDR_H  # 712
+
+    # Logo (izquierda)
+    if logo_path and os.path.exists(logo_path):
+        LOGO_H = 34
+        c.drawImage(logo_path, ML, HDR_DIV + (HDR_H - LOGO_H) / 2,
+                    130, LOGO_H, preserveAspectRatio=True, mask='auto')
+    else:
+        c.setFont('Helvetica', 30)
+        c.setFillColor(C_LOGO)
+        c.drawString(ML, HDR_DIV + 16, 'arauco')
+
+    # Bloque título (derecha)
+    c.setFont('Helvetica-Bold', 13)
+    c.setFillColor(C_TEXT)
+    c.drawRightString(pW - MR, HDR_TOP - 14,
+                      'Simulación de Dispersión de Humo')
+
+    c.setFont('Helvetica', 8)
+    c.setFillColor(C_GRAY)
+    meta = f'HYSPLIT Ensemble · Lat {lat} · Lon {lon} · Altura {altura} m'
+    c.drawRightString(pW - MR, HDR_TOP - 26, meta)
+    c.drawRightString(pW - MR, HDR_TOP - 38, fecha_str)
+
+    # Línea divisora header
+    c.setStrokeColor(C_DIV)
+    c.setLineWidth(0.5)
+    c.line(ML, HDR_DIV, pW - MR, HDR_DIV)
+
+    # ── 2. LABEL + MAPA ───────────────────────────────────────────────
+    y = HDR_DIV - 14          # 698
+    _label(c, ML, y, 'PUNTO DE EMISIÓN')
+
+    MAP_H   = 196
+    MAP_TOP = y - 6           # 692
+    MAP_BOT = MAP_TOP - MAP_H  # 496
+
     if map_img and os.path.exists(map_img):
         ir     = ImageReader(map_img)
         iw, ih = ir.getSize()
-        scale  = min(avail_w / iw, MAP_H / ih)
+        scale  = min(CW / iw, MAP_H / ih)
         dw, dh = iw * scale, ih * scale
-        ix     = M + (avail_w - dw) / 2
-        iy     = MAP_BOT
-
+        ix     = ML + (CW - dw) / 2
+        iy     = MAP_BOT + (MAP_H - dh) / 2
         c.drawImage(map_img, ix, iy, dw, dh,
                     preserveAspectRatio=True, mask='auto')
         c.setStrokeColor(C_BORDER)
-        c.setLineWidth(0.7)
-        c.rect(ix, iy, dw, dh, fill=0, stroke=1)
+        c.setLineWidth(0.5)
+        c.rect(ML, MAP_BOT, CW, MAP_H, fill=0, stroke=1)
     else:
-        # Placeholder cuando selenium/folium no están disponibles
-        dw, dh = avail_w, MAP_H
-        ix, iy = M, MAP_BOT
-        c.setFillColor(colors.HexColor('#2A2A2A'))
-        c.rect(ix, iy, dw, dh, fill=1, stroke=0)
-        c.setFillColor(colors.HexColor('#555555'))
-        c.setFont('Helvetica', 11)
-        c.drawCentredString(pW / 2, iy + dh / 2 + 8, 'Mapa satelital no disponible')
-        c.setFont('Helvetica', 9)
+        c.setFillColor(colors.HexColor('#2E2E2E'))
+        c.rect(ML, MAP_BOT, CW, MAP_H, fill=1, stroke=0)
+        c.setFont('Helvetica', 10)
         c.setFillColor(colors.HexColor('#888888'))
-        c.drawCentredString(pW / 2, iy + dh / 2 - 8, f'Lat {lat:.6f}  ·  Lon {lon:.6f}')
+        c.drawCentredString(pW / 2, MAP_BOT + MAP_H / 2 + 6,
+                            'Mapa satelital no disponible')
+        c.setFont('Helvetica', 8.5)
+        c.setFillColor(colors.HexColor('#666666'))
+        c.drawCentredString(pW / 2, MAP_BOT + MAP_H / 2 - 8,
+                            f'Lat {lat}  ·  Lon {lon}')
 
-    # ── 2. Logo corporativo (esquina superior izquierda del mapa) ──────
-    LOGO_W, LOGO_H = 110, 35
-    lx = ix + 8
-    ly = iy + dh - LOGO_H - 8
+    # ── 3. FILA DE COORDENADAS ────────────────────────────────────────
+    #   Tres columnas: Latitud | Longitud | Altura emisión
+    y_coord = MAP_BOT - 12    # 484
+    COL     = CW / 3
 
-    if logo_path and os.path.exists(logo_path):
-        c.drawImage(logo_path, lx, ly, LOGO_W, LOGO_H,
-                    preserveAspectRatio=True, mask='auto')
-    else:
-        # Placeholder Arauco
-        c.setFillColor(colors.HexColor('#1A252F'))
-        c.setStrokeColor(C_WHITE)
-        c.setLineWidth(0.8)
-        c.roundRect(lx, ly, LOGO_W, LOGO_H, 5, fill=1, stroke=1)
-        c.setFillColor(C_WHITE)
-        c.setFont('Helvetica-Bold', 14)
-        c.drawCentredString(lx + LOGO_W / 2, ly + LOGO_H / 2 + 2, 'ARAUCO')
-        c.setFillColor(colors.HexColor('#95A5A6'))
-        c.setFont('Helvetica', 6.5)
-        c.drawCentredString(lx + LOGO_W / 2, ly + 9, 'GESTIÓN FORESTAL')
+    def _coord_item(x_start: float, icon: str, icon_color, label: str, value: str) -> None:
+        c.setFont('Helvetica', 9)
+        c.setFillColor(icon_color)
+        c.drawString(x_start, y_coord, icon)
+        icon_w = c.stringWidth(icon, 'Helvetica', 9) + 4
+        c.setFillColor(C_GRAY)
+        c.drawString(x_start + icon_w, y_coord, label)
+        lbl_w = c.stringWidth(label, 'Helvetica', 9)
+        c.setFont('Helvetica-Bold', 9)
+        c.setFillColor(C_TEXT)
+        c.drawString(x_start + icon_w + lbl_w, y_coord, value)
 
-    # ── 3. Línea divisoria ────────────────────────────────────────────
-    c.setStrokeColor(C_HEAD1)
-    c.setLineWidth(1.5)
-    c.line(M, DIV_Y, pW - M, DIV_Y)
+    _coord_item(ML,            '●', C_PINK,  'Latitud: ',       f'{lat}')
+    _coord_item(ML + COL,      '●', C_PINK,  'Longitud: ',      f'{lon}')
+    _coord_item(ML + 2 * COL,  '↑', C_GRAY,  'Altura emisión: ', f'{altura} m')
 
-    # ── 4. Tres tablas de información ─────────────────────────────────
-    COL_GAP = 10.0
-    col_w   = (avail_w - 2 * COL_GAP) / 3   # ≈ 245 pt cada una
+    # ── 4. CONDICIONES DE VIENTO ──────────────────────────────────────
+    BOX_H = 80
+    y = y_coord - 22           # 462
+    _label(c, ML, y, 'CONDICIONES DE VIENTO')
+    y_bot = y - 6 - BOX_H     # 376
+    _box(c, ML, y_bot, CW, BOX_H)
+    _text_in_box(c, ML, y_bot, CW, BOX_H,
+                 cv if cv and cv.strip() else 'Sin comentarios.',
+                 placeholder=not bool(cv and cv.strip()))
 
-    bloques = [
-        _bloque_emision(lat, lon, col_w),
-        _bloque_condiciones(altura, cv, cq, col_w),
-        _bloque_trayectoria(kmz_url, col_w),
-    ]
+    # ── 5. CONDICIONES PARA LA QUEMA ─────────────────────────────────
+    y = y_bot - 14             # 362
+    _label(c, ML, y, 'CONDICIONES PARA LA QUEMA')
+    y_bot = y - 6 - BOX_H     # 276
+    _box(c, ML, y_bot, CW, BOX_H)
+    _text_in_box(c, ML, y_bot, CW, BOX_H,
+                 cq if cq and cq.strip() else 'Sin comentarios.',
+                 placeholder=not bool(cq and cq.strip()))
 
-    for i, tbl in enumerate(bloques):
-        x    = M + i * (col_w + COL_GAP)
-        _, h = tbl.wrapOn(c, col_w, TABLE_H)
-        # Alinear la parte superior de cada tabla al borde superior de la zona
-        tbl.drawOn(c, x, TABLE_TOP - h)
+    # ── 6. TRAYECTORIA HYSPLIT ────────────────────────────────────────
+    TRAY_H = 68
+    y = y_bot - 14             # 262
+    _label(c, ML, y, 'TRAYECTORIA HYSPLIT')
+    y_bot = y - 6 - TRAY_H    # 188
 
-    # ── 5. Footer ─────────────────────────────────────────────────────
-    # Fondo
-    c.setFillColor(C_FOOTER)
-    c.rect(0, 0, pW, FOOTER_H, fill=1, stroke=0)
+    _box(c, ML, y_bot, CW, TRAY_H)
 
-    # Línea superior
-    c.setStrokeColor(C_HEAD1)
-    c.setLineWidth(1.0)
-    c.line(M, FOOTER_H, pW - M, FOOTER_H)
+    # "Archivo KMZ..."
+    p_desc = _paragraph('Archivo KMZ disponible para visualización en Google Earth:',
+                        9, C_DARK)
+    _, dh = p_desc.wrapOn(c, CW - 22, 20)
+    p_desc.drawOn(c, ML + 14, y_bot + TRAY_H - dh - 10)
 
-    # Barra de acento naranja (borde izquierdo)
-    c.setFillColor(C_ACCENT)
-    c.rect(0, 0, 5, FOOTER_H, fill=1, stroke=0)
+    # URL enlace (verde)
+    p_url = _paragraph(kmz_url, 8.5, C_LINK, leading=12)
+    _, uh = p_url.wrapOn(c, CW - 22, TRAY_H - dh - 20)
+    p_url.drawOn(c, ML + 14, y_bot + 8)
 
-    # Título principal centrado
-    nombre_display = nombre or f'Lat {lat:.4f}  ·  Lon {lon:.4f}'
-    c.setFillColor(C_TEXT)
-    c.setFont('Helvetica-Bold', 11)
-    c.drawCentredString(pW / 2, FOOTER_H / 2 + 8,
-                        f'Simulación de Dispersión de Humo  —  {nombre_display}')
+    # ── 7. FOOTER (fijado al fondo de la página) ─────────────────────
+    FOOT_DIV = 50
+    c.setStrokeColor(C_DIV)
+    c.setLineWidth(0.5)
+    c.line(ML, FOOT_DIV, pW - MR, FOOT_DIV)
 
-    # Subtítulo centrado
-    c.setFillColor(C_GRAY)
     c.setFont('Helvetica', 7.5)
-    c.drawCentredString(pW / 2, FOOTER_H / 2 - 5,
-                        f'HYSPLIT Ensemble  |  Model NOAA GFS  |  {fecha_str}')
-
-    # Marca derecha
-    c.setFillColor(colors.HexColor('#BBBBBB'))
-    c.setFont('Helvetica', 7)
-    c.drawRightString(pW - M, 8, 'RDCFT · Arauco')
+    c.setFillColor(C_LGRAY)
+    c.drawString(ML, FOOT_DIV - 14,
+                 'Modelo: NOAA HYSPLIT Ensemble · Meteorología: GFS Global')
+    c.drawRightString(pW - MR, FOOT_DIV - 14, f'Generado: {fecha_str}')
 
     c.save()
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 5. API pública
+# 4. API pública
 # ══════════════════════════════════════════════════════════════════════
 
 def generar_pdf(
@@ -440,7 +377,7 @@ def generar_pdf(
     nombre_punto:      str       = '',
     logo_path:         str|None  = None,
     output_dir:        str|None  = None,
-    zoom_mapa:         int       = 10,
+    zoom_mapa:         int       = 11,
 ) -> str:
     """
     Genera el PDF del reporte HYSPLIT y retorna su ruta absoluta.
@@ -453,19 +390,19 @@ def generar_pdf(
 
     Parámetros opcionales
     ---------------------
-    fecha_str          : Fecha a mostrar ('05/05/2026'). Default: hoy.
-    comentario_viento  : Texto libre sobre condiciones de viento.
-    comentario_quema   : Texto libre sobre condiciones para la quema.
-    nombre_punto       : Nombre del lugar (pie de página + nombre de archivo).
+    fecha_str          : Texto de fecha visible ('05/05/2026'). Default: hoy.
+    comentario_viento  : Análisis de condiciones de viento (texto libre).
+    comentario_quema   : Evaluación para la quema (texto libre).
+    nombre_punto       : Nombre del lugar (para el nombre del archivo).
     logo_path          : Ruta a PNG/JPG del logo corporativo.
-    output_dir         : Carpeta de salida. Default: directorio de trabajo actual.
-    zoom_mapa          : Zoom inicial del mapa folium (default: 10).
+    output_dir         : Carpeta de salida. Default: directorio actual.
+    zoom_mapa          : Zoom inicial del mapa folium (default: 11).
 
     Retorna
     -------
     str — ruta absoluta del PDF generado.
     """
-    fecha_str  = fecha_str  or datetime.now().strftime('%d/%m/%Y')
+    fecha_str  = fecha_str  or datetime.now().strftime('%d de %B de %Y')
     output_dir = output_dir or os.getcwd()
     os.makedirs(output_dir, exist_ok=True)
 
@@ -502,16 +439,15 @@ if __name__ == '__main__':
         lon=-73.3500,
         altura=500,
         kmz_url='https://www.ready.noaa.gov/hypub-bin/trajresults.pl?jobidno=123456',
-        nombre_punto='Predio Ejemplo Arauco',
+        nombre_punto='Predio Ejemplo',
         comentario_viento=(
             'Viento promedio 12 km/h desde el SO. '
-            'Rachas máximas de 28 km/h registradas al mediodía. '
+            'Rachas máximas de 28 km/h al mediodía. '
             'Dirección predominante 220°. Dentro del límite operacional.'
         ),
         comentario_quema=(
-            'Condiciones generales FAVORABLES. '
-            'Humedad relativa 65%. Temperatura 18°C. '
-            'Sin inversión térmica detectada. Operación autorizada con supervisión.'
+            'Condiciones FAVORABLES. HR 65%. Temperatura 18°C. '
+            'Sin inversión térmica. Operación autorizada con supervisión.'
         ),
     )
     print(f'Archivo: {ruta}')
