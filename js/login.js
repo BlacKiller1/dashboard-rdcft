@@ -239,6 +239,19 @@ function _mostrarErrorConSolicitud(email) {
   if (btn) { btn.textContent = 'Acceder →'; btn.disabled = false; }
 }
 
+function toggleSolicitud() {
+  const panel = document.getElementById('solicitudPanel');
+  const email = (document.getElementById('inputEmail')?.value || '').trim().toLowerCase();
+  if (!panel) return;
+  const abriendo = panel.style.display === 'none';
+  panel.style.display = abriendo ? 'flex' : 'none';
+  if (abriendo) {
+    const preview = document.getElementById('solicitudEmailPreview');
+    if (preview) preview.textContent = email || '(ingresa tu correo arriba)';
+    document.getElementById('solicitudNombre')?.focus();
+  }
+}
+
 function _ocultarSolicitud() {
   const panel = document.getElementById('solicitudPanel');
   if (panel) panel.style.display = 'none';
