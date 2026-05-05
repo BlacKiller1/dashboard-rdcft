@@ -2,3 +2,8 @@ flask>=3.0
 flask-cors>=4.0
 selenium>=4.18
 gunicorn>=21.0
+# PDF local (generar_pdf_humo.py)
+reportlab>=4.0
+pillow>=10.0
+folium>=0.16
+webdriver-manager>=4.0
