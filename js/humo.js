@@ -71,6 +71,7 @@ function initHumoMap() {
   humoMap = L.map('humoMapContainer', {
     center: [-37.45, -73.35],
     zoom: 9,
+    minZoom: 7,
     zoomControl: true,
     attributionControl: false
   });
@@ -387,7 +388,16 @@ function mostrarTrayectorias(geojson) {
 
   try {
     const bounds = humoCapaTrayectoria.getBounds();
-    if (bounds.isValid()) humoMap.fitBounds(bounds, { padding: [40, 40] });
+    if (bounds.isValid()) {
+      humoMap.fitBounds(bounds, { padding: [40, 40] });
+      // Si las trayectorias se extienden demasiado lejos, volver a vista regional
+      if (humoMap.getZoom() < 7) {
+        const lat = parseFloat(document.getElementById('humoLat')?.value);
+        const lon = parseFloat(document.getElementById('humoLon')?.value);
+        const centro = (lat && lon) ? [lat, lon] : bounds.getCenter();
+        humoMap.setView(centro, 7, { animate: true });
+      }
+    }
   } catch(_) {}
 }
 
