@@ -6,6 +6,9 @@ Nube:     Railway/Render leen PORT del entorno automáticamente
 
 import sys
 import os
+import json
+import queue
+import threading
 import zipfile
 import io
 import xml.etree.ElementTree as ET
@@ -15,7 +18,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_cors import CORS
 from robot_noaa import obtener_kmz_ensemble
 
@@ -124,20 +127,43 @@ def simular_humo():
         return jsonify({'error': 'Valores de coordenadas inválidos'}), 400
 
     print(f"\n[HUMO] Simulación solicitada → lat={lat}, lon={lon}, altura={altura}m")
-    url = obtener_kmz_ensemble(lat=lat, lon=lon, altura=altura)
 
-    if not url:
-        print("[HUMO] ❌ La simulación no retornó URL.")
-        return jsonify({'error': 'La simulación falló o el servidor NOAA no respondió.'}), 500
+    resultado_q = queue.Queue()
 
-    print(f"[HUMO] ✅ KMZ listo: {url}")
-    respuesta = {'url': url}
+    def run_sim():
+        url = obtener_kmz_ensemble(lat=lat, lon=lon, altura=altura)
+        resultado_q.put(url)
 
-    geojson = kmz_a_geojson(url)
-    if geojson and geojson['features']:
-        respuesta['trayectorias'] = geojson
+    threading.Thread(target=run_sim, daemon=True).start()
 
-    return jsonify(respuesta)
+    def generar():
+        yield 'data: {"tipo":"inicio"}\n\n'
+        while True:
+            try:
+                url = resultado_q.get(timeout=10)
+                if url:
+                    print(f"[HUMO] ✅ KMZ listo: {url}")
+                    geojson = kmz_a_geojson(url)
+                    resp_data = {'tipo': 'ok', 'url': url}
+                    if geojson and geojson.get('features'):
+                        resp_data['trayectorias'] = geojson
+                    yield f'data: {json.dumps(resp_data)}\n\n'
+                else:
+                    print("[HUMO] ❌ La simulación no retornó URL.")
+                    yield 'data: {"tipo":"error","msg":"La simulación falló o el servidor NOAA no respondió."}\n\n'
+                return
+            except queue.Empty:
+                yield 'data: {"tipo":"ping"}\n\n'
+
+    return Response(
+        stream_with_context(generar()),
+        content_type='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+            'Connection': 'keep-alive',
+        }
+    )
 
 
 if __name__ == '__main__':

@@ -291,24 +291,59 @@ async function ejecutarSimulacion() {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ lat, lon, altura }),
-      signal:  AbortSignal.timeout(180000)
+      signal:  AbortSignal.timeout(360000)   // 6 min — el stream mantiene viva la conexión
     });
 
-    const data = await resp.json();
+    if (!resp.ok || !resp.body) {
+      const msg = await resp.text().catch(() => '');
+      throw new Error(msg || `HTTP ${resp.status}`);
+    }
 
-    if (data.url) {
-      setHumoStatus('ok', '✅ Simulación completada exitosamente.');
-      document.getElementById('humoDownloadLink').href = data.url;
-      document.getElementById('humoResult').style.display = 'flex';
-      document.getElementById('btnAbrirPdfHumo').disabled = false;
-      if (data.trayectorias) mostrarTrayectorias(data.trayectorias);
-    } else {
-      setHumoStatus('error', `❌ ${data.error || 'La simulación falló. Intenta nuevamente.'}`);
+    // Leer stream SSE: el servidor envía pings cada 10 s para no cerrar la conexión
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let   buffer  = '';
+    let   resuelto = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lineas = buffer.split('\n');
+      buffer = lineas.pop();  // conservar línea incompleta
+
+      for (const linea of lineas) {
+        if (!linea.startsWith('data: ')) continue;
+        let evento;
+        try { evento = JSON.parse(linea.slice(6)); } catch { continue; }
+
+        if (evento.tipo === 'ok') {
+          setHumoStatus('ok', '✅ Simulación completada exitosamente.');
+          document.getElementById('humoDownloadLink').href = evento.url;
+          document.getElementById('humoResult').style.display = 'flex';
+          document.getElementById('btnAbrirPdfHumo').disabled = false;
+          if (evento.trayectorias) mostrarTrayectorias(evento.trayectorias);
+          resuelto = true;
+          break;
+        } else if (evento.tipo === 'error') {
+          setHumoStatus('error', `❌ ${evento.msg || 'La simulación falló. Intenta nuevamente.'}`);
+          resuelto = true;
+          break;
+        }
+        // tipo 'ping' o 'inicio' → seguir esperando
+      }
+
+      if (resuelto) break;
+    }
+
+    if (!resuelto) {
+      setHumoStatus('error', '❌ La conexión finalizó inesperadamente.');
     }
 
   } catch (err) {
     if (err.name === 'TimeoutError') {
-      setHumoStatus('error', '❌ Tiempo de espera agotado (3 min). El servidor NOAA tardó demasiado.');
+      setHumoStatus('error', '❌ Tiempo de espera agotado (6 min). El servidor NOAA tardó demasiado.');
     } else {
       setServidorOnline(false);
       setHumoStatus('error', '❌ Se perdió la conexión con el servidor. Reintentando...');
