@@ -674,6 +674,23 @@ function crearImagenRosa(size) {
   return c.toDataURL('image/png');
 }
 
+// ── Limpiar simulación ────────────────────────────────────────────────
+function humoLimpiar() {
+  limpiarTrayectorias();
+
+  if (humoMarcador && humoMap) {
+    humoMap.removeLayer(humoMarcador);
+    humoMarcador = null;
+  }
+
+  document.getElementById('humoLat').value  = '';
+  document.getElementById('humoLon').value  = '';
+  document.getElementById('btnSimular').disabled        = true;
+  document.getElementById('btnAbrirPdfHumo').disabled   = true;
+  document.getElementById('humoResult').style.display   = 'none';
+  setHumoStatus('', '');
+}
+
 // ── Llamado desde ui.js al mostrar la pestaña ────────────────────────
 function onHumoTabVisible() {
   if (!humoIniciado) initHumoMap();

@@ -1730,6 +1730,10 @@ html, body {
 .map-geo-btn:hover    { background: rgba(74,158,232,0.12); border-color: rgba(74,158,232,0.4); }
 .map-geo-btn:disabled { opacity: .5; cursor: not-allowed; }
 
+/* ── Botón limpiar simulación ── */
+.humo-btn-limpiar       { color: #e07070 !important; border-color: rgba(220,80,80,0.25) !important; flex: none !important; }
+.humo-btn-limpiar:hover { background: rgba(220,80,80,0.10) !important; border-color: rgba(220,80,80,0.5) !important; color: #f08080 !important; }
+
 /* ── Popup predios ── */
 .leaflet-popup-content-wrapper {
   background: rgba(20,18,14,0.97) !important;
