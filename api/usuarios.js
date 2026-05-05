@@ -126,23 +126,28 @@ export default async function handler(req, res) {
       if (!postResp.ok) throw new Error(`Vercel POST: ${postResp.status}`);
     }
 
-    // Paso 3 — Redesplegar automáticamente
-    const deployResp = await fetch(`https://api.vercel.com/v13/deployments`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${VERCEL_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: 'dashboard-rdcft',
-        gitSource: { type: 'github', repoId: PROJECT_ID, ref: 'main' },
-        projectId: PROJECT_ID,
-        target: 'production'
-      })
-    });
+    // Paso 3 — Redesplegar el último deployment de producción
+    const listResp = await fetch(
+      `https://api.vercel.com/v6/deployments?projectId=${PROJECT_ID}&limit=1&target=production`,
+      { headers: { 'Authorization': `Bearer ${VERCEL_TOKEN}` } }
+    );
+    const listData = await listResp.json();
+    const latestUid = listData.deployments?.[0]?.uid;
 
-    const deployData = await deployResp.json();
-    console.log('[RDCFT] Redespliegue iniciado:', deployData.id || deployData);
+    if (latestUid) {
+      const deployResp = await fetch(`https://api.vercel.com/v13/deployments`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${VERCEL_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ deploymentId: latestUid, name: 'dashboard-rdcft', projectId: PROJECT_ID, target: 'production' })
+      });
+      const deployData = await deployResp.json();
+      console.log('[RDCFT] Redespliegue iniciado:', deployData.id || deployData.uid || deployData);
+    } else {
+      console.warn('[RDCFT] No se encontró deployment previo para redesplegar');
+    }
 
     return res.status(200).json({
       ok: true,
