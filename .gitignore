@@ -1,9 +1,6 @@
-
 __pycache__/
 *.pyc
 
 .claude/
-__pycache__/
-*.pyc
 
 data/usuarios.json
