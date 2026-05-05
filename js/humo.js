@@ -39,17 +39,10 @@ function setServidorOnline(online) {
 
   if (online) {
     banner.style.display = 'none';
-    // Rehabilitar botón solo si ya hay coordenadas seleccionadas
-    const lat = document.getElementById('humoLat').value;
-    const lon = document.getElementById('humoLon').value;
-    if (lat && lon) btn.disabled = false;
-
-    // Parar el polling agresivo y pasar a uno lento de mantenimiento
     clearInterval(humoHealthTimer);
     humoHealthTimer = setInterval(checkServidorHealth, 30000);
   } else {
     banner.style.display = 'flex';
-    btn.disabled = true;
     // Polling cada 5 s para detectar cuando arranca
     clearInterval(humoHealthTimer);
     humoHealthTimer = setInterval(checkServidorHealth, 5000);
@@ -100,7 +93,7 @@ function initHumoMap() {
     humoSetMarcador(lat, lon);
     document.getElementById('humoLat').value = lat;
     document.getElementById('humoLon').value = lon;
-    if (humoServidor) document.getElementById('btnSimular').disabled = false;
+    document.getElementById('btnSimular').disabled = false;
   });
 
   humoIniciado = true;
@@ -164,7 +157,7 @@ function humoGeolocate() {
       humoSetMarcador(lat, lon);
       document.getElementById('humoLat').value = lat;
       document.getElementById('humoLon').value = lon;
-      if (humoServidor) document.getElementById('btnSimular').disabled = false;
+      document.getElementById('btnSimular').disabled = false;
       btn.textContent = '📍';
       btn.disabled    = false;
     },
