@@ -125,14 +125,44 @@ function initHumoMap() {
   humoMap.on('click', function(e) {
     const lat = parseFloat(e.latlng.lat.toFixed(6));
     const lon = parseFloat(e.latlng.lng.toFixed(6));
-    humoSetMarcador(lat, lon);
-    document.getElementById('humoLat').value = lat;
-    document.getElementById('humoLon').value = lon;
-    document.getElementById('btnSimular').disabled = false;
-    document.getElementById('btnAbrirPdfHumo').disabled = true; // espera simulación
-    document.getElementById('humoResult').style.display = 'none';
-    setHumoStatus('', '');
+    humoSetPunto(lat, lon);
   });
+
+  // ── Long press sobre predios (500 ms) ──────────────────────────────
+  const humoContainer = document.getElementById('humoMapContainer');
+  let humoLPTimer = null;
+
+  function humoIniciarLP(e) {
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    try {
+      const rect   = humoContainer.getBoundingClientRect();
+      const latlng = humoMap.containerPointToLatLng([clientX - rect.left, clientY - rect.top]);
+      const lat    = parseFloat(latlng.lat.toFixed(6));
+      const lon    = parseFloat(latlng.lng.toFixed(6));
+      humoLPTimer  = setTimeout(() => {
+        humoSetPunto(lat, lon);
+        if (navigator.vibrate) navigator.vibrate(60);
+      }, 500);
+    } catch(_) {}
+  }
+
+  function humoCancelarLP() {
+    if (humoLPTimer) { clearTimeout(humoLPTimer); humoLPTimer = null; }
+  }
+
+  humoContainer.addEventListener('mousedown',  humoIniciarLP);
+  humoContainer.addEventListener('mouseup',    humoCancelarLP);
+  humoContainer.addEventListener('mousemove',  humoCancelarLP);
+  humoContainer.addEventListener('touchstart', humoIniciarLP,  { passive: true });
+  humoContainer.addEventListener('touchend',   humoCancelarLP);
+  humoContainer.addEventListener('touchmove',  humoCancelarLP, { passive: true });
 
   humoIniciado = true;
   setTimeout(() => humoMap && humoMap.invalidateSize(), 200);
@@ -166,6 +196,17 @@ function humoTogglePredios() {
   }
   const btn = document.getElementById('hBtnPredios');
   if (btn) btn.classList.toggle('active', humoPrediosVisible);
+}
+
+// ── Fijar punto de emisión (marcador + inputs + estado botones) ───────
+function humoSetPunto(lat, lon) {
+  humoSetMarcador(lat, lon);
+  document.getElementById('humoLat').value = lat;
+  document.getElementById('humoLon').value = lon;
+  document.getElementById('btnSimular').disabled = false;
+  document.getElementById('btnAbrirPdfHumo').disabled = true;
+  document.getElementById('humoResult').style.display = 'none';
+  setHumoStatus('', '');
 }
 
 // ── Colocar marcador naranja ──────────────────────────────────────────
