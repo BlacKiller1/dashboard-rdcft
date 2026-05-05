@@ -240,9 +240,88 @@ function abrirModalPdfHumo() {
     setHumoStatus('error', '❌ Selecciona un punto en el mapa primero.');
     return;
   }
-  document.getElementById('pdfComentViento').value = '';
-  document.getElementById('pdfComentQuema').value  = '';
   document.getElementById('humoPdfModal').style.display = 'flex';
+  generarComentariosAuto(parseFloat(lat), parseFloat(lon));
+}
+
+async function generarComentariosAuto(lat, lon) {
+  const txtViento = document.getElementById('pdfComentViento');
+  const txtQuema  = document.getElementById('pdfComentQuema');
+  const btnGen    = document.getElementById('btnGenerarPdf');
+
+  txtViento.value    = '⏳ Consultando pronóstico meteorológico...';
+  txtQuema.value     = '⏳ Evaluando condiciones operacionales...';
+  txtViento.disabled = true;
+  txtQuema.disabled  = true;
+  btnGen.disabled    = true;
+
+  const DIAS_ES   = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const MESES_ES  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const fmtFecha  = s => { const d = new Date(s + 'T12:00:00'); return `${DIAS_ES[d.getDay()]} ${d.getDate()} ${MESES_ES[d.getMonth()]}`; };
+
+  try {
+    const raw  = await fetchWeather(lat, lon);
+    const days = parseHourly(raw);
+    const slots = days.flatMap(d => d.slots);
+
+    // ── Análisis de viento ────────────────────────────────────────
+    const vAvg    = Math.round(slots.reduce((a, s) => a + s.viento, 0) / slots.length);
+    const vMax    = Math.max(...slots.map(s => s.viento));
+    const rMax    = Math.max(...slots.map(s => s.racha));
+    const dirAvg  = Math.round(slots.reduce((a, s) => a + s.direccion, 0) / slots.length);
+    const dirLabel = compassLabel(dirAvg);
+
+    const diasOkViento  = days.filter(d => d.slots.every(s => s.viento <= VIENTO_LIMITE_RDCFT));
+    const diasMarViento = days.filter(d => d.slots.some(s => s.viento > VIENTO_LIMITE_RDCFT));
+
+    let textoViento = `Pronóstico para los próximos ${days.length} días (Open-Meteo):\n`;
+    textoViento += `• Viento promedio: ${vAvg} km/h — rachas máximas: ${rMax} km/h\n`;
+    textoViento += `• Dirección predominante: ${dirLabel} (${dirAvg}°)\n`;
+
+    if (diasOkViento.length > 0) {
+      textoViento += `• Días dentro del límite (≤${VIENTO_LIMITE_RDCFT} km/h): ${diasOkViento.map(d => fmtFecha(d.date)).join(', ')}\n`;
+    }
+    if (diasMarViento.length > 0) {
+      const detalle = diasMarViento.map(d => {
+        const mx = Math.max(...d.slots.map(s => s.viento));
+        return `${fmtFecha(d.date)} (máx. ${mx} km/h)`;
+      }).join(', ');
+      textoViento += `• Días con viento sobre el límite: ${detalle}`;
+    }
+
+    // ── Evaluación operacional RDCFT ──────────────────────────────
+    const nOk   = days.filter(d => estadoDia(d) === 'ok').length;
+    const nWarn = days.filter(d => estadoDia(d) === 'warn').length;
+    const nBad  = days.filter(d => estadoDia(d) === 'bad').length;
+
+    let estadoGlobal;
+    if (nOk >= 5)              estadoGlobal = 'FAVORABLE — condiciones aptas para la operación';
+    else if (nOk + nWarn >= 4) estadoGlobal = 'CON RESTRICCIONES — operar en ventanas horarias favorables';
+    else                       estadoGlobal = 'NO FAVORABLE — viento no permite operar con seguridad';
+
+    const mejorDia = days.find(d => estadoDia(d) === 'ok');
+    const ventana  = mejorDia
+      ? `Ventana óptima: ${fmtFecha(mejorDia.date)} — horarios operables: ${mejorDia.slots.filter(s => s.rdcft.operable).map(s => s.hora).join(', ')}.`
+      : 'No se identifican ventanas completamente favorables en el período consultado.';
+
+    let textoQuema = `Evaluación RDCFT — límite viento ≤${VIENTO_LIMITE_RDCFT} km/h:\n`;
+    textoQuema += `Estado general: ${estadoGlobal}\n\n`;
+    textoQuema += `• Días completamente favorables: ${nOk}/${days.length}\n`;
+    textoQuema += `• Días con restricciones parciales: ${nWarn}/${days.length}\n`;
+    textoQuema += `• Días no operables: ${nBad}/${days.length}\n\n`;
+    textoQuema += ventana;
+
+    txtViento.value = textoViento;
+    txtQuema.value  = textoQuema;
+
+  } catch {
+    txtViento.value = 'No se pudo obtener el pronóstico meteorológico para este punto.';
+    txtQuema.value  = 'No se pudo evaluar las condiciones operacionales.';
+  } finally {
+    txtViento.disabled = false;
+    txtQuema.disabled  = false;
+    btnGen.disabled    = false;
+  }
 }
 
 function cerrarModalPdfHumo() {
