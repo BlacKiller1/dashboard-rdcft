@@ -454,14 +454,13 @@ function cerrarModalPdfHumo() {
 }
 
 async function generarPdfHumo() {
-  const lat          = document.getElementById('humoLat').value;
-  const lon          = document.getElementById('humoLon').value;
-  const altura       = document.getElementById('humoAltura').value || '500';
-  const nombrePunto  = (document.getElementById('pdfNombre').value || '').trim()
-                       || `Lat ${lat} · Lon ${lon}`;
+  const lat         = document.getElementById('humoLat').value;
+  const lon         = document.getElementById('humoLon').value;
+  const altura      = document.getElementById('humoAltura').value || '500';
+  const nombre      = (document.getElementById('pdfNombre').value || '').trim();
   const comentViento = document.getElementById('pdfComentViento').value.trim();
   const comentQuema  = document.getElementById('pdfComentQuema').value.trim();
-  const kmzHref      = document.getElementById('humoDownloadLink').href;
+  const kmzHref     = document.getElementById('humoDownloadLink').href;
 
   const btn = document.getElementById('btnGenerarPdf');
   btn.textContent = '⏳ Generando...';
@@ -485,97 +484,187 @@ async function generarPdfHumo() {
       }
     } catch (_) {}
 
-    // ── 2. Crear rosa de los vientos ──────────────────────────────
-    const rosaImg = crearImagenRosa(120);
-
-    // ── 3. jsPDF — Letter Portrait (215.9 × 279.4 mm) ────────────
+    // ── 2. jsPDF — Letter Portrait (215.9 × 279.4 mm) ────────────
     const { jsPDF } = window.jspdf;
-    const pdf  = new jsPDF({ unit: 'mm', format: 'letter', orientation: 'portrait' });
-    const pW   = pdf.internal.pageSize.getWidth();   // 215.9
-    const pH   = pdf.internal.pageSize.getHeight();  // 279.4
-    const mapH = pH * 0.80;
-    const blkY = mapH;
-    const blkH = pH - mapH;
+    const pdf = new jsPDF({ unit: 'mm', format: 'letter', orientation: 'portrait' });
+    const pW  = pdf.internal.pageSize.getWidth();   // 215.9
+    const pH  = pdf.internal.pageSize.getHeight();  // 279.4
+    const ML  = 10, MR = 10;
+    const CW  = pW - ML - MR;                       // 195.9
 
-    // ── 4. Imagen del mapa (80% superior) ────────────────────────
-    if (mapImgData) {
-      pdf.addImage(mapImgData, 'JPEG', 0, 0, pW, mapH);
-    } else {
-      pdf.setFillColor(210, 210, 210);
-      pdf.rect(0, 0, pW, mapH, 'F');
-      pdf.setTextColor(120, 120, 120);
-      pdf.setFontSize(11);
-      pdf.text(`${lat}, ${lon}`, pW / 2, mapH / 2, { align: 'center' });
+    const fecha = new Date().toLocaleDateString('es-CL',
+      { day: '2-digit', month: 'long', year: 'numeric' });
+
+    // ── Helpers internos ──────────────────────────────────────────
+    const boxW = CW - 7;  // ancho de texto dentro de caja (margen acento izq)
+
+    function boxH(texto, minH) {
+      if (!texto || !texto.trim()) return minH;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8.5);
+      return Math.max(minH, pdf.splitTextToSize(texto, boxW).length * 4.5 + 10);
     }
 
-    // ── 5. Title block negro (20% inferior) ──────────────────────
-    pdf.setFillColor(0, 0, 0);
-    pdf.rect(0, blkY, pW, blkH, 'F');
+    function drawBox(y, h) {
+      pdf.setFillColor(248, 249, 250);
+      pdf.setDrawColor(224, 224, 224);
+      pdf.setLineWidth(0.3);
+      pdf.rect(ML, y, CW, h, 'FD');
+      pdf.setDrawColor(92, 184, 92);
+      pdf.setLineWidth(1.2);
+      pdf.line(ML + 0.6, y + 1.5, ML + 0.6, y + h - 1.5);
+    }
 
-    // Línea divisoria fina entre mapa y bloque
-    pdf.setDrawColor(255, 255, 255);
-    pdf.setLineWidth(0.4);
-    pdf.line(0, blkY, pW, blkY);
+    function drawTextInBox(y, h, texto) {
+      const tx = ML + 4.5;
+      if (!texto || !texto.trim()) {
+        pdf.setFont('helvetica', 'italic');
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(153, 153, 153);
+        pdf.text('Sin comentarios.', tx, y + h / 2 + 1.5);
+      } else {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(51, 51, 51);
+        pdf.text(pdf.splitTextToSize(texto, boxW), tx, y + 6, { lineHeightFactor: 1.4 });
+      }
+    }
 
-    // ── 6. Texto en el title block ────────────────────────────────
-    const fecha    = new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
-    const maxTxtW  = pW - 38; // espacio para la rosa
+    function drawLabel(y, texto) {
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(7);
+      pdf.setTextColor(68, 68, 68);
+      pdf.text(texto, ML, y);
+    }
 
-    // Título principal
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(12);
-    pdf.text(`Simulación Ensemble — ${nombrePunto}`, 5, blkY + 8);
-
-    // Subtítulo
+    // ── 3. HEADER ─────────────────────────────────────────────────
+    // Logo "arauco" (izquierda)
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(7.5);
+    pdf.setFontSize(22);
     pdf.setTextColor(170, 170, 170);
-    pdf.text(`HYSPLIT · Lat ${lat}  Lon ${lon}  ·  Altura ${altura} m  ·  ${fecha}`, 5, blkY + 14);
+    pdf.text('arauco', ML, 21);
 
-    // Separador
-    pdf.setDrawColor(55, 55, 55);
-    pdf.setLineWidth(0.2);
-    pdf.line(5, blkY + 17, pW - 5, blkY + 17);
-
-    // Condiciones de viento
+    // Bloque título (derecha)
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(7);
-    pdf.setTextColor(200, 200, 200);
-    pdf.text('CONDICIONES DE VIENTO', 5, blkY + 22);
+    pdf.setFontSize(11);
+    pdf.setTextColor(34, 34, 34);
+    pdf.text('Simulación de Dispersión de Humo', pW - MR, 9, { align: 'right' });
 
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(7.5);
-    pdf.setTextColor(255, 255, 255);
-    const lineasV = pdf.splitTextToSize(comentViento || '—', maxTxtW);
-    pdf.text(lineasV.slice(0, 2), 5, blkY + 27);
-
-    // Condiciones para la quema
-    pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(7);
-    pdf.setTextColor(200, 200, 200);
-    pdf.text('CONDICIONES PARA LA QUEMA', 5, blkY + 38);
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(7.5);
-    pdf.setTextColor(255, 255, 255);
-    const lineasQ = pdf.splitTextToSize(comentQuema || '—', maxTxtW);
-    pdf.text(lineasQ.slice(0, 2), 5, blkY + 43);
-
-    // KMZ link al pie
-    if (kmzHref && kmzHref !== '#' && !kmzHref.endsWith(window.location.pathname)) {
-      pdf.setFontSize(6);
-      pdf.setTextColor(80, 180, 120);
-      const kmzLineas = pdf.splitTextToSize('KMZ: ' + kmzHref, maxTxtW);
-      pdf.text(kmzLineas[0], 5, blkY + blkH - 4);
+    pdf.setTextColor(102, 102, 102);
+    if (nombre) {
+      pdf.setFontSize(8);
+      pdf.text(nombre, pW - MR, 15, { align: 'right' });
+      pdf.setFontSize(7);
+      pdf.text(`HYSPLIT Ensemble · Lat ${lat} · Lon ${lon} · Altura ${altura} m`, pW - MR, 20, { align: 'right' });
+      pdf.text(fecha, pW - MR, 25, { align: 'right' });
+    } else {
+      pdf.text(`HYSPLIT Ensemble · Lat ${lat} · Lon ${lon} · Altura ${altura} m`, pW - MR, 17, { align: 'right' });
+      pdf.text(fecha, pW - MR, 22, { align: 'right' });
     }
 
-    // ── 7. Rosa de los vientos (esquina inferior derecha) ─────────
-    const rosaSize = blkH * 0.82;
-    pdf.addImage(rosaImg, 'PNG', pW - rosaSize - 3, blkY + (blkH - rosaSize) / 2, rosaSize, rosaSize);
+    // Línea divisora header
+    pdf.setDrawColor(221, 221, 221);
+    pdf.setLineWidth(0.3);
+    pdf.line(ML, 28, pW - MR, 28);
 
-    // ── 8. Guardar ────────────────────────────────────────────────
-    const nombreArchivo = `RDCFT_Humo_${lat}_${lon}_${new Date().toISOString().slice(0,10)}.pdf`;
+    // ── 4. LABEL + MAPA ───────────────────────────────────────────
+    let y = 33;
+    drawLabel(y, 'PUNTO DE EMISIÓN');
+    y += 3;
+
+    const MAP_H = 70;
+    if (mapImgData) {
+      pdf.addImage(mapImgData, 'JPEG', ML, y, CW, MAP_H, '', 'FAST');
+    } else {
+      pdf.setFillColor(46, 46, 46);
+      pdf.rect(ML, y, CW, MAP_H, 'F');
+      pdf.setFontSize(9);
+      pdf.setTextColor(136, 136, 136);
+      pdf.text('Mapa no disponible', pW / 2, y + MAP_H / 2, { align: 'center' });
+    }
+    pdf.setDrawColor(224, 224, 224);
+    pdf.setLineWidth(0.3);
+    pdf.rect(ML, y, CW, MAP_H, 'S');
+    y += MAP_H + 5;  // ≈ 108
+
+    // ── 5. FILA DE COORDENADAS ─────────────────────────────────────
+    const COL = CW / 3;
+
+    function coordItem(x, icono, colorIcono, etiq, valor) {
+      pdf.setFontSize(8.5);
+      pdf.setTextColor(...colorIcono);
+      pdf.text(icono, x, y);
+      const iW = pdf.getTextWidth(icono) + 1.5;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(102, 102, 102);
+      pdf.text(etiq, x + iW, y);
+      const eW = pdf.getTextWidth(etiq);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(34, 34, 34);
+      pdf.text(valor, x + iW + eW, y);
+    }
+
+    pdf.setFont('helvetica', 'normal');
+    coordItem(ML,           '●', [217, 83, 79],   'Latitud: ',        lat);
+    coordItem(ML + COL,     '●', [217, 83, 79],   'Longitud: ',       lon);
+    coordItem(ML + 2 * COL, '↑', [102, 102, 102], 'Altura emisión: ', `${altura} m`);
+    y += 9;  // ≈ 117
+
+    // ── 6. CONDICIONES DE VIENTO ──────────────────────────────────
+    y += 3;
+    drawLabel(y, 'CONDICIONES DE VIENTO');
+    y += 2;
+    const hV = boxH(comentViento, 28);
+    drawBox(y, hV);
+    drawTextInBox(y, hV, comentViento);
+    y += hV + 5;
+
+    // ── 7. CONDICIONES PARA LA QUEMA ──────────────────────────────
+    drawLabel(y, 'CONDICIONES PARA LA QUEMA');
+    y += 2;
+    const hQ = boxH(comentQuema, 28);
+    drawBox(y, hQ);
+    drawTextInBox(y, hQ, comentQuema);
+    y += hQ + 5;
+
+    // ── 8. TRAYECTORIA HYSPLIT ─────────────────────────────────────
+    drawLabel(y, 'TRAYECTORIA HYSPLIT');
+    y += 2;
+    const TRAY_H = 22;
+    drawBox(y, TRAY_H);
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8.5);
+    pdf.setTextColor(51, 51, 51);
+    pdf.text('Archivo KMZ disponible para visualización en Google Earth:', ML + 4.5, y + 7);
+
+    const kmzValido = kmzHref && kmzHref !== '#' && !kmzHref.endsWith(window.location.pathname);
+    if (kmzValido) {
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(7.5);
+      pdf.setTextColor(46, 125, 50);
+      const kmzLineas = pdf.splitTextToSize(kmzHref, boxW);
+      pdf.text(kmzLineas[0], ML + 4.5, y + 14);
+    }
+
+    // ── 9. FOOTER (fijado al borde inferior) ──────────────────────
+    const FOOT_Y = pH - 14;
+    pdf.setDrawColor(221, 221, 221);
+    pdf.setLineWidth(0.3);
+    pdf.line(ML, FOOT_Y - 3, pW - MR, FOOT_Y - 3);
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7);
+    pdf.setTextColor(153, 153, 153);
+    pdf.text('Modelo: NOAA HYSPLIT Ensemble · Meteorología: GFS Global', ML, FOOT_Y);
+    pdf.text(`Generado: ${fecha}`, pW - MR, FOOT_Y, { align: 'right' });
+
+    // ── 10. Guardar ────────────────────────────────────────────────
+    const slug = (nombre || `${lat}_${lon}`).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const nombreArchivo = `RDCFT_Humo_${slug}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
     if (esIOS && ventanaIOS) {
       const blobUrl = URL.createObjectURL(pdf.output('blob'));
       ventanaIOS.location.href = blobUrl;
@@ -595,83 +684,6 @@ async function generarPdfHumo() {
     btn.textContent = '📄 Generar PDF';
     btn.disabled    = false;
   }
-}
-
-function crearImagenRosa(size) {
-  const c   = document.createElement('canvas');
-  c.width   = c.height = size;
-  const ctx = c.getContext('2d');
-  const cx  = size / 2, cy = size / 2;
-  const r   = size * 0.34;
-
-  // Fondo blanco circular
-  ctx.beginPath();
-  ctx.arc(cx, cy, r * 1.18, 0, Math.PI * 2);
-  ctx.fillStyle   = '#ffffff';
-  ctx.strokeStyle = '#cccccc';
-  ctx.lineWidth   = size * 0.02;
-  ctx.fill();
-  ctx.stroke();
-
-  // Flecha Norte (negro sólido, apunta arriba)
-  ctx.beginPath();
-  ctx.moveTo(cx,           cy - r);
-  ctx.lineTo(cx - r * 0.3, cy + r * 0.08);
-  ctx.lineTo(cx,           cy - r * 0.12);
-  ctx.closePath();
-  ctx.fillStyle = '#000000';
-  ctx.fill();
-
-  // Flecha Sur (blanco con borde, apunta abajo)
-  ctx.beginPath();
-  ctx.moveTo(cx,           cy + r);
-  ctx.lineTo(cx - r * 0.3, cy - r * 0.08);
-  ctx.lineTo(cx,           cy + r * 0.12);
-  ctx.closePath();
-  ctx.fillStyle   = '#ffffff';
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth   = size * 0.015;
-  ctx.fill();
-  ctx.stroke();
-
-  // Flecha Norte lado derecho (espejo)
-  ctx.beginPath();
-  ctx.moveTo(cx,           cy - r);
-  ctx.lineTo(cx + r * 0.3, cy + r * 0.08);
-  ctx.lineTo(cx,           cy - r * 0.12);
-  ctx.closePath();
-  ctx.fillStyle = '#333333';
-  ctx.fill();
-
-  // Flecha Sur lado derecho (espejo)
-  ctx.beginPath();
-  ctx.moveTo(cx,           cy + r);
-  ctx.lineTo(cx + r * 0.3, cy - r * 0.08);
-  ctx.lineTo(cx,           cy + r * 0.12);
-  ctx.closePath();
-  ctx.fillStyle   = '#dddddd';
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth   = size * 0.015;
-  ctx.fill();
-  ctx.stroke();
-
-  // Punto central
-  ctx.beginPath();
-  ctx.arc(cx, cy, r * 0.08, 0, Math.PI * 2);
-  ctx.fillStyle = '#000000';
-  ctx.fill();
-
-  // Letras cardinales
-  ctx.fillStyle    = '#000000';
-  ctx.font         = `bold ${Math.round(size * 0.17)}px Arial`;
-  ctx.textAlign    = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('N', cx,           cy - r * 1.52);
-  ctx.fillText('S', cx,           cy + r * 1.52);
-  ctx.fillText('E', cx + r * 1.52, cy);
-  ctx.fillText('O', cx - r * 1.52, cy);
-
-  return c.toDataURL('image/png');
 }
 
 // ── Limpiar simulación ────────────────────────────────────────────────
