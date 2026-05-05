@@ -1,34 +1,35 @@
 /* ═══════════════════════════════════════════════════════════════════════
    service-worker.js
    PWA Service Worker — Dashboard Meteorológico RDCFT
-   Estrategia: Cache First para assets estáticos, Network First para API
+   Estrategia: Network First para HTML (headers CSP siempre frescos),
+               Network First para JS/CSS/datos, Cache First para el resto
    ═══════════════════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'rdcft-20260505134350';
+const CACHE_NAME = 'rdcft-20260505141500';
 const CACHE_OFFLINE = 'rdcft-offline-v1';
 
-// Solo el shell HTML para offline — los JS/CSS se sirven siempre frescos
+// Solo manifest para pre-cachear (index.html NUNCA se cachea para que
+// los headers HTTP de Vercel —incluido CSP— sean siempre los actuales)
 const ASSETS_ESTATICOS = [
-  '/index.html',
   '/manifest.json',
 ];
 
-// JS, CSS y datos → Network First (siempre frescos, caché solo offline)
+// Rutas que siempre van a la red primero
 const NETWORK_FIRST_PATHS = ['/js/', '/css/', '/data/'];
 
-/* ── Instalación: cachear assets estáticos ─────────────────────────── */
+/* ── Instalación ───────────────────────────────────────────────────── */
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ASSETS_ESTATICOS).catch(err => {
-        console.warn('[SW] Error cacheando assets:', err);
-      });
-    })
+    caches.open(CACHE_NAME).then(cache =>
+      cache.addAll(ASSETS_ESTATICOS).catch(err =>
+        console.warn('[SW] Error cacheando assets:', err)
+      )
+    )
   );
   self.skipWaiting();
 });
 
-/* ── Activación: limpiar caches antiguos ───────────────────────────── */
+/* ── Activación: limpiar caches antiguos ─────────────────────────── */
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -37,19 +38,26 @@ self.addEventListener('activate', event => {
           .filter(key => key !== CACHE_NAME && key !== CACHE_OFFLINE)
           .map(key => caches.delete(key))
       )
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-/* ── Fetch: estrategia por tipo de recurso ─────────────────────────── */
+/* ── Fetch ────────────────────────────────────────────────────────── */
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Peticiones cross-origin → no interceptar, el browser las maneja nativamente
+  // Peticiones cross-origin → no interceptar
   if (url.origin !== location.origin) return;
 
-  // JS, CSS y datos → Network First (siempre frescos, caché solo offline)
+  // Documentos HTML → Network First (los headers CSP deben venir de Vercel)
+  if (event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // JS, CSS y datos → Network First
   if (NETWORK_FIRST_PATHS.some(p => url.pathname.startsWith(p))) {
     event.respondWith(
       fetch(event.request).then(response => {
@@ -73,15 +81,12 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
-      }).catch(() => {
-        if (event.request.destination === 'document') return caches.match('/index.html');
-        return caches.match(event.request);
-      });
+      }).catch(() => caches.match(event.request));
     })
   );
 });
 
-/* ── Mensaje de actualización disponible ───────────────────────────── */
+/* ── Mensaje de actualización ─────────────────────────────────────── */
 self.addEventListener('message', event => {
   if (event.data === 'skipWaiting') self.skipWaiting();
 });
