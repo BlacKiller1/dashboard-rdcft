@@ -94,7 +94,9 @@ function initHumoMap() {
     document.getElementById('humoLat').value = lat;
     document.getElementById('humoLon').value = lon;
     document.getElementById('btnSimular').disabled = false;
-    document.getElementById('btnAbrirPdfHumo').disabled = false;
+    document.getElementById('btnAbrirPdfHumo').disabled = true; // espera simulación
+    document.getElementById('humoResult').style.display = 'none';
+    setHumoStatus('', '');
   });
 
   humoIniciado = true;
@@ -159,7 +161,7 @@ function humoGeolocate() {
       document.getElementById('humoLat').value = lat;
       document.getElementById('humoLon').value = lon;
       document.getElementById('btnSimular').disabled = false;
-      document.getElementById('btnAbrirPdfHumo').disabled = false;
+      document.getElementById('btnAbrirPdfHumo').disabled = true;
       btn.textContent = '📍';
       btn.disabled    = false;
     },
@@ -207,6 +209,7 @@ async function ejecutarSimulacion() {
       setHumoStatus('ok', '✅ Simulación completada exitosamente.');
       document.getElementById('humoDownloadLink').href = data.url;
       document.getElementById('humoResult').style.display = 'flex';
+      document.getElementById('btnAbrirPdfHumo').disabled = false;
     } else {
       setHumoStatus('error', `❌ ${data.error || 'La simulación falló. Intenta nuevamente.'}`);
     }
@@ -240,6 +243,7 @@ function abrirModalPdfHumo() {
     setHumoStatus('error', '❌ Selecciona un punto en el mapa primero.');
     return;
   }
+  document.getElementById('pdfNombre').value = '';
   document.getElementById('humoPdfModal').style.display = 'flex';
   generarComentariosAuto(parseFloat(lat), parseFloat(lon));
 }
@@ -329,13 +333,14 @@ function cerrarModalPdfHumo() {
 }
 
 async function generarPdfHumo() {
-  const lat    = document.getElementById('humoLat').value;
-  const lon    = document.getElementById('humoLon').value;
-  const altura = document.getElementById('humoAltura').value || '500';
+  const lat          = document.getElementById('humoLat').value;
+  const lon          = document.getElementById('humoLon').value;
+  const altura       = document.getElementById('humoAltura').value || '500';
+  const nombrePunto  = (document.getElementById('pdfNombre').value || '').trim()
+                       || `Lat ${lat} · Lon ${lon}`;
   const comentViento = document.getElementById('pdfComentViento').value.trim();
   const comentQuema  = document.getElementById('pdfComentQuema').value.trim();
   const kmzHref      = document.getElementById('humoDownloadLink').href;
-  const tieneKmz     = kmzHref && kmzHref !== '#' && !kmzHref.endsWith(window.location.pathname);
 
   const btn = document.getElementById('btnGenerarPdf');
   btn.textContent = '⏳ Generando...';
@@ -345,117 +350,118 @@ async function generarPdfHumo() {
   const ventanaIOS = esIOS ? window.open('', '_blank') : null;
 
   try {
-    // Capturar snapshot del mapa Leaflet
+    // ── 1. Capturar mapa ──────────────────────────────────────────
     let mapImgData = null;
     try {
       const mapEl = document.getElementById('humoMapContainer');
       if (mapEl && humoMap) {
         humoMap.invalidateSize();
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(r => setTimeout(r, 350));
         const mc = await html2canvas(mapEl, {
-          scale: 1.5, useCORS: true, allowTaint: true, logging: false
+          scale: 2, useCORS: true, allowTaint: true, logging: false
         });
-        mapImgData = mc.toDataURL('image/jpeg', 0.88);
+        mapImgData = mc.toDataURL('image/jpeg', 0.92);
       }
-    } catch (_) { /* captura de mapa opcional */ }
+    } catch (_) {}
 
-    const fecha = new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+    // ── 2. Crear rosa de los vientos ──────────────────────────────
+    const rosaImg = crearImagenRosa(120);
 
-    const mapHTML = mapImgData
-      ? `<img src="${mapImgData}" style="width:100%;height:200px;object-fit:cover;border-radius:6px;border:0.5px solid #DFD1A7;"/>`
-      : `<div style="width:100%;height:60px;background:#EDE8DF;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#696158;">📍 Lat ${lat} · Lon ${lon}</div>`;
-
-    const kmzHTML = tieneKmz
-      ? `<div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">Trayectoria HYSPLIT</div>
-         <div style="background:#EAF3DE;border-left:3px solid #1D9E75;padding:8px 12px;border-radius:0 6px 6px 0;font-size:8.5px;color:#444;margin-bottom:12px;">
-           Archivo KMZ disponible para visualización en Google Earth:<br/>
-           <span style="color:#1D9E75;word-break:break-all;">${kmzHref}</span>
-         </div>`
-      : '';
-
-    const bloque = (titulo, texto, acento) =>
-      `<div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">${titulo}</div>
-       <div style="background:#EDE8DF;border-left:3px solid ${acento};padding:8px 12px;font-size:9px;line-height:1.65;color:#444;margin-bottom:12px;border-radius:0 7px 7px 0;min-height:44px;">
-         ${texto || '<span style="color:#bbb;font-style:italic;">Sin comentarios.</span>'}
-       </div>`;
-
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-      <style>* { box-sizing:border-box; } body { margin:0; padding:0; font-family:Arial,sans-serif; background:#fff; }</style>
-      </head><body><div style="padding:16px 22px;background:#fff;max-width:860px;">
-
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #696158;padding-bottom:10px;margin-bottom:12px;">
-          <img src="data:image/png;base64,${LOGO_ARAUCO_B64}" style="height:34px;object-fit:contain;"/>
-          <div style="text-align:right;">
-            <div style="font-size:15px;font-weight:800;color:#1a1a1a;">Simulación de Dispersión de Humo</div>
-            <div style="font-size:8.5px;color:#696158;margin-top:2px;">HYSPLIT Ensemble · Lat ${lat} · Lon ${lon} · Altura ${altura} m</div>
-            <div style="font-size:8.5px;color:#aaa;margin-top:1px;">${fecha}</div>
-          </div>
-        </div>
-
-        <div style="font-size:7.5px;font-weight:700;color:#696158;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">Punto de emisión</div>
-        ${mapHTML}
-        <div style="display:flex;gap:16px;margin:8px 0 14px;font-size:8.5px;color:#696158;">
-          <span>📍 Latitud: <strong style="color:#333;">${lat}</strong></span>
-          <span>📍 Longitud: <strong style="color:#333;">${lon}</strong></span>
-          <span>↑ Altura emisión: <strong style="color:#333;">${altura} m</strong></span>
-        </div>
-
-        ${bloque('Condiciones de viento', comentViento.replace(/\n/g,'<br/>'), '#696158')}
-        ${bloque('Condiciones para la quema', comentQuema.replace(/\n/g,'<br/>'), '#EA7600')}
-        ${kmzHTML}
-
-        <div style="border-top:1px solid #DFD1A7;padding-top:7px;display:flex;justify-content:space-between;font-size:7px;color:#aaa;">
-          <span>Modelo: NOAA HYSPLIT Ensemble · Meteorología: GFS Global</span>
-          <span>Generado: ${fecha}</span>
-        </div>
-      </div></body></html>`;
-
-    const bodyHTML = (html.match(/<body>([\s\S]*)<\/body>/) || [,''])[1];
-    const tmp = document.createElement('div');
-    tmp.style.cssText = 'position:absolute;left:-9999px;top:0;width:900px;background:#fff;';
-    tmp.innerHTML = bodyHTML;
-    document.body.appendChild(tmp);
-
-    await new Promise(r => setTimeout(r, 600));
-
-    const canvas = await html2canvas(tmp, {
-      scale: 2, backgroundColor: '#ffffff',
-      useCORS: true, allowTaint: true, logging: false, windowWidth: 900
-    });
-    document.body.removeChild(tmp);
-
-    const imgData = canvas.toDataURL('image/jpeg', 0.97);
+    // ── 3. jsPDF — Letter Portrait (215.9 × 279.4 mm) ────────────
     const { jsPDF } = window.jspdf;
-    const pdf  = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    const pdfW = pdf.internal.pageSize.getWidth();
-    const pdfH = pdf.internal.pageSize.getHeight();
-    const imgW = pdfW;
-    const imgH = (canvas.height * imgW) / canvas.width;
+    const pdf  = new jsPDF({ unit: 'mm', format: 'letter', orientation: 'portrait' });
+    const pW   = pdf.internal.pageSize.getWidth();   // 215.9
+    const pH   = pdf.internal.pageSize.getHeight();  // 279.4
+    const mapH = pH * 0.80;
+    const blkY = mapH;
+    const blkH = pH - mapH;
 
-    if (imgH <= pdfH) {
-      pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
+    // ── 4. Imagen del mapa (80% superior) ────────────────────────
+    if (mapImgData) {
+      pdf.addImage(mapImgData, 'JPEG', 0, 0, pW, mapH);
     } else {
-      let yOff = 0;
-      while (yOff < imgH) {
-        if (yOff > 0) pdf.addPage();
-        const srcY = (yOff / imgH) * canvas.height;
-        const srcH = Math.min((pdfH / imgH) * canvas.height, canvas.height - srcY);
-        const pc   = document.createElement('canvas');
-        pc.width   = canvas.width; pc.height = srcH;
-        pc.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
-        pdf.addImage(pc.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, imgW, (srcH * imgW) / canvas.width);
-        yOff += pdfH;
-      }
+      pdf.setFillColor(210, 210, 210);
+      pdf.rect(0, 0, pW, mapH, 'F');
+      pdf.setTextColor(120, 120, 120);
+      pdf.setFontSize(11);
+      pdf.text(`${lat}, ${lon}`, pW / 2, mapH / 2, { align: 'center' });
     }
 
-    const nombre = `RDCFT_Humo_${lat}_${lon}_${new Date().toISOString().slice(0,10)}.pdf`;
+    // ── 5. Title block negro (20% inferior) ──────────────────────
+    pdf.setFillColor(0, 0, 0);
+    pdf.rect(0, blkY, pW, blkH, 'F');
+
+    // Línea divisoria fina entre mapa y bloque
+    pdf.setDrawColor(255, 255, 255);
+    pdf.setLineWidth(0.4);
+    pdf.line(0, blkY, pW, blkY);
+
+    // ── 6. Texto en el title block ────────────────────────────────
+    const fecha    = new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+    const maxTxtW  = pW - 38; // espacio para la rosa
+
+    // Título principal
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(12);
+    pdf.text(`Simulación Ensemble — ${nombrePunto}`, 5, blkY + 8);
+
+    // Subtítulo
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.5);
+    pdf.setTextColor(170, 170, 170);
+    pdf.text(`HYSPLIT · Lat ${lat}  Lon ${lon}  ·  Altura ${altura} m  ·  ${fecha}`, 5, blkY + 14);
+
+    // Separador
+    pdf.setDrawColor(55, 55, 55);
+    pdf.setLineWidth(0.2);
+    pdf.line(5, blkY + 17, pW - 5, blkY + 17);
+
+    // Condiciones de viento
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(7);
+    pdf.setTextColor(200, 200, 200);
+    pdf.text('CONDICIONES DE VIENTO', 5, blkY + 22);
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.5);
+    pdf.setTextColor(255, 255, 255);
+    const lineasV = pdf.splitTextToSize(comentViento || '—', maxTxtW);
+    pdf.text(lineasV.slice(0, 2), 5, blkY + 27);
+
+    // Condiciones para la quema
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(7);
+    pdf.setTextColor(200, 200, 200);
+    pdf.text('CONDICIONES PARA LA QUEMA', 5, blkY + 38);
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.5);
+    pdf.setTextColor(255, 255, 255);
+    const lineasQ = pdf.splitTextToSize(comentQuema || '—', maxTxtW);
+    pdf.text(lineasQ.slice(0, 2), 5, blkY + 43);
+
+    // KMZ link al pie
+    if (kmzHref && kmzHref !== '#' && !kmzHref.endsWith(window.location.pathname)) {
+      pdf.setFontSize(6);
+      pdf.setTextColor(80, 180, 120);
+      const kmzLineas = pdf.splitTextToSize('KMZ: ' + kmzHref, maxTxtW);
+      pdf.text(kmzLineas[0], 5, blkY + blkH - 4);
+    }
+
+    // ── 7. Rosa de los vientos (esquina inferior derecha) ─────────
+    const rosaSize = blkH * 0.82;
+    pdf.addImage(rosaImg, 'PNG', pW - rosaSize - 3, blkY + (blkH - rosaSize) / 2, rosaSize, rosaSize);
+
+    // ── 8. Guardar ────────────────────────────────────────────────
+    const nombreArchivo = `RDCFT_Humo_${lat}_${lon}_${new Date().toISOString().slice(0,10)}.pdf`;
     if (esIOS && ventanaIOS) {
       const blobUrl = URL.createObjectURL(pdf.output('blob'));
       ventanaIOS.location.href = blobUrl;
       setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
     } else {
       if (ventanaIOS) ventanaIOS.close();
-      pdf.save(nombre);
+      pdf.save(nombreArchivo);
     }
 
     cerrarModalPdfHumo();
@@ -468,6 +474,83 @@ async function generarPdfHumo() {
     btn.textContent = '📄 Generar PDF';
     btn.disabled    = false;
   }
+}
+
+function crearImagenRosa(size) {
+  const c   = document.createElement('canvas');
+  c.width   = c.height = size;
+  const ctx = c.getContext('2d');
+  const cx  = size / 2, cy = size / 2;
+  const r   = size * 0.34;
+
+  // Fondo blanco circular
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 1.18, 0, Math.PI * 2);
+  ctx.fillStyle   = '#ffffff';
+  ctx.strokeStyle = '#cccccc';
+  ctx.lineWidth   = size * 0.02;
+  ctx.fill();
+  ctx.stroke();
+
+  // Flecha Norte (negro sólido, apunta arriba)
+  ctx.beginPath();
+  ctx.moveTo(cx,           cy - r);
+  ctx.lineTo(cx - r * 0.3, cy + r * 0.08);
+  ctx.lineTo(cx,           cy - r * 0.12);
+  ctx.closePath();
+  ctx.fillStyle = '#000000';
+  ctx.fill();
+
+  // Flecha Sur (blanco con borde, apunta abajo)
+  ctx.beginPath();
+  ctx.moveTo(cx,           cy + r);
+  ctx.lineTo(cx - r * 0.3, cy - r * 0.08);
+  ctx.lineTo(cx,           cy + r * 0.12);
+  ctx.closePath();
+  ctx.fillStyle   = '#ffffff';
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth   = size * 0.015;
+  ctx.fill();
+  ctx.stroke();
+
+  // Flecha Norte lado derecho (espejo)
+  ctx.beginPath();
+  ctx.moveTo(cx,           cy - r);
+  ctx.lineTo(cx + r * 0.3, cy + r * 0.08);
+  ctx.lineTo(cx,           cy - r * 0.12);
+  ctx.closePath();
+  ctx.fillStyle = '#333333';
+  ctx.fill();
+
+  // Flecha Sur lado derecho (espejo)
+  ctx.beginPath();
+  ctx.moveTo(cx,           cy + r);
+  ctx.lineTo(cx + r * 0.3, cy - r * 0.08);
+  ctx.lineTo(cx,           cy + r * 0.12);
+  ctx.closePath();
+  ctx.fillStyle   = '#dddddd';
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth   = size * 0.015;
+  ctx.fill();
+  ctx.stroke();
+
+  // Punto central
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.08, 0, Math.PI * 2);
+  ctx.fillStyle = '#000000';
+  ctx.fill();
+
+  // Letras cardinales
+  ctx.fillStyle    = '#000000';
+  ctx.font         = `bold ${Math.round(size * 0.17)}px Arial`;
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('N', cx,           cy - r * 1.52);
+  ctx.fillText('S', cx,           cy + r * 1.52);
+  ctx.fillText('E', cx + r * 1.52, cy);
+  ctx.fillText('O', cx - r * 1.52, cy);
+
+  return c.toDataURL('image/png');
 }
 
 // ── Llamado desde ui.js al mostrar la pestaña ────────────────────────

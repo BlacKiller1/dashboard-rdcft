@@ -379,6 +379,20 @@ html, body {
 }
 .humo-textarea:focus { border-color: var(--c-orange); }
 
+.humo-input {
+  background: var(--c-input-bg, rgba(255,255,255,0.05));
+  border: 0.5px solid var(--c-border);
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: var(--c-text);
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+  transition: border-color .15s;
+}
+.humo-input:focus { border-color: var(--c-orange); }
+
 .humo-pdf-overlay {
   position: fixed;
   inset: 0;
