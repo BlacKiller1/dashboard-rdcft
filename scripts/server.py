@@ -6,9 +6,11 @@ Nube:     Railway/Render leen PORT del entorno automáticamente
 
 import sys
 import os
+import zipfile
+import io
+import xml.etree.ElementTree as ET
+from urllib.request import urlopen, Request
 
-# Garantiza que robot_noaa.py sea encontrable tanto con `python scripts/server.py`
-# como con `gunicorn scripts.server:app` desde /app
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
@@ -18,7 +20,84 @@ from flask_cors import CORS
 from robot_noaa import obtener_kmz_ensemble
 
 app = Flask(__name__)
-CORS(app)  # permite peticiones desde el dashboard local
+CORS(app)
+
+KML_NS = 'http://www.opengis.net/kml/2.2'
+
+
+def kml_color_a_hex(kml_color):
+    """Convierte color KML (AABBGGRR) a hex CSS (#RRGGBB)."""
+    c = (kml_color or '').strip().lstrip('#')
+    if len(c) == 8:
+        return f'#{c[6:8]}{c[4:6]}{c[2:4]}'
+    return '#FF8C00'
+
+
+def kmz_a_geojson(kmz_url):
+    """Descarga el KMZ de NOAA y extrae las trayectorias como GeoJSON."""
+    try:
+        req  = Request(kmz_url, headers={'User-Agent': 'Mozilla/5.0'})
+        data = urlopen(req, timeout=30).read()
+
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            kml_name = next((n for n in z.namelist() if n.endswith('.kml')), None)
+            if not kml_name:
+                return None
+            kml_data = z.read(kml_name)
+
+        root = ET.fromstring(kml_data)
+
+        # Construir mapa id_style → color desde <StyleMap> / <Style>
+        estilos = {}
+        for style in root.iter(f'{{{KML_NS}}}Style'):
+            sid = style.get('id', '')
+            ls  = style.find(f'.//{{{KML_NS}}}LineStyle/{{{KML_NS}}}color')
+            if sid and ls is not None and ls.text:
+                estilos[sid] = kml_color_a_hex(ls.text)
+        for smap in root.iter(f'{{{KML_NS}}}StyleMap'):
+            sid  = smap.get('id', '')
+            pair = smap.find(f'{{{KML_NS}}}Pair/{{{KML_NS}}}styleUrl')
+            if sid and pair is not None and pair.text:
+                ref = pair.text.lstrip('#')
+                if ref in estilos:
+                    estilos[sid] = estilos[ref]
+
+        features = []
+        for pm in root.iter(f'{{{KML_NS}}}Placemark'):
+            ls = pm.find(f'.//{{{KML_NS}}}LineString')
+            if ls is None:
+                continue
+            ctag = ls.find(f'{{{KML_NS}}}coordinates')
+            if ctag is None or not ctag.text:
+                continue
+
+            coords = []
+            for c in ctag.text.strip().split():
+                parts = c.split(',')
+                if len(parts) >= 2:
+                    coords.append([float(parts[0]), float(parts[1])])
+
+            if len(coords) < 2:
+                continue
+
+            # Resolver color del Placemark
+            su = pm.find(f'{{{KML_NS}}}styleUrl')
+            color = '#FF8C00'
+            if su is not None and su.text:
+                color = estilos.get(su.text.lstrip('#'), '#FF8C00')
+
+            features.append({
+                'type': 'Feature',
+                'geometry': {'type': 'LineString', 'coordinates': coords},
+                'properties': {'color': color}
+            })
+
+        print(f'[HUMO] KMZ parseado: {len(features)} trayectorias')
+        return {'type': 'FeatureCollection', 'features': features}
+
+    except Exception as e:
+        print(f'[HUMO] No se pudo parsear KMZ: {e}')
+        return None
 
 
 @app.route('/api/health', methods=['GET'])
@@ -47,12 +126,18 @@ def simular_humo():
     print(f"\n[HUMO] Simulación solicitada → lat={lat}, lon={lon}, altura={altura}m")
     url = obtener_kmz_ensemble(lat=lat, lon=lon, altura=altura)
 
-    if url:
-        print(f"[HUMO] ✅ KMZ listo: {url}")
-        return jsonify({'url': url})
-    else:
+    if not url:
         print("[HUMO] ❌ La simulación no retornó URL.")
         return jsonify({'error': 'La simulación falló o el servidor NOAA no respondió.'}), 500
+
+    print(f"[HUMO] ✅ KMZ listo: {url}")
+    respuesta = {'url': url}
+
+    geojson = kmz_a_geojson(url)
+    if geojson and geojson['features']:
+        respuesta['trayectorias'] = geojson
+
+    return jsonify(respuesta)
 
 
 if __name__ == '__main__':

@@ -16,9 +16,10 @@ let humoCapaActual     = 'mapa';
 let humoCapaMapa       = null;
 let humoCapaSat        = null;
 let humoCapaEtiq       = null;
-let humoCapaPredios    = null;
-let humoPrediosVisible = true;
-let humoIniciado       = false;
+let humoCapaPredios      = null;
+let humoPrediosVisible   = true;
+let humoCapaTrayectoria  = null;
+let humoIniciado         = false;
 let humoServidor   = null;    // null=desconocido, true=online, false=offline
 let humoHealthTimer = null;   // intervalo de reintento de health check
 
@@ -276,6 +277,7 @@ async function ejecutarSimulacion() {
   const btn = document.getElementById('btnSimular');
   btn.disabled = true;
   document.getElementById('humoResult').style.display = 'none';
+  limpiarTrayectorias();
 
   let msgIdx = 0;
   setHumoStatus('loading', MENSAJES_CARGA[0]);
@@ -299,6 +301,7 @@ async function ejecutarSimulacion() {
       document.getElementById('humoDownloadLink').href = data.url;
       document.getElementById('humoResult').style.display = 'flex';
       document.getElementById('btnAbrirPdfHumo').disabled = false;
+      if (data.trayectorias) mostrarTrayectorias(data.trayectorias);
     } else {
       setHumoStatus('error', `❌ ${data.error || 'La simulación falló. Intenta nuevamente.'}`);
     }
@@ -322,6 +325,35 @@ function setHumoStatus(tipo, msg) {
   el.textContent   = msg;
   el.className     = `humo-status humo-status--${tipo}`;
   el.style.display = msg ? 'block' : 'none';
+}
+
+// ── Trayectorias en mapa ──────────────────────────────────────────────
+function limpiarTrayectorias() {
+  if (humoCapaTrayectoria && humoMap) {
+    humoMap.removeLayer(humoCapaTrayectoria);
+    humoCapaTrayectoria = null;
+  }
+}
+
+function mostrarTrayectorias(geojson) {
+  if (!humoMap || !geojson || !geojson.features || !geojson.features.length) return;
+  limpiarTrayectorias();
+
+  humoCapaTrayectoria = L.geoJSON(geojson, {
+    style: function(feature) {
+      return {
+        color:   feature.properties.color || '#FF8C00',
+        weight:  1.8,
+        opacity: 0.75
+      };
+    },
+    pointToLayer: function() { return null; }
+  }).addTo(humoMap);
+
+  try {
+    const bounds = humoCapaTrayectoria.getBounds();
+    if (bounds.isValid()) humoMap.fitBounds(bounds, { padding: [40, 40] });
+  } catch(_) {}
 }
 
 // ── Modal PDF ─────────────────────────────────────────────────────────
