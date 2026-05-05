@@ -1,10 +1,7 @@
 """
 server.py  —  API backend para Simulación de Humo HYSPLIT
-Arrancar con:  python scripts/server.py
-
-Requiere:
-    pip install flask flask-cors selenium
-    ChromeDriver instalado y en el PATH
+Local:    python scripts/server.py          (puerto 5001)
+Nube:     Railway/Render leen PORT del entorno automáticamente
 """
 
 import sys
@@ -54,8 +51,9 @@ def simular_humo():
 
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5001))
     print("=" * 55)
-    print("  Servidor Simulación de Humo HYSPLIT")
-    print("  Escuchando en http://localhost:5001")
+    print(f"  Servidor Simulación de Humo HYSPLIT")
+    print(f"  Escuchando en http://0.0.0.0:{port}")
     print("=" * 55)
-    app.run(host='0.0.0.0', port=5001, debug=False, threaded=True)
+    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)

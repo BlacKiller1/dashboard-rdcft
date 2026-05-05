@@ -3,8 +3,12 @@
 //  Depende de: Leaflet (ya cargado en index.html)
 // ═══════════════════════════════════════════════════════════════════════
 
-const HUMO_API    = 'http://localhost:5001/api/simular-humo';
-const HUMO_HEALTH = 'http://localhost:5001/api/health';
+// URL del servidor de simulación.
+// En desarrollo apunta a localhost; en producción cambiar por la URL de Railway:
+//   const HUMO_BASE = 'https://TU-SERVICIO.up.railway.app';
+const HUMO_BASE   = 'http://localhost:5001';
+const HUMO_API    = `${HUMO_BASE}/api/simular-humo`;
+const HUMO_HEALTH = `${HUMO_BASE}/api/health`;
 
 let humoMap        = null;
 let humoMarcador   = null;
