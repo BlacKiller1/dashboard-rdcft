@@ -152,6 +152,49 @@ html, body {
 .p-item .pname        { font-size: 13.5px; color: var(--c-text-muted); line-height: 1.3; }
 .p-item.active .pname { color: var(--c-text); }
 
+/* ── Sidebar tabs ────────────────────────────────────────────────────── */
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 0.5px solid var(--c-border);
+  background: var(--c-sidebar);
+}
+
+.stab {
+  flex: 1;
+  padding: 8px 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--c-text-dim);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+
+.stab:hover  { color: var(--c-text-muted); }
+.stab.active { color: var(--c-orange); border-bottom-color: var(--c-orange); }
+
+/* ── Humo panel ──────────────────────────────────────────────────────── */
+.humo-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+.humo-empty {
+  text-align: center;
+  color: var(--c-text-dim);
+}
+
+.humo-icon  { font-size: 48px; margin-bottom: 12px; opacity: .6; }
+.humo-title { font-size: 18px; font-weight: 600; color: var(--c-text-muted); margin-bottom: 6px; }
+.humo-desc  { font-size: 13px; }
+
 .sidebar-legend { padding: 10px 15px; border-top: 0.5px solid var(--c-border); }
 .leg-title { font-size: 10.5px; color: var(--c-text-dim); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; }
 .leg-row   { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--c-text-dim); margin-bottom: 3px; }

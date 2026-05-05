@@ -116,6 +116,10 @@
       <div class="brand">arauco</div>
       <div class="brand-sub">RDCFT · 7 días</div>
     </div>
+    <div class="sidebar-tabs">
+      <button class="stab active" id="stabPaisajes" onclick="switchSidebarTab('paisajes')">Paisajes</button>
+      <button class="stab" id="stabHumo" onclick="switchSidebarTab('humo')">Simul. Humo</button>
+    </div>
     <div class="sidebar-list" id="sidebarList"></div>
     <div class="sidebar-legend">
       <div class="leg-title">Estado operacional</div>
@@ -197,6 +201,13 @@
     </div>
 
     <div class="detail" id="detailPanel"></div>
+    <div class="humo-panel" id="humoPanel" style="display:none;">
+      <div class="humo-empty">
+        <div class="humo-icon">🌫️</div>
+        <div class="humo-title">Simulación de Humo</div>
+        <div class="humo-desc">Módulo en desarrollo</div>
+      </div>
+    </div>
 
   </main>
 

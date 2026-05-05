@@ -1131,3 +1131,33 @@ async function ejecutarConsulta() {
     btn.disabled    = false;
   }
 }
+
+// ── Sidebar tabs ─────────────────────────────────────────────────────────
+let activeSidebarTab = 'paisajes';
+
+function switchSidebarTab(tab) {
+  activeSidebarTab = tab;
+
+  document.getElementById('stabPaisajes').classList.toggle('active', tab === 'paisajes');
+  document.getElementById('stabHumo').classList.toggle('active', tab === 'humo');
+
+  const sidebarList   = document.getElementById('sidebarList');
+  const sidebarLegend = document.querySelector('.sidebar-legend');
+  const detailPanel   = document.getElementById('detailPanel');
+  const humoPanel     = document.getElementById('humoPanel');
+
+  if (tab === 'paisajes') {
+    sidebarList.style.display   = '';
+    sidebarLegend.style.display = '';
+    detailPanel.style.display   = '';
+    humoPanel.style.display     = 'none';
+    document.getElementById('mainTitle').textContent =
+      activePaisajeIdx !== null ? PAISAJES[activePaisajeIdx].n : 'Selecciona un paisaje';
+  } else {
+    sidebarList.style.display   = 'none';
+    sidebarLegend.style.display = 'none';
+    detailPanel.style.display   = 'none';
+    humoPanel.style.display     = 'flex';
+    document.getElementById('mainTitle').textContent = 'Simulación de Humo';
+  }
+}
