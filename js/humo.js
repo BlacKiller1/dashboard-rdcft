@@ -3,7 +3,8 @@
 //  Depende de: Leaflet (ya cargado en index.html)
 // ═══════════════════════════════════════════════════════════════════════
 
-const HUMO_API = 'http://localhost:5001/api/simular-humo';
+const HUMO_API    = 'http://localhost:5001/api/simular-humo';
+const HUMO_HEALTH = 'http://localhost:5001/api/health';
 
 let humoMap        = null;
 let humoMarcador   = null;
@@ -12,8 +13,9 @@ let humoCapaMapa   = null;
 let humoCapaSat    = null;
 let humoCapaEtiq   = null;
 let humoIniciado   = false;
+let humoServidor   = false;   // true cuando el servidor responde
+let humoHealthTimer = null;   // intervalo de reintento de health check
 
-// Mensajes que rotan durante la espera larga del servidor NOAA
 const MENSAJES_CARGA = [
   '⏳ Conectando con servidores NOAA HYSPLIT...',
   '🌍 Configurando modelo meteorológico GFS Global...',
@@ -22,6 +24,42 @@ const MENSAJES_CARGA = [
   '⏳ El servidor NOAA está procesando (puede tardar hasta 2 min)...',
   '📡 Esperando respuesta del servidor...',
 ];
+
+// ── Estado del servidor ───────────────────────────────────────────────
+function setServidorOnline(online) {
+  if (humoServidor === online) return;
+  humoServidor = online;
+
+  const banner = document.getElementById('humoServerBanner');
+  const btn    = document.getElementById('btnSimular');
+
+  if (online) {
+    banner.style.display = 'none';
+    // Rehabilitar botón solo si ya hay coordenadas seleccionadas
+    const lat = document.getElementById('humoLat').value;
+    const lon = document.getElementById('humoLon').value;
+    if (lat && lon) btn.disabled = false;
+
+    // Parar el polling agresivo y pasar a uno lento de mantenimiento
+    clearInterval(humoHealthTimer);
+    humoHealthTimer = setInterval(checkServidorHealth, 30000);
+  } else {
+    banner.style.display = 'flex';
+    btn.disabled = true;
+    // Polling cada 5 s para detectar cuando arranca
+    clearInterval(humoHealthTimer);
+    humoHealthTimer = setInterval(checkServidorHealth, 5000);
+  }
+}
+
+async function checkServidorHealth() {
+  try {
+    const resp = await fetch(HUMO_HEALTH, { signal: AbortSignal.timeout(3000) });
+    setServidorOnline(resp.ok);
+  } catch {
+    setServidorOnline(false);
+  }
+}
 
 // ── Inicializar mapa de humo ──────────────────────────────────────────
 function initHumoMap() {
@@ -52,14 +90,13 @@ function initHumoMap() {
     { maxZoom: 19, subdomains: 'abcd', pane: 'overlayPane' }
   );
 
-  // Clic en mapa → colocar marcador y habilitar botón
   humoMap.on('click', function(e) {
     const lat = parseFloat(e.latlng.lat.toFixed(6));
     const lon = parseFloat(e.latlng.lng.toFixed(6));
     humoSetMarcador(lat, lon);
     document.getElementById('humoLat').value = lat;
     document.getElementById('humoLon').value = lon;
-    document.getElementById('btnSimular').disabled = false;
+    if (humoServidor) document.getElementById('btnSimular').disabled = false;
   });
 
   humoIniciado = true;
@@ -121,9 +158,9 @@ function humoGeolocate() {
       if (!humoIniciado) initHumoMap();
       humoMap.setView([lat, lon], 13);
       humoSetMarcador(lat, lon);
-      document.getElementById('humoLat').value        = lat;
-      document.getElementById('humoLon').value        = lon;
-      document.getElementById('btnSimular').disabled  = false;
+      document.getElementById('humoLat').value = lat;
+      document.getElementById('humoLon').value = lon;
+      if (humoServidor) document.getElementById('btnSimular').disabled = false;
       btn.textContent = '📍';
       btn.disabled    = false;
     },
@@ -150,7 +187,6 @@ async function ejecutarSimulacion() {
   btn.disabled = true;
   document.getElementById('humoResult').style.display = 'none';
 
-  // Rotar mensajes mientras el servidor NOAA procesa
   let msgIdx = 0;
   setHumoStatus('loading', MENSAJES_CARGA[0]);
   const intervalo = setInterval(() => {
@@ -163,7 +199,7 @@ async function ejecutarSimulacion() {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ lat, lon, altura }),
-      signal:  AbortSignal.timeout(180000)  // 3 min máximo
+      signal:  AbortSignal.timeout(180000)
     });
 
     const data = await resp.json();
@@ -178,9 +214,10 @@ async function ejecutarSimulacion() {
 
   } catch (err) {
     if (err.name === 'TimeoutError') {
-      setHumoStatus('error', '❌ Tiempo de espera agotado. El servidor NOAA tardó más de 3 minutos.');
+      setHumoStatus('error', '❌ Tiempo de espera agotado (3 min). El servidor NOAA tardó demasiado.');
     } else {
-      setHumoStatus('error', '❌ No se pudo conectar al servidor. ¿Está corriendo server.py?');
+      setServidorOnline(false);
+      setHumoStatus('error', '❌ Se perdió la conexión con el servidor local.');
     }
   } finally {
     clearInterval(intervalo);
@@ -191,17 +228,16 @@ async function ejecutarSimulacion() {
 // ── Actualizar mensaje de estado ──────────────────────────────────────
 function setHumoStatus(tipo, msg) {
   const el = document.getElementById('humoStatus');
-  el.textContent = msg;
-  el.className   = `humo-status humo-status--${tipo}`;
+  el.textContent   = msg;
+  el.className     = `humo-status humo-status--${tipo}`;
   el.style.display = msg ? 'block' : 'none';
 }
 
-// ── Inicializar mapa al mostrar la pestaña por primera vez ────────────
-//    Llamado desde switchSidebarTab en ui.js
+// ── Llamado desde ui.js al mostrar la pestaña ────────────────────────
 function onHumoTabVisible() {
-  if (!humoIniciado) {
-    initHumoMap();
-  } else {
-    setTimeout(() => humoMap && humoMap.invalidateSize(), 150);
-  }
+  if (!humoIniciado) initHumoMap();
+  else setTimeout(() => humoMap && humoMap.invalidateSize(), 150);
+
+  // Verificar servidor inmediatamente al abrir la pestaña
+  checkServidorHealth();
 }

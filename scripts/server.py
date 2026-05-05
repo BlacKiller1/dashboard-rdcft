@@ -19,6 +19,11 @@ app = Flask(__name__)
 CORS(app)  # permite peticiones desde el dashboard local
 
 
+@app.route('/api/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ok'})
+
+
 @app.route('/api/simular-humo', methods=['POST'])
 def simular_humo():
     data = request.get_json(silent=True) or {}
