@@ -202,10 +202,59 @@
 
     <div class="detail" id="detailPanel"></div>
     <div class="humo-panel" id="humoPanel" style="display:none;">
-      <div class="humo-empty">
-        <div class="humo-icon">🌫️</div>
-        <div class="humo-title">Simulación de Humo</div>
-        <div class="humo-desc">Módulo en desarrollo</div>
+      <div class="humo-layout">
+
+        <!-- Columna izquierda: mapa -->
+        <div class="humo-map-col">
+          <div class="humo-map-toolbar">
+            <button id="hBtnMapa"     class="map-layer-btn active" onclick="humoSetCapa('mapa')">🗺️ Mapa</button>
+            <button id="hBtnSatelite" class="map-layer-btn"        onclick="humoSetCapa('satelite')">🛰️ Satélite</button>
+            <button id="hBtnGeo"      class="map-geo-btn"          onclick="humoGeolocate()" title="Mi ubicación">📍</button>
+          </div>
+          <div id="humoMapContainer" class="humo-map-container"></div>
+          <div class="humo-map-hint">📌 Haz clic en el mapa para seleccionar el punto de emisión</div>
+        </div>
+
+        <!-- Columna derecha: parámetros + resultado -->
+        <div class="humo-form-col">
+          <div class="humo-form-title">Parámetros de simulación</div>
+          <div class="humo-fields">
+            <div class="humo-field">
+              <label>Latitud</label>
+              <input type="number" id="humoLat" placeholder="-37.7128" step="0.000001" readonly/>
+            </div>
+            <div class="humo-field">
+              <label>Longitud</label>
+              <input type="number" id="humoLon" placeholder="-73.0957" step="0.000001" readonly/>
+            </div>
+            <div class="humo-field">
+              <label>Altura de emisión (m)</label>
+              <input type="number" id="humoAltura" value="500" min="50" max="3000" step="50"/>
+            </div>
+          </div>
+
+          <button class="humo-simular-btn" id="btnSimular" onclick="ejecutarSimulacion()" disabled>
+            🌫️ Iniciar simulación
+          </button>
+
+          <div class="humo-status" id="humoStatus" style="display:none;"></div>
+
+          <div class="humo-result" id="humoResult" style="display:none;">
+            <a id="humoDownloadLink" href="#" target="_blank" class="humo-download-btn">
+              📥 Descargar trayectoria (.kmz)
+            </a>
+            <div class="humo-result-hint">Abrir con Google Earth para visualizar la dispersión</div>
+          </div>
+
+          <div class="humo-info">
+            <div class="humo-info-title">¿Cómo funciona?</div>
+            <div class="humo-info-body">
+              Usa el modelo <strong>HYSPLIT Ensemble</strong> de la NOAA para calcular las trayectorias
+              de dispersión de humo desde el punto seleccionado. El proceso tarda entre 1 y 3 minutos.
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -233,6 +282,7 @@
 
 <script src="js/vendor/leaflet.js"></script>
 <script src="js/map-picker.js"></script>
+<script src="js/humo.js"></script>
 <script src="js/login.js"></script>
 
 <script>

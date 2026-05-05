@@ -1159,5 +1159,6 @@ function switchSidebarTab(tab) {
     detailPanel.style.display   = 'none';
     humoPanel.style.display     = 'flex';
     document.getElementById('mainTitle').textContent = 'Simulación de Humo';
+    if (typeof onHumoTabVisible === 'function') onHumoTabVisible();
   }
 }
