@@ -154,6 +154,7 @@ async function _doLogin(force) {
   }
 
   btn.textContent = '⏳ Verificando...'; btn.disabled = true;
+  _ocultarSolicitud();
 
   try {
     let usuario;
@@ -161,7 +162,10 @@ async function _doLogin(force) {
     if (ES_LOCAL) {
       if (!usuariosDB) await cargarUsuarios();
       usuario = usuariosDB.find(u => u.email === email);
-      if (!usuario) throw new Error(`El correo ${email} no está registrado. Contacta al administrador.`);
+      if (!usuario) {
+        _mostrarErrorConSolicitud(email);
+        return;
+      }
     } else {
       const resp = await fetch('/api/verificar', {
         method: 'POST',
@@ -170,6 +174,10 @@ async function _doLogin(force) {
       });
       if (resp.status === 409) {
         _mostrarErrorConFuerza('Ya existe una sesión activa con este correo en otro dispositivo.');
+        return;
+      }
+      if (resp.status === 403) {
+        _mostrarErrorConSolicitud(email);
         return;
       }
       if (!resp.ok) {
@@ -212,6 +220,79 @@ function cerrarSesion() {
 }
 
 function handleKeyDown(e) { if (e.key === 'Enter') verificarCorreo(); }
+
+// ── Solicitud de acceso ───────────────────────────────────────────────────────
+
+function _mostrarErrorConSolicitud(email) {
+  const errorMsg = document.getElementById('loginError');
+  errorMsg.textContent = 'Correo no registrado. Contacta al administrador o solicita acceso.';
+  errorMsg.style.display = 'block';
+
+  const panel   = document.getElementById('solicitudPanel');
+  const preview = document.getElementById('solicitudEmailPreview');
+  const msg     = document.getElementById('solicitudMsg');
+  if (preview) preview.textContent = email;
+  if (msg) msg.style.display = 'none';
+  if (panel) panel.style.display = 'flex';
+
+  const btn = document.getElementById('btnAcceder');
+  if (btn) { btn.textContent = 'Acceder →'; btn.disabled = false; }
+}
+
+function _ocultarSolicitud() {
+  const panel = document.getElementById('solicitudPanel');
+  if (panel) panel.style.display = 'none';
+  const n = document.getElementById('solicitudNombre');
+  const c = document.getElementById('solicitudCargo');
+  if (n) n.value = '';
+  if (c) c.value = '';
+}
+
+async function enviarSolicitud() {
+  const nombre  = (document.getElementById('solicitudNombre')?.value || '').trim();
+  const cargo   = (document.getElementById('solicitudCargo')?.value  || '').trim();
+  const email   = (document.getElementById('solicitudEmailPreview')?.textContent || '').trim();
+  const btn     = document.getElementById('btnSolicitud');
+  const msg     = document.getElementById('solicitudMsg');
+
+  if (!nombre || !cargo) {
+    msg.textContent = 'Completa nombre y cargo.';
+    msg.className = 'solicitud-msg error';
+    msg.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = '⏳ Enviando...'; btn.disabled = true;
+  msg.style.display = 'none';
+
+  try {
+    if (ES_LOCAL) {
+      msg.textContent = '✅ Solicitud enviada. El administrador te habilitará el acceso.';
+      msg.className = 'solicitud-msg ok';
+      msg.style.display = 'block';
+      return;
+    }
+
+    const resp = await fetch('/api/solicitar-acceso', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, cargo, email })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.error || `Error ${resp.status}`);
+
+    msg.textContent = '✅ Solicitud enviada. El administrador te habilitará el acceso.';
+    msg.className = 'solicitud-msg ok';
+    msg.style.display = 'block';
+    btn.style.display = 'none';
+  } catch (err) {
+    msg.textContent = '❌ ' + err.message;
+    msg.className = 'solicitud-msg error';
+    msg.style.display = 'block';
+  } finally {
+    if (btn) { btn.textContent = 'Enviar solicitud →'; btn.disabled = false; }
+  }
+}
 
 // ── Panel Admin ───────────────────────────────────────────────────────────────
 

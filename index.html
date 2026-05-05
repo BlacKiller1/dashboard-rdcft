@@ -61,6 +61,16 @@
       Acceder →
     </button>
     <div id="loginError" class="login-error" style="display:none;"></div>
+
+    <!-- Solicitud de acceso -->
+    <div id="solicitudPanel" class="solicitud-panel" style="display:none;">
+      <div class="solicitud-sep"><span>Solicitar acceso</span></div>
+      <input type="text"  id="solicitudNombre" class="login-input solicitud-input" placeholder="Nombre completo" autocomplete="name" />
+      <input type="text"  id="solicitudCargo"  class="login-input solicitud-input" placeholder="Cargo" />
+      <div class="solicitud-email-preview" id="solicitudEmailPreview"></div>
+      <button class="login-btn solicitud-btn" id="btnSolicitud" onclick="enviarSolicitud()">Enviar solicitud →</button>
+      <div id="solicitudMsg" class="solicitud-msg" style="display:none;"></div>
+    </div>
   </div>
 </div>
 

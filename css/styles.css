@@ -1244,6 +1244,51 @@ html, body {
 }
 .login-btn:hover { background: rgba(232,130,10,0.22); border-color: var(--c-orange); }
 
+/* Solicitud de acceso */
+.solicitud-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.solicitud-sep {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--c-text-dim);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.solicitud-sep::before,
+.solicitud-sep::after {
+  content: '';
+  flex: 1;
+  height: 0.5px;
+  background: var(--c-border-md);
+}
+.solicitud-input { font-size: 13px; padding: 10px 14px; }
+.solicitud-email-preview {
+  font-size: 11px;
+  color: var(--c-orange);
+  background: rgba(232,130,10,0.08);
+  border: 0.5px solid rgba(232,130,10,0.25);
+  border-radius: 7px;
+  padding: 8px 12px;
+  text-align: center;
+  word-break: break-all;
+}
+.solicitud-btn { font-size: 12px; padding: 10px; }
+.solicitud-msg {
+  font-size: 11px;
+  border-radius: 8px;
+  padding: 10px 14px;
+  line-height: 1.5;
+  text-align: left;
+}
+.solicitud-msg.ok    { color: #5cb85c; background: rgba(92,184,92,0.1);  border: 0.5px solid rgba(92,184,92,0.3); }
+.solicitud-msg.error { color: var(--c-red); background: var(--c-red-dim); border: 0.5px solid rgba(201,64,64,0.3); }
+
 /* Badge usuario + botón salir */
 .user-badge {
   font-size: 11px; color: var(--c-text-dim);
