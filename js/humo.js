@@ -19,7 +19,7 @@ let humoCapaEtiq       = null;
 let humoCapaPredios    = null;
 let humoPrediosVisible = true;
 let humoIniciado       = false;
-let humoServidor   = false;   // true cuando el servidor responde
+let humoServidor   = null;    // null=desconocido, true=online, false=offline
 let humoHealthTimer = null;   // intervalo de reintento de health check
 
 const MENSAJES_CARGA = [
@@ -53,7 +53,7 @@ function setServidorOnline(online) {
 
 async function checkServidorHealth() {
   try {
-    const resp = await fetch(HUMO_HEALTH, { signal: AbortSignal.timeout(3000) });
+    const resp = await fetch(HUMO_HEALTH, { signal: AbortSignal.timeout(8000) });
     setServidorOnline(resp.ok);
   } catch {
     setServidorOnline(false);
