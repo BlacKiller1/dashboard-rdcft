@@ -6,7 +6,12 @@ Nube:     Railway/Render leen PORT del entorno automáticamente
 
 import sys
 import os
-sys.path.insert(0, os.path.dirname(__file__))
+
+# Garantiza que robot_noaa.py sea encontrable tanto con `python scripts/server.py`
+# como con `gunicorn scripts.server:app` desde /app
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
