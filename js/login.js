@@ -41,7 +41,41 @@ function forzarLogin() {
   _doLogin(true);
 }
 
-let usuariosDB = null;
+let usuariosDB      = null;
+let sessionPollTimer = null;
+
+function iniciarPollSesion() {
+  detenerPollSesion();
+  sessionPollTimer = setInterval(validarSesionRemota, 60000);
+}
+
+function detenerPollSesion() {
+  if (sessionPollTimer) { clearInterval(sessionPollTimer); sessionPollTimer = null; }
+}
+
+async function validarSesionRemota() {
+  if (ES_LOCAL) return;
+  const sesion = verificarSesion();
+  if (!sesion?.sessionId) return;
+  try {
+    const resp = await fetch('/api/ping-sesion', {
+      headers: { 'Authorization': `Bearer ${crearCredenciales(sesion)}` },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (resp.status === 401) {
+      detenerPollSesion();
+      sessionStorage.removeItem(SESSION_KEY);
+      liberarSession(sesion.email);
+      usuariosDB = null;
+      mostrarLogin();
+      const errorMsg = document.getElementById('loginError');
+      if (errorMsg) {
+        errorMsg.textContent = 'Tu sesión fue cerrada porque se inició sesión desde otro dispositivo.';
+        errorMsg.style.display = 'block';
+      }
+    }
+  } catch {}
+}
 
 // ── Utilidades ────────────────────────────────────────────────────────────────
 
@@ -102,6 +136,7 @@ function verificarSesion() {
 }
 
 function mostrarLogin() {
+  detenerPollSesion();
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('appShell').style.display   = 'none';
   setTimeout(() => { const i = document.getElementById('inputEmail'); if (i) i.focus(); }, 100);
@@ -112,6 +147,7 @@ function mostrarDashboard(usuario) {
   document.getElementById('appShell').style.display   = 'flex';
   setTimeout(() => { if (typeof precargarPredios === 'function') precargarPredios(); }, 2000);
 
+  iniciarPollSesion();
   const badge = document.getElementById('userBadge');
   if (badge) {
     badge.innerHTML = `
@@ -206,6 +242,7 @@ function _mostrarErrorConFuerza(mensaje) {
 }
 
 function cerrarSesion() {
+  detenerPollSesion();
   const sesion = verificarSesion();
   if (sesion && !ES_LOCAL) {
     fetch('/api/logout', {
