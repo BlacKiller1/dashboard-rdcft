@@ -376,6 +376,7 @@ function mostrarTrayectorias(geojson) {
   limpiarTrayectorias();
 
   humoCapaTrayectoria = L.geoJSON(geojson, {
+    interactive: false,
     style: function(feature) {
       return {
         color:   feature.properties.color || '#FF8C00',
