@@ -287,6 +287,7 @@ async function ejecutarSimulacion() {
     setHumoStatus('loading', MENSAJES_CARGA[msgIdx]);
   }, 15000);
 
+  let resuelto = false;
   try {
     const resp = await fetch(HUMO_API, {
       method:  'POST',
@@ -304,7 +305,6 @@ async function ejecutarSimulacion() {
     const reader  = resp.body.getReader();
     const decoder = new TextDecoder();
     let   buffer  = '';
-    let   resuelto = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -320,16 +320,16 @@ async function ejecutarSimulacion() {
         try { evento = JSON.parse(linea.slice(6)); } catch { continue; }
 
         if (evento.tipo === 'ok') {
+          resuelto = true;
           setHumoStatus('ok', '✅ Simulación completada exitosamente.');
           document.getElementById('humoDownloadLink').href = evento.url;
           document.getElementById('humoResult').style.display = 'flex';
           document.getElementById('btnAbrirPdfHumo').disabled = false;
-          if (evento.trayectorias) mostrarTrayectorias(evento.trayectorias);
-          resuelto = true;
+          if (evento.trayectorias) try { mostrarTrayectorias(evento.trayectorias); } catch(_) {}
           break;
         } else if (evento.tipo === 'error') {
-          setHumoStatus('error', `❌ ${evento.msg || 'La simulación falló. Intenta nuevamente.'}`);
           resuelto = true;
+          setHumoStatus('error', `❌ ${evento.msg || 'La simulación falló. Intenta nuevamente.'}`);
           break;
         }
         // tipo 'ping' o 'inicio' → seguir esperando
@@ -343,7 +343,8 @@ async function ejecutarSimulacion() {
     }
 
   } catch (err) {
-    if (err.name === 'TimeoutError') {
+    if (resuelto) { /* simulación ya completada — ignorar error de cierre del stream */ }
+    else if (err.name === 'TimeoutError') {
       setHumoStatus('error', '❌ Tiempo de espera agotado (6 min). El servidor NOAA tardó demasiado.');
     } else {
       setServidorOnline(false);
@@ -375,19 +376,19 @@ function mostrarTrayectorias(geojson) {
   if (!humoMap || !geojson || !geojson.features || !geojson.features.length) return;
   limpiarTrayectorias();
 
-  humoCapaTrayectoria = L.geoJSON(geojson, {
-    interactive: false,
-    style: function(feature) {
-      return {
-        color:   feature.properties.color || '#FF8C00',
-        weight:  1.8,
-        opacity: 0.75
-      };
-    },
-    pointToLayer: function() { return null; }
-  }).addTo(humoMap);
-
   try {
+    humoCapaTrayectoria = L.geoJSON(geojson, {
+      interactive: false,
+      style: function(feature) {
+        return {
+          color:   feature.properties.color || '#FF8C00',
+          weight:  1.8,
+          opacity: 0.75
+        };
+      },
+      pointToLayer: function() { return null; }
+    }).addTo(humoMap);
+
     const bounds = humoCapaTrayectoria.getBounds();
     if (bounds.isValid()) {
       humoMap.fitBounds(bounds, { padding: [40, 40] });
