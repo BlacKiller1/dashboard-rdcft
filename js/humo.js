@@ -738,7 +738,8 @@ async function generarPdfHumo() {
 let humoHCFMLeyenda = null;
 
 function crearLeyendaHCFM() {
-  const leyenda = L.control({ position: 'bottomright' });
+  const pos    = window.innerWidth <= 700 ? 'bottomleft' : 'bottomright';
+  const leyenda = L.control({ position: pos });
   leyenda.onAdd = function() {
     const div = L.DomUtil.create('div', 'humo-hcfm-leyenda');
     div.innerHTML = `

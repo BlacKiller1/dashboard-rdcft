@@ -453,9 +453,29 @@ html, body {
 
 /* ── Responsive: mobile/tablet ──────────────────────────────────────── */
 @media (max-width: 700px) {
-  .humo-layout    { flex-direction: column; }
-  .humo-map-col   { flex: 0 0 50vh; border-right: none; border-bottom: 0.5px solid var(--c-border); }
-  .humo-form-col  { flex: 1; }
+  .humo-layout   { flex-direction: column; }
+  .humo-map-col  { flex: 0 0 52vh; border-right: none; border-bottom: 0.5px solid var(--c-border); }
+  .humo-form-col { flex: 1; padding: 14px 14px; gap: 10px; }
+
+  /* Toolbar: wrap en 2 filas si no caben */
+  .humo-map-toolbar { flex-wrap: wrap; padding: 6px 10px; gap: 5px; }
+  .humo-map-toolbar .map-layer-btn { font-size: 11px; padding: 4px 9px; }
+  .humo-map-toolbar .map-geo-btn   { font-size: 12px; padding: 4px 8px; }
+
+  /* Hint más corto en móvil */
+  .humo-map-hint { font-size: 10px; padding: 4px 10px; }
+
+  /* Panel HCFM compacto */
+  .humo-hcfm-panel  { padding: 10px 12px; gap: 5px; }
+  .humo-hcfm-valor  { font-size: 24px; }
+  .humo-hcfm-titulo { font-size: 9px; }
+
+  /* Leyenda HCFM más pequeña */
+  .humo-hcfm-leyenda               { padding: 6px 10px; }
+  .humo-hcfm-leyenda-tabla         { font-size: 10px; line-height: 1.5; }
+  .humo-hcfm-leyenda-tabla th      { font-size: 9px; padding-right: 8px; padding-bottom: 3px; }
+  .humo-hcfm-leyenda-tabla td      { padding: 1px 8px 1px 0; }
+  .humo-hcfm-dot                   { width: 8px; height: 8px; margin-right: 5px; }
 }
 
 .sidebar-legend { padding: 10px 15px; border-top: 0.5px solid var(--c-border); }
