@@ -1793,6 +1793,61 @@ html, body {
 .humo-btn-limpiar       { color: #e07070 !important; border-color: rgba(220,80,80,0.25) !important; flex: none !important; }
 .humo-btn-limpiar:hover { background: rgba(220,80,80,0.10) !important; border-color: rgba(220,80,80,0.5) !important; color: #f08080 !important; }
 
+/* ── Panel HCFM ── */
+.humo-hcfm-panel {
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid var(--c-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.humo-hcfm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.humo-hcfm-titulo {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--c-text-muted);
+}
+.humo-hcfm-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 10px;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.humo-hcfm-cuerpo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.humo-hcfm-valor {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+.humo-hcfm-meta {
+  font-size: 12px;
+  color: var(--c-text-dim);
+}
+.humo-hcfm-fuente {
+  font-size: 10px;
+  color: var(--c-text-dim);
+  opacity: .65;
+}
+.humo-hcfm-cargando {
+  font-size: 12px;
+  color: var(--c-text-dim);
+}
+
 /* ── Popup predios ── */
 .leaflet-popup-content-wrapper {
   background: rgba(20,18,14,0.97) !important;

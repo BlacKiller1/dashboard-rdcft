@@ -209,6 +209,7 @@ function humoSetPunto(lat, lon) {
   document.getElementById('btnAbrirPdfHumo').disabled = true;
   document.getElementById('humoResult').style.display = 'none';
   setHumoStatus('', '');
+  mostrarHCFM(lat, lon);
 }
 
 // ── Colocar marcador naranja ──────────────────────────────────────────
@@ -733,9 +734,134 @@ async function generarPdfHumo() {
   }
 }
 
+// ── HCFM (Humedad Combustible Fino Muerto) ────────────────────────────
+let humoCapaHCFM    = null;
+let humoHCFMVisible = true;
+
+const HCFM_NIVELES = [
+  { max: 10,       color: '#c0392b', texto: '#fff', cat: 'Crítica'  },
+  { max: 15,       color: '#e67e22', texto: '#fff', cat: 'Baja'     },
+  { max: 20,       color: '#f1c40f', texto: '#333', cat: 'Moderada' },
+  { max: Infinity, color: '#27ae60', texto: '#fff', cat: 'Alta'     },
+];
+
+function hcfmNivel(val) {
+  return HCFM_NIVELES.find(n => val < n.max) || HCFM_NIVELES[HCFM_NIVELES.length - 1];
+}
+
+function calcHCFM(temp, hr) {
+  return Math.max(0, +(0.297374 + 0.262 * hr - 0.00982 * temp).toFixed(1));
+}
+
+async function fetchHCFMPunto(lat, lon) {
+  const url =
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&hourly=temperature_2m,relativehumidity_2m&forecast_days=1&timezone=auto`;
+  const resp = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  if (!resp.ok) throw new Error('open-meteo error');
+  const data = await resp.json();
+  const idx  = Math.min(new Date().getHours(), data.hourly.time.length - 1);
+  const temp = data.hourly.temperature_2m[idx];
+  const hr   = data.hourly.relativehumidity_2m[idx];
+  return { hcfm: calcHCFM(temp, hr), temp, hr };
+}
+
+function limpiarCapaHCFM() {
+  if (humoCapaHCFM && humoMap) humoMap.removeLayer(humoCapaHCFM);
+  humoCapaHCFM = null;
+  const panel = document.getElementById('humoHCFMPanel');
+  if (panel) panel.style.display = 'none';
+  const btn = document.getElementById('hBtnHCFM');
+  if (btn) btn.classList.remove('active');
+}
+
+function actualizarPanelHCFM(estado, datos) {
+  const panel = document.getElementById('humoHCFMPanel');
+  if (!panel) return;
+  panel.style.display = 'block';
+  if (estado === 'loading') {
+    panel.innerHTML = `<span class="humo-hcfm-cargando">⏳ Calculando humedad del combustible...</span>`;
+    return;
+  }
+  if (estado === 'error' || !datos) {
+    panel.innerHTML = `<span class="humo-hcfm-cargando" style="color:#888">⚠ Sin datos de humedad disponibles</span>`;
+    return;
+  }
+  const n = hcfmNivel(datos.hcfm);
+  panel.innerHTML = `
+    <div class="humo-hcfm-header">
+      <span class="humo-hcfm-titulo">🔥 Humedad Combustible Fino Muerto</span>
+      <span class="humo-hcfm-badge" style="background:${n.color};color:${n.texto}">${n.cat}</span>
+    </div>
+    <div class="humo-hcfm-cuerpo">
+      <span class="humo-hcfm-valor" style="color:${n.color}">${datos.hcfm}%</span>
+      <span class="humo-hcfm-meta">T: ${datos.temp}°C &nbsp;·&nbsp; HR: ${datos.hr}%</span>
+    </div>
+    <div class="humo-hcfm-fuente">Calculado con Open-Meteo · Metodología CONAF/GEPRIF</div>
+  `;
+}
+
+async function cargarGridHCFM(lat, lon) {
+  const PASO = 0.18;
+  const promesas = [];
+  for (let dy = -2; dy <= 2; dy++) {
+    for (let dx = -2; dx <= 2; dx++) {
+      const pLat = +(lat + dy * PASO).toFixed(4);
+      const pLon = +(lon + dx * PASO).toFixed(4);
+      promesas.push(
+        fetchHCFMPunto(pLat, pLon)
+          .then(r => ({ lat: pLat, lon: pLon, ...r, esCentro: dx === 0 && dy === 0 }))
+          .catch(() => null)
+      );
+    }
+  }
+  const resultados = (await Promise.all(promesas)).filter(Boolean);
+  const grupo = L.layerGroup();
+  resultados.forEach(r => {
+    const n = hcfmNivel(r.hcfm);
+    L.circle([r.lat, r.lon], {
+      radius:      14000,
+      color:       n.color,
+      fillColor:   n.color,
+      fillOpacity: r.esCentro ? 0.68 : 0.40,
+      weight:      r.esCentro ? 1.5 : 0,
+      interactive: false
+    }).addTo(grupo);
+  });
+  return grupo;
+}
+
+function humoToggleHCFM() {
+  if (!humoCapaHCFM || !humoMap) return;
+  humoHCFMVisible = !humoHCFMVisible;
+  if (humoHCFMVisible) humoCapaHCFM.addTo(humoMap);
+  else humoMap.removeLayer(humoCapaHCFM);
+  const btn = document.getElementById('hBtnHCFM');
+  if (btn) btn.classList.toggle('active', humoHCFMVisible);
+}
+
+async function mostrarHCFM(lat, lon) {
+  limpiarCapaHCFM();
+  actualizarPanelHCFM('loading', null);
+
+  // Punto central (rápido) y grid (paralelo) — actualiza UI a medida que llegan
+  fetchHCFMPunto(lat, lon)
+    .then(r => actualizarPanelHCFM('ok', r))
+    .catch(() => actualizarPanelHCFM('error', null));
+
+  cargarGridHCFM(lat, lon).then(layer => {
+    humoCapaHCFM    = layer;
+    humoHCFMVisible = true;
+    if (humoMap) layer.addTo(humoMap);
+    const btn = document.getElementById('hBtnHCFM');
+    if (btn) btn.classList.add('active');
+  }).catch(() => {});
+}
+
 // ── Limpiar simulación ────────────────────────────────────────────────
 function humoLimpiar() {
   limpiarTrayectorias();
+  limpiarCapaHCFM();
 
   if (humoMarcador && humoMap) {
     humoMap.removeLayer(humoMarcador);

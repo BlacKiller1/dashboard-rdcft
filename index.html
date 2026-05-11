@@ -222,6 +222,7 @@
             <button id="hBtnSatelite" class="map-layer-btn"        onclick="humoSetCapa('satelite')">🛰️ Satélite</button>
             <button id="hBtnPredios"  class="map-layer-btn active" onclick="humoTogglePredios()">🟧 Predios</button>
             <button id="hBtnGeo"      class="map-geo-btn"          onclick="humoGeolocate()" title="Mi ubicación">📍</button>
+            <button id="hBtnHCFM"    class="map-layer-btn" onclick="humoToggleHCFM()" title="Mostrar/ocultar capa de humedad combustible">🔥 HCFM</button>
             <button id="hBtnLimpiar"  class="map-layer-btn humo-btn-limpiar" onclick="humoLimpiar()" title="Limpiar simulación">🗑 Limpiar</button>
           </div>
           <div id="humoMapContainer" class="humo-map-container"></div>
@@ -265,6 +266,8 @@
           </button>
 
           <div class="humo-status" id="humoStatus" style="display:none;"></div>
+
+          <div class="humo-hcfm-panel" id="humoHCFMPanel" style="display:none;"></div>
 
           <div class="humo-result" id="humoResult" style="display:none;">
             <a id="humoDownloadLink" href="#" target="_blank" class="humo-download-btn">
