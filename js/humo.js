@@ -734,6 +734,34 @@ async function generarPdfHumo() {
   }
 }
 
+// ── Leyenda HCFM ─────────────────────────────────────────────────────
+let humoHCFMLeyenda = null;
+
+function crearLeyendaHCFM() {
+  const leyenda = L.control({ position: 'bottomright' });
+  leyenda.onAdd = function() {
+    const div = L.DomUtil.create('div', 'humo-hcfm-leyenda');
+    div.innerHTML = `
+      <table class="humo-hcfm-leyenda-tabla">
+        <thead>
+          <tr>
+            <th>Color</th><th>Rango</th><th>Peligro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="humo-hcfm-dot" style="background:#c0392b"></span>Rojo</td><td>&lt; 8%</td><td>Crítico</td></tr>
+          <tr><td><span class="humo-hcfm-dot" style="background:#e67e22"></span>Naranja</td><td>8–12%</td><td>Bajo</td></tr>
+          <tr><td><span class="humo-hcfm-dot" style="background:#f1c40f"></span>Amarillo</td><td>12–16%</td><td>Moderado</td></tr>
+          <tr><td><span class="humo-hcfm-dot" style="background:#27ae60"></span>Verde</td><td>&gt; 20%</td><td>Alto</td></tr>
+        </tbody>
+      </table>
+    `;
+    L.DomEvent.disableClickPropagation(div);
+    return div;
+  };
+  return leyenda;
+}
+
 // ── HCFM: interpolación IDW y gradiente de color ─────────────────────
 function idwHCFM(puntos, lat, lon) {
   let num = 0, den = 0;
@@ -856,6 +884,8 @@ async function fetchHCFMPunto(lat, lon) {
 function limpiarCapaHCFM() {
   if (humoCapaHCFM && humoMap) humoMap.removeLayer(humoCapaHCFM);
   humoCapaHCFM = null;
+  if (humoHCFMLeyenda && humoMap) humoHCFMLeyenda.remove();
+  humoHCFMLeyenda = null;
   const panel = document.getElementById('humoHCFMPanel');
   if (panel) panel.style.display = 'none';
   const btn = document.getElementById('hBtnHCFM');
@@ -910,8 +940,14 @@ async function cargarGridHCFM(lat, lon) {
 function humoToggleHCFM() {
   if (!humoCapaHCFM || !humoMap) return;
   humoHCFMVisible = !humoHCFMVisible;
-  if (humoHCFMVisible) humoCapaHCFM.addTo(humoMap);
-  else humoMap.removeLayer(humoCapaHCFM);
+  if (humoHCFMVisible) {
+    humoCapaHCFM.addTo(humoMap);
+    if (!humoHCFMLeyenda) humoHCFMLeyenda = crearLeyendaHCFM();
+    humoHCFMLeyenda.addTo(humoMap);
+  } else {
+    humoMap.removeLayer(humoCapaHCFM);
+    if (humoHCFMLeyenda) humoHCFMLeyenda.remove();
+  }
   const btn = document.getElementById('hBtnHCFM');
   if (btn) btn.classList.toggle('active', humoHCFMVisible);
 }
@@ -927,7 +963,11 @@ async function mostrarHCFM(lat, lon) {
   cargarGridHCFM(lat, lon).then(layer => {
     humoCapaHCFM    = layer;
     humoHCFMVisible = true;
-    if (humoMap) layer.addTo(humoMap);
+    if (humoMap) {
+      layer.addTo(humoMap);
+      humoHCFMLeyenda = crearLeyendaHCFM();
+      humoHCFMLeyenda.addTo(humoMap);
+    }
     const btn = document.getElementById('hBtnHCFM');
     if (btn) btn.classList.add('active');
   }).catch(() => {});
