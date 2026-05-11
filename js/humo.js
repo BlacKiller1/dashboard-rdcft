@@ -884,7 +884,7 @@ function actualizarPanelHCFM(estado, datos) {
       <span class="humo-hcfm-valor" style="color:${n.color}">${datos.hcfm}%</span>
       <span class="humo-hcfm-meta">T: ${datos.temp}°C &nbsp;·&nbsp; HR: ${datos.hr}%</span>
     </div>
-    <div class="humo-hcfm-fuente">Calculado con Open-Meteo · Metodología CONAF/GEPRIF</div>
+    <div class="humo-hcfm-fuente">Calculado con Open-Meteo · Metodología</div>
   `;
 }
 
