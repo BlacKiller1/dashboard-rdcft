@@ -734,7 +734,94 @@ async function generarPdfHumo() {
   }
 }
 
-// ── HCFM (Humedad Combustible Fino Muerto) ────────────────────────────
+// ── HCFM: interpolación IDW y gradiente de color ─────────────────────
+function idwHCFM(puntos, lat, lon) {
+  let num = 0, den = 0;
+  for (const p of puntos) {
+    const d2 = (p.lat - lat) ** 2 + (p.lon - lon) ** 2;
+    if (d2 < 1e-8) return p.hcfm;
+    const w  = 1 / d2;
+    num += w * p.hcfm;
+    den += w;
+  }
+  return den > 0 ? num / den : 10;
+}
+
+// Paradas de color: [valor%, R, G, B] — espejo del mapa CONAF (rojo→naranja→amarillo→verde)
+const _HCFM_STOPS = [
+  [0,  192, 57,  43 ],
+  [8,  231, 76,  60 ],
+  [12, 230, 126, 34 ],
+  [16, 241, 196, 15 ],
+  [20, 163, 203, 56 ],
+  [25, 39,  174, 96 ],
+];
+
+function colorHCFM(hcfm) {
+  const v = Math.max(0, Math.min(30, hcfm));
+  const s = _HCFM_STOPS;
+  for (let i = 1; i < s.length; i++) {
+    if (v <= s[i][0]) {
+      const t = (v - s[i-1][0]) / (s[i][0] - s[i-1][0]);
+      return [
+        Math.round(s[i-1][1] + t * (s[i][1] - s[i-1][1])),
+        Math.round(s[i-1][2] + t * (s[i][2] - s[i-1][2])),
+        Math.round(s[i-1][3] + t * (s[i][3] - s[i-1][3])),
+      ];
+    }
+  }
+  return [s[s.length-1][1], s[s.length-1][2], s[s.length-1][3]];
+}
+
+// ── L.GridLayer — renderizado canvas con gradiente suave ──────────────
+const CapaHCFMLayer = L.GridLayer.extend({
+  initialize: function(puntos, opciones) {
+    this._puntos = puntos;
+    const lats = puntos.map(p => p.lat);
+    const lons  = puntos.map(p => p.lon);
+    const pad   = 0.6;
+    const bounds = L.latLngBounds(
+      [Math.min(...lats) - pad, Math.min(...lons) - pad],
+      [Math.max(...lats) + pad, Math.max(...lons) + pad]
+    );
+    L.GridLayer.prototype.initialize.call(this, Object.assign({ bounds, zIndex: 200 }, opciones));
+  },
+
+  createTile: function(coords) {
+    const RES  = 64;   // renderiza 64×64, el browser suaviza al escalar a 256
+    const tile = document.createElement('canvas');
+    tile.width  = RES;
+    tile.height = RES;
+    tile.style.width          = '256px';
+    tile.style.height         = '256px';
+    tile.style.imageRendering = 'auto';
+
+    const ctx    = tile.getContext('2d');
+    const b      = this._tileCoordsToBounds(coords);
+    const norte  = b.getNorth(), sur  = b.getSouth();
+    const oeste  = b.getWest(),  este = b.getEast();
+    const puntos = this._puntos;
+    const img    = ctx.createImageData(RES, RES);
+
+    for (let y = 0; y < RES; y++) {
+      const lat = norte - (norte - sur) * (y + 0.5) / RES;
+      for (let x = 0; x < RES; x++) {
+        const lon       = oeste + (este - oeste) * (x + 0.5) / RES;
+        const val       = idwHCFM(puntos, lat, lon);
+        const [r, g, b2] = colorHCFM(val);
+        const i = (y * RES + x) * 4;
+        img.data[i]     = r;
+        img.data[i + 1] = g;
+        img.data[i + 2] = b2;
+        img.data[i + 3] = 150;   // ~59% opacidad
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    return tile;
+  }
+});
+
+// ── HCFM state ────────────────────────────────────────────────────────
 let humoCapaHCFM    = null;
 let humoHCFMVisible = true;
 
@@ -802,33 +889,22 @@ function actualizarPanelHCFM(estado, datos) {
 }
 
 async function cargarGridHCFM(lat, lon) {
-  const PASO = 0.18;
+  const PASO = 0.5;
+  const N    = 3;   // 7×7 = 49 puntos, cubre ±1.5° (~330 km)
   const promesas = [];
-  for (let dy = -2; dy <= 2; dy++) {
-    for (let dx = -2; dx <= 2; dx++) {
+  for (let dy = -N; dy <= N; dy++) {
+    for (let dx = -N; dx <= N; dx++) {
       const pLat = +(lat + dy * PASO).toFixed(4);
       const pLon = +(lon + dx * PASO).toFixed(4);
       promesas.push(
         fetchHCFMPunto(pLat, pLon)
-          .then(r => ({ lat: pLat, lon: pLon, ...r, esCentro: dx === 0 && dy === 0 }))
+          .then(r => ({ lat: pLat, lon: pLon, ...r }))
           .catch(() => null)
       );
     }
   }
   const resultados = (await Promise.all(promesas)).filter(Boolean);
-  const grupo = L.layerGroup();
-  resultados.forEach(r => {
-    const n = hcfmNivel(r.hcfm);
-    L.circle([r.lat, r.lon], {
-      radius:      14000,
-      color:       n.color,
-      fillColor:   n.color,
-      fillOpacity: r.esCentro ? 0.68 : 0.40,
-      weight:      r.esCentro ? 1.5 : 0,
-      interactive: false
-    }).addTo(grupo);
-  });
-  return grupo;
+  return new CapaHCFMLayer(resultados);
 }
 
 function humoToggleHCFM() {
@@ -844,7 +920,6 @@ async function mostrarHCFM(lat, lon) {
   limpiarCapaHCFM();
   actualizarPanelHCFM('loading', null);
 
-  // Punto central (rápido) y grid (paralelo) — actualiza UI a medida que llegan
   fetchHCFMPunto(lat, lon)
     .then(r => actualizarPanelHCFM('ok', r))
     .catch(() => actualizarPanelHCFM('error', null));
