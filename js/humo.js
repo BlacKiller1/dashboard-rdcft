@@ -647,7 +647,21 @@ async function generarPdfHumo() {
         const minLat = capLat - dLat, maxLat = capLat + dLat;
         const toX = lon => ML + CW * (lon - minLon) / (maxLon - minLon);
         const toY = lat => mapTopY + MAP_H * (maxLat - lat) / (maxLat - minLat);
-        const inBounds = (x, yy) => x >= ML && x <= ML + CW && yy >= mapTopY && yy <= mapTopY + MAP_H;
+
+        // Liang-Barsky: recorta el segmento al rectángulo de la imagen
+        const clip = (x1, y1, x2, y2) => {
+          const dx = x2 - x1, dy = y2 - y1;
+          const p = [-dx, dx, -dy, dy];
+          const q = [x1 - ML, ML + CW - x1, y1 - mapTopY, mapTopY + MAP_H - y1];
+          let t0 = 0, t1 = 1;
+          for (let k = 0; k < 4; k++) {
+            if (p[k] === 0) { if (q[k] < 0) return null; continue; }
+            const t = q[k] / p[k];
+            if (p[k] < 0) t0 = Math.max(t0, t); else t1 = Math.min(t1, t);
+            if (t0 > t1) return null;
+          }
+          return [x1 + t0 * dx, y1 + t0 * dy, x1 + t1 * dx, y1 + t1 * dy];
+        };
 
         for (const feat of (humoTrayectorias.features || [])) {
           if (feat.geometry?.type !== 'LineString') continue;
@@ -659,9 +673,9 @@ async function generarPdfHumo() {
           pdf.setDrawColor(r, g, b);
           pdf.setLineWidth(0.35);
           for (let i = 1; i < coords.length; i++) {
-            const x1 = toX(coords[i-1][0]), y1 = toY(coords[i-1][1]);
-            const x2 = toX(coords[i][0]),   y2 = toY(coords[i][1]);
-            if (inBounds(x1, y1) || inBounds(x2, y2)) pdf.line(x1, y1, x2, y2);
+            const seg = clip(toX(coords[i-1][0]), toY(coords[i-1][1]),
+                             toX(coords[i][0]),   toY(coords[i][1]));
+            if (seg) pdf.line(seg[0], seg[1], seg[2], seg[3]);
           }
         }
       }
