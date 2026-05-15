@@ -518,26 +518,28 @@ async function generarPdfHumo() {
   const ventanaIOS = esIOS ? window.open('', '_blank') : null;
 
   try {
-    // ── 1. Capturar mapa ──────────────────────────────────────────
+    // ── 1. Imagen satelital estática vía ArcGIS REST (evita problemas CORS de html2canvas) ──
     let mapImgData = null;
-    try {
-      const mapEl  = document.getElementById('humoMapContainer');
-      const pdfMod = document.getElementById('humoPdfModal');
-      if (mapEl && humoMap) {
-        const capLat = parseFloat(document.getElementById('humoLat').value);
-        const capLon = parseFloat(document.getElementById('humoLon').value);
-        if (capLat && capLon) humoMap.setView([capLat, capLon], 11, { animate: false });
-        humoMap.invalidateSize();
-        // Ocultar modal para que no interfiera con la captura
-        if (pdfMod) pdfMod.style.visibility = 'hidden';
-        await new Promise(r => setTimeout(r, 1500));
-        const mc = await html2canvas(mapEl, {
-          scale: 2, useCORS: true, allowTaint: true, logging: false
-        });
-        if (pdfMod) pdfMod.style.visibility = '';
-        mapImgData = mc.toDataURL('image/jpeg', 0.92);
-      }
-    } catch (_) {}
+    const capLat = parseFloat(document.getElementById('humoLat').value);
+    const capLon = parseFloat(document.getElementById('humoLon').value);
+    if (capLat && capLon) {
+      try {
+        const dLon = 0.18, dLat = 0.10;
+        const bbox = `${capLon - dLon},${capLat - dLat},${capLon + dLon},${capLat + dLat}`;
+        const staticUrl =
+          `https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/export` +
+          `?bbox=${bbox}&bboxSR=4326&size=900,340&imageSR=4326&format=jpg&f=image`;
+        const resp = await fetch(staticUrl, { signal: AbortSignal.timeout(12000) });
+        if (resp.ok) {
+          const blob = await resp.blob();
+          mapImgData = await new Promise(res => {
+            const reader = new FileReader();
+            reader.onload = () => res(reader.result);
+            reader.readAsDataURL(blob);
+          });
+        }
+      } catch (_) {}
+    }
 
     // ── 2. jsPDF — Letter Portrait (215.9 × 279.4 mm) ────────────
     const { jsPDF } = window.jspdf;
@@ -632,6 +634,13 @@ async function generarPdfHumo() {
     const MAP_H = 70;
     if (mapImgData) {
       pdf.addImage(mapImgData, 'JPEG', ML, y, CW, MAP_H, '', 'FAST');
+      // Marcador del punto de emisión en el centro exacto de la imagen
+      const mx = ML + CW / 2;
+      const my = y  + MAP_H / 2;
+      pdf.setFillColor(255, 255, 255);
+      pdf.circle(mx, my, 3.2, 'F');
+      pdf.setFillColor(232, 130, 10);
+      pdf.circle(mx, my, 2.4, 'F');
     } else {
       pdf.setFillColor(46, 46, 46);
       pdf.rect(ML, y, CW, MAP_H, 'F');
