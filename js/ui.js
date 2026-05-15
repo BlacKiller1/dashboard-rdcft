@@ -45,6 +45,68 @@ let currentHour       = '10:00';
 let activeWeatherDays = null;
 let activePaisajeIdx  = null;
 
+// Mapa de resumen general
+let _mapaResumen = null;
+
+function limpiarMapaResumen() {
+  if (_mapaResumen) { _mapaResumen.remove(); _mapaResumen = null; }
+}
+
+function iniciarMapaResumen() {
+  const el = document.getElementById('resumenMapaEstados');
+  if (!el || typeof L === 'undefined') return;
+
+  limpiarMapaResumen();
+
+  _mapaResumen = L.map(el, {
+    zoomControl: true,
+    scrollWheelZoom: true,
+    attributionControl: false
+  });
+
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 17, attribution: ''
+  }).addTo(_mapaResumen);
+
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 17, opacity: 0.7, attribution: ''
+  }).addTo(_mapaResumen);
+
+  const COLORES_MAPA = {
+    favorable:      '#2DB87A',
+    restriccion:    '#E8C23A',
+    'no-favorable': '#C94040',
+    'sin-rdcft':    '#444'
+  };
+
+  const ETIQUETAS = {
+    favorable:      'Favorable',
+    restriccion:    'Con restricciones',
+    'no-favorable': 'No favorable',
+    'sin-rdcft':    'Sin datos'
+  };
+
+  const bounds = [];
+
+  PAISAJES.forEach((p, idx) => {
+    const estado = PAISAJE_ESTADO[idx] || 'sin-rdcft';
+    const color  = COLORES_MAPA[estado];
+
+    const marker = L.circleMarker([p.lat, p.lon], {
+      radius: 7, fillColor: color, color: '#fff',
+      weight: 1.5, opacity: 0.9, fillOpacity: 0.88
+    }).addTo(_mapaResumen);
+
+    marker.bindTooltip(`<strong>${p.n}</strong><br>${ETIQUETAS[estado]}`, {
+      direction: 'top', offset: [0, -6]
+    });
+    marker.on('click', () => onSelectPaisaje(idx));
+    bounds.push([p.lat, p.lon]);
+  });
+
+  if (bounds.length) _mapaResumen.fitBounds(bounds, { padding: [18, 18] });
+}
+
 
 
 // ── Sidebar ──────────────────────────────────────────────────────────────
@@ -171,6 +233,8 @@ function renderEmpty() {
           <div class="dl-item"><span class="resumen-dot" style="background:var(--c-yellow)"></span>Con restricciones</div>
           <div class="dl-item"><span class="resumen-dot" style="background:var(--c-red)"></span>No favorable</div>
         </div>
+
+        <div id="resumenMapaEstados" class="resumen-mapa-estados"></div>
       </div>
 
       <!-- Panel derecho: lista de paisajes por zona -->
@@ -181,9 +245,12 @@ function renderEmpty() {
       </div>
 
     </div>`;
+
+  requestAnimationFrame(iniciarMapaResumen);
 }
 
 function renderLoading(nombre) {
+  limpiarMapaResumen();
   document.getElementById('detailPanel').innerHTML = `
     <div class="loading-state">
       <div class="spinner"></div>
