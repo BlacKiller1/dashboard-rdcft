@@ -19,6 +19,7 @@ let humoCapaEtiq       = null;
 let humoCapaPredios      = null;
 let humoPrediosVisible   = true;
 let humoCapaTrayectoria  = null;
+let humoTrayectorias     = null;
 let humoIniciado         = false;
 let humoServidor   = null;    // null=desconocido, true=online, false=offline
 let humoHealthTimer = null;   // intervalo de reintento de health check
@@ -327,7 +328,10 @@ async function ejecutarSimulacion() {
           document.getElementById('humoResult').style.display = 'flex';
           document.getElementById('btnAbrirPdfHumo').disabled = false;
           if (humoMarcador) humoMarcador.closePopup();
-          if (evento.trayectorias) try { mostrarTrayectorias(evento.trayectorias); } catch(_) {}
+          if (evento.trayectorias) {
+            humoTrayectorias = evento.trayectorias;
+            try { mostrarTrayectorias(evento.trayectorias); } catch(_) {}
+          }
           break;
         } else if (evento.tipo === 'error') {
           resuelto = true;
@@ -632,26 +636,54 @@ async function generarPdfHumo() {
     y += 3;
 
     const MAP_H = 70;
+    const mapTopY = y;
     if (mapImgData) {
-      pdf.addImage(mapImgData, 'JPEG', ML, y, CW, MAP_H, '', 'FAST');
-      // Marcador del punto de emisión en el centro exacto de la imagen
+      pdf.addImage(mapImgData, 'JPEG', ML, mapTopY, CW, MAP_H, '', 'FAST');
+
+      // Proyectar y dibujar trayectorias HYSPLIT sobre la imagen
+      if (humoTrayectorias && capLat && capLon) {
+        const dLon = 0.18, dLat = 0.10;
+        const minLon = capLon - dLon, maxLon = capLon + dLon;
+        const minLat = capLat - dLat, maxLat = capLat + dLat;
+        const toX = lon => ML + CW * (lon - minLon) / (maxLon - minLon);
+        const toY = lat => mapTopY + MAP_H * (maxLat - lat) / (maxLat - minLat);
+        const inBounds = (x, yy) => x >= ML && x <= ML + CW && yy >= mapTopY && yy <= mapTopY + MAP_H;
+
+        for (const feat of (humoTrayectorias.features || [])) {
+          if (feat.geometry?.type !== 'LineString') continue;
+          const coords = feat.geometry.coordinates;
+          const hex = (feat.properties?.color || '#FF4444').replace('#', '');
+          const r = parseInt(hex.slice(0, 2), 16);
+          const g = parseInt(hex.slice(2, 4), 16);
+          const b = parseInt(hex.slice(4, 6), 16);
+          pdf.setDrawColor(r, g, b);
+          pdf.setLineWidth(0.35);
+          for (let i = 1; i < coords.length; i++) {
+            const x1 = toX(coords[i-1][0]), y1 = toY(coords[i-1][1]);
+            const x2 = toX(coords[i][0]),   y2 = toY(coords[i][1]);
+            if (inBounds(x1, y1) || inBounds(x2, y2)) pdf.line(x1, y1, x2, y2);
+          }
+        }
+      }
+
+      // Marcador del punto de emisión encima de las trayectorias
       const mx = ML + CW / 2;
-      const my = y  + MAP_H / 2;
+      const my = mapTopY + MAP_H / 2;
       pdf.setFillColor(255, 255, 255);
       pdf.circle(mx, my, 3.2, 'F');
       pdf.setFillColor(232, 130, 10);
       pdf.circle(mx, my, 2.4, 'F');
     } else {
       pdf.setFillColor(46, 46, 46);
-      pdf.rect(ML, y, CW, MAP_H, 'F');
+      pdf.rect(ML, mapTopY, CW, MAP_H, 'F');
       pdf.setFontSize(9);
       pdf.setTextColor(136, 136, 136);
-      pdf.text('Mapa no disponible', pW / 2, y + MAP_H / 2, { align: 'center' });
+      pdf.text('Mapa no disponible', pW / 2, mapTopY + MAP_H / 2, { align: 'center' });
     }
     pdf.setDrawColor(224, 224, 224);
     pdf.setLineWidth(0.3);
-    pdf.rect(ML, y, CW, MAP_H, 'S');
-    y += MAP_H + 5;  // ≈ 108
+    pdf.rect(ML, mapTopY, CW, MAP_H, 'S');
+    y = mapTopY + MAP_H + 5;
 
     // ── 5. FILA DE COORDENADAS ─────────────────────────────────────
     const COL = CW / 3;
@@ -993,6 +1025,7 @@ async function mostrarHCFM(lat, lon) {
 // ── Limpiar simulación ────────────────────────────────────────────────
 function humoLimpiar() {
   limpiarTrayectorias();
+  humoTrayectorias = null;
   limpiarCapaHCFM();
 
   if (humoMarcador && humoMap) {
