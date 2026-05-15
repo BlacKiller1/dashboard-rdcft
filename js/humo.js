@@ -522,26 +522,32 @@ async function generarPdfHumo() {
   const ventanaIOS = esIOS ? window.open('', '_blank') : null;
 
   try {
-    // ── 1. Imagen satelital estática vía ArcGIS REST (evita problemas CORS de html2canvas) ──
-    let mapImgData = null;
+    // ── 1. Imagen satelital + etiquetas vía ArcGIS REST ──────────────
+    let mapImgData    = null;
+    let labelsImgData = null;
     const capLat = parseFloat(document.getElementById('humoLat').value);
     const capLon = parseFloat(document.getElementById('humoLon').value);
     if (capLat && capLon) {
+      const dLon = 0.18, dLat = 0.10;
+      const bbox = `${capLon - dLon},${capLat - dLat},${capLon + dLon},${capLat + dLat}`;
+      const baseParams = `bbox=${bbox}&bboxSR=4326&size=900,340&imageSR=4326&f=image`;
+      const toBase64 = async resp => {
+        if (!resp.ok) return null;
+        const blob = await resp.blob();
+        return new Promise(res => {
+          const reader = new FileReader();
+          reader.onload = () => res(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      };
       try {
-        const dLon = 0.18, dLat = 0.10;
-        const bbox = `${capLon - dLon},${capLat - dLat},${capLon + dLon},${capLat + dLat}`;
-        const staticUrl =
-          `https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/export` +
-          `?bbox=${bbox}&bboxSR=4326&size=900,340&imageSR=4326&format=jpg&f=image`;
-        const resp = await fetch(staticUrl, { signal: AbortSignal.timeout(12000) });
-        if (resp.ok) {
-          const blob = await resp.blob();
-          mapImgData = await new Promise(res => {
-            const reader = new FileReader();
-            reader.onload = () => res(reader.result);
-            reader.readAsDataURL(blob);
-          });
-        }
+        const [r1, r2] = await Promise.all([
+          fetch(`https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/export?${baseParams}&format=jpg`,
+            { signal: AbortSignal.timeout(12000) }),
+          fetch(`https://server.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/export?${baseParams}&format=png32&transparent=true`,
+            { signal: AbortSignal.timeout(12000) })
+        ]);
+        [mapImgData, labelsImgData] = await Promise.all([toBase64(r1), toBase64(r2)]);
       } catch (_) {}
     }
 
@@ -639,6 +645,9 @@ async function generarPdfHumo() {
     const mapTopY = y;
     if (mapImgData) {
       pdf.addImage(mapImgData, 'JPEG', ML, mapTopY, CW, MAP_H, '', 'FAST');
+      if (labelsImgData) {
+        pdf.addImage(labelsImgData, 'PNG', ML, mapTopY, CW, MAP_H, '', 'FAST');
+      }
 
       // Proyectar y dibujar trayectorias HYSPLIT sobre la imagen
       if (humoTrayectorias && capLat && capLon) {
