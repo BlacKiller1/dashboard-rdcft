@@ -1,6 +1,6 @@
-// api/token.js — Vercel Serverless Function
-// Retorna lista de usuarios solo a admins autenticados
+// api/token.js — Retorna lista de usuarios solo a admins autenticados
 import crypto from 'crypto';
+import { getUsuarios } from './_db.js';
 
 async function redis(command) {
   const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
@@ -57,9 +57,8 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'No autorizado' });
     }
 
-    const secret      = process.env.ADMIN_SECRET;
-    const usuariosRaw = process.env.USUARIOS_DB;
-    if (!secret || !usuariosRaw) return res.status(500).json({ error: 'Error interno' });
+    const secret = process.env.ADMIN_SECRET;
+    if (!secret) return res.status(500).json({ error: 'Error interno' });
 
     if (!verificarToken(creds.email, creds.token, secret)) {
       return res.status(401).json({ error: 'Token inválido' });
@@ -74,12 +73,12 @@ export default async function handler(req, res) {
     }
 
     try {
-      const data    = JSON.parse(usuariosRaw);
-      const usuario = (data.usuarios || []).find(u => u.email === creds.email);
+      const usuarios = await getUsuarios();
+      const usuario  = usuarios.find(u => u.email === creds.email);
       if (!usuario || usuario.rol !== 'admin') {
         return res.status(403).json({ error: 'Sin permisos de administrador' });
       }
-      return res.status(200).json(data);
+      return res.status(200).json({ usuarios });
     } catch {
       return res.status(500).json({ error: 'Error interno' });
     }

@@ -1,5 +1,6 @@
-// api/usuarios.js — Actualizar usuarios (requiere sesión de admin firmada)
+// api/usuarios.js — Actualizar usuarios en Redis (requiere sesión de admin firmada)
 import crypto from 'crypto';
+import { getUsuarios, setUsuarios } from './_db.js';
 import { enviarCorreo } from './_mail.js';
 
 async function redis(command) {
@@ -56,11 +57,8 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'No autorizado' });
   }
 
-  const secret       = process.env.ADMIN_SECRET;
-  const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
-  const PROJECT_ID   = process.env.VERCEL_PROJECT_ID;
-
-  if (!secret || !VERCEL_TOKEN || !PROJECT_ID) {
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret) {
     return res.status(500).json({ error: 'Variables no configuradas' });
   }
 
@@ -68,7 +66,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Token inválido' });
   }
 
-  // Validar sessionId contra Redis (si fue provisto)
+  // Validar sessionId contra Redis
   if (creds.sessionId) {
     try {
       const stored = await redis(['GET', `session:${creds.email}`]);
@@ -76,13 +74,12 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: 'Sesión inválida o expirada. Vuelve a iniciar sesión.' });
       }
     } catch (redisErr) {
-      console.warn('[RDCFT] Redis no disponible, continuando con validación HMAC:', redisErr.message);
+      console.warn('[RDCFT] Redis no disponible:', redisErr.message);
     }
   }
 
-  // Verificar rol admin en la BD actual
-  let existingUsuarios = [];
-  try { existingUsuarios = JSON.parse(process.env.USUARIOS_DB || '{}').usuarios || []; } catch {}
+  // Verificar rol admin
+  const existingUsuarios = await getUsuarios();
   const requestUser = existingUsuarios.find(u => u.email === creds.email);
   if (!requestUser || requestUser.rol !== 'admin') {
     return res.status(403).json({ error: 'Sin permisos de administrador' });
@@ -93,87 +90,10 @@ export default async function handler(req, res) {
   if (!Array.isArray(usuarios)) return res.status(400).json({ error: 'Datos inválidos' });
 
   try {
-    const nuevoValor = JSON.stringify({ usuarios });
+    // Guardar en Redis — instantáneo, sin redeploy
+    await setUsuarios(usuarios);
 
-    // Paso 1 — Obtener TODOS los registros de USUARIOS_DB (puede haber uno por environment)
-    const envResp = await fetch(`https://api.vercel.com/v10/projects/${PROJECT_ID}/env`, {
-      headers: { 'Authorization': `Bearer ${VERCEL_TOKEN}` }
-    });
-    if (!envResp.ok) throw new Error(`Error consultando env vars de Vercel: ${envResp.status}`);
-    const envData = await envResp.json();
-    const envVars = (envData.envs || []).filter(e => e.key === 'USUARIOS_DB');
-
-    if (envVars.length > 0) {
-      // Paso 2 — Actualizar TODOS los registros sin cambiar su target
-      for (const envVar of envVars) {
-        const patchResp = await fetch(`https://api.vercel.com/v10/projects/${PROJECT_ID}/env/${envVar.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${VERCEL_TOKEN}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ value: nuevoValor })
-        });
-        if (!patchResp.ok) {
-          const patchErr = await patchResp.json().catch(() => ({}));
-          throw new Error(`Error actualizando USUARIOS_DB (target: ${JSON.stringify(envVar.target)}): ${patchErr.error?.message || patchResp.status}`);
-        }
-      }
-    } else {
-      // Paso 2b — Crear la variable si no existe
-      const postResp = await fetch(`https://api.vercel.com/v10/projects/${PROJECT_ID}/env`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${VERCEL_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          key: 'USUARIOS_DB',
-          value: nuevoValor,
-          type: 'encrypted',
-          target: ['production']
-        })
-      });
-      if (!postResp.ok) {
-        const postErr = await postResp.json().catch(() => ({}));
-        throw new Error(`Error creando USUARIOS_DB: ${postErr.error?.message || postResp.status}`);
-      }
-    }
-
-    // Paso 3 — Obtener nombre real del proyecto en Vercel
-    const projectResp = await fetch(`https://api.vercel.com/v9/projects/${PROJECT_ID}`, {
-      headers: { 'Authorization': `Bearer ${VERCEL_TOKEN}` }
-    });
-    if (!projectResp.ok) throw new Error(`No se pudo obtener el proyecto de Vercel: ${projectResp.status}`);
-    const projectData = await projectResp.json();
-    const projectName = projectData.name;
-    if (!projectName) throw new Error('Nombre del proyecto no encontrado en Vercel');
-
-    // Paso 4 — Obtener último deployment de producción
-    const listResp = await fetch(
-      `https://api.vercel.com/v6/deployments?projectId=${PROJECT_ID}&limit=1&target=production`,
-      { headers: { 'Authorization': `Bearer ${VERCEL_TOKEN}` } }
-    );
-    const listData = await listResp.json();
-    const latestUid = listData.deployments?.[0]?.uid;
-    if (!latestUid) throw new Error('No se encontró un deployment previo de producción para redesplegar');
-
-    // Paso 5 — Lanzar redespliegue con el nombre real del proyecto
-    const deployResp = await fetch(`https://api.vercel.com/v13/deployments`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${VERCEL_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ deploymentId: latestUid, name: projectName, target: 'production' })
-    });
-    const deployData = await deployResp.json();
-    if (!deployResp.ok) {
-      throw new Error(`Redeploy falló (${deployResp.status}): ${deployData.error?.message || JSON.stringify(deployData)}`);
-    }
-    console.log('[RDCFT] Redespliegue iniciado:', deployData.id || deployData.uid);
-
-    // Notificar por correo a usuarios recién agregados (bloqueante para que no se corte antes de enviar)
+    // Enviar correo de bienvenida a usuarios recién agregados
     const emailsExistentes = new Set(existingUsuarios.map(u => u.email));
     const nuevos = usuarios.filter(u => !emailsExistentes.has(u.email));
     if (nuevos.length > 0 && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
@@ -187,7 +107,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       total: usuarios.length,
-      mensaje: 'Usuarios actualizados. El sistema se actualizará en ~1 minuto.'
+      mensaje: 'Usuarios actualizados correctamente.'
     });
 
   } catch (err) {

@@ -1,5 +1,6 @@
 // api/verificar.js — Verifica credenciales, controla sesión única via Redis
 import crypto from 'crypto';
+import { getUsuarios } from './_db.js';
 
 const ALLOWED_ORIGINS = [
   'https://arauco-rdcft.vercel.app',
@@ -34,15 +35,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Solo se permiten correos @arauco.com' });
   }
 
-  const secret      = process.env.ADMIN_SECRET;
-  const usuariosRaw = process.env.USUARIOS_DB;
-  if (!secret || !usuariosRaw) {
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret) {
     return res.status(500).json({ error: 'Error de configuración del servidor' });
   }
 
-  let usuarios;
-  try { usuarios = JSON.parse(usuariosRaw).usuarios || []; }
-  catch { return res.status(500).json({ error: 'Error interno' }); }
+  const usuarios = await getUsuarios();
 
   const usuario = usuarios.find(u => u.email === email);
   if (!usuario) {

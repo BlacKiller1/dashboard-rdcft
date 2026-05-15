@@ -507,7 +507,7 @@ async function guardarUsuarios() {
       const err = await resp.json().catch(() => ({}));
       throw new Error(err.error || `Error: ${resp.status}`);
     }
-    mostrarMensajeAdmin('✅ Usuarios guardados. El sistema se actualizará en ~1 minuto.', 'success');
+    mostrarMensajeAdmin('✅ Usuarios actualizados correctamente.', 'success');
   } catch (err) {
     mostrarMensajeAdmin('❌ Error al guardar: ' + err.message, 'error');
   } finally {
