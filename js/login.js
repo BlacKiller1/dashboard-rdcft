@@ -41,8 +41,9 @@ function forzarLogin() {
   _doLogin(true);
 }
 
-let usuariosDB      = null;
+let usuariosDB       = null;
 let sessionPollTimer = null;
+let adminPollTimer   = null;
 
 // BroadcastChannel: notifica a otras pestañas del mismo navegador cuando hay un nuevo login
 const _sessionChannel = typeof BroadcastChannel !== 'undefined'
@@ -68,6 +69,43 @@ function iniciarPollSesion() {
 
 function detenerPollSesion() {
   if (sessionPollTimer) { clearInterval(sessionPollTimer); sessionPollTimer = null; }
+}
+
+function mostrarBadgeAdmin(n) {
+  const badge = document.getElementById('adminBadge');
+  if (!badge) return;
+  if (n > 0) {
+    badge.textContent  = n;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function checkPendientes() {
+  if (ES_LOCAL) return;
+  const sesion = verificarSesion();
+  if (!sesion || sesion.rol !== 'admin') return;
+  try {
+    const resp = await fetch('/api/token?type=pendientes', {
+      headers: { Authorization: `Bearer ${crearCredenciales(sesion)}` },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      mostrarBadgeAdmin(data.pendientes || 0);
+    }
+  } catch {}
+}
+
+function iniciarPollAdmin() {
+  if (adminPollTimer) return;
+  checkPendientes();
+  adminPollTimer = setInterval(checkPendientes, 60000);
+}
+
+function detenerPollAdmin() {
+  if (adminPollTimer) { clearInterval(adminPollTimer); adminPollTimer = null; }
 }
 
 function _cerrarSesionForzada() {
@@ -192,6 +230,7 @@ function mostrarDashboard(usuario) {
 
   const btnAdmin = document.getElementById('btnAdmin');
   if (btnAdmin) btnAdmin.style.display = usuario.rol === 'admin' ? 'inline-flex' : 'none';
+  if (usuario.rol === 'admin') iniciarPollAdmin();
 }
 
 // ── Login ─────────────────────────────────────────────────────────────────────
@@ -276,6 +315,7 @@ function _mostrarErrorConFuerza(mensaje) {
 
 function cerrarSesion() {
   detenerPollSesion();
+  detenerPollAdmin();
   const sesion = verificarSesion();
   if (sesion && !ES_LOCAL) {
     fetch('/api/logout', {
@@ -383,6 +423,13 @@ async function abrirAdmin() {
   const u = verificarSesion();
   if (!u || u.rol !== 'admin') return;
   document.getElementById('adminPanel').style.display = 'flex';
+  // Limpiar badge y resetear contador en Redis
+  mostrarBadgeAdmin(0);
+  if (!ES_LOCAL) {
+    fetch(`/api/token?type=reset-pendientes`, {
+      headers: { Authorization: `Bearer ${crearCredenciales(u)}` }
+    }).catch(() => {});
+  }
   if (ES_LOCAL) {
     if (!usuariosDB) await cargarUsuarios();
   } else {

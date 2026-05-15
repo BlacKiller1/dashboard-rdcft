@@ -1,6 +1,15 @@
 // api/solicitar-acceso.js — Envía solicitud de acceso al administrador
 import { enviarCorreo } from './_mail.js';
 
+async function redis(command) {
+  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(command)
+  });
+  return (await res.json()).result;
+}
+
 const ALLOWED_ORIGINS = [
   'https://arauco-rdcft.vercel.app',
   'http://localhost:5500',
@@ -70,6 +79,8 @@ export default async function handler(req, res) {
       subject: `[RDCFT] Solicitud de acceso — ${nombre}`,
       html
     });
+    // Incrementar contador de solicitudes pendientes para notificar al admin
+    await redis(['INCR', 'solicitudes:pendientes']).catch(() => {});
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('[RDCFT] Error enviando solicitud:', err);
