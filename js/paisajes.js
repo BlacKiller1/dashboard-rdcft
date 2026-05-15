@@ -230,12 +230,12 @@ const ZONAS = [
       'Ruiles de la Costa Maulina',
       'Secanos del Mataquito',
       'Valle de Cauquenes',
-      'Arenales de Cholguán',
     ]
   },
   {
     nombre: 'Zona Chillán',
     paisajes: [
+      'Arenales de Cholguán',
       'Canteras del Laja',
       'Cordillera de Huemules',
       'Costa de Queules',
