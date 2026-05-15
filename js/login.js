@@ -44,13 +44,44 @@ function forzarLogin() {
 let usuariosDB      = null;
 let sessionPollTimer = null;
 
+// BroadcastChannel: notifica a otras pestañas del mismo navegador cuando hay un nuevo login
+const _sessionChannel = typeof BroadcastChannel !== 'undefined'
+  ? new BroadcastChannel('rdcft_session')
+  : null;
+
+if (_sessionChannel) {
+  _sessionChannel.onmessage = (ev) => {
+    if (ev.data?.type !== 'new_login') return;
+    const sesion = verificarSesion();
+    if (!sesion || sesion.email !== ev.data.email) return;
+    // Otra pestaña del mismo navegador hizo login con este mismo correo
+    _cerrarSesionForzada();
+  };
+}
+
 function iniciarPollSesion() {
   detenerPollSesion();
-  sessionPollTimer = setInterval(validarSesionRemota, 60000);
+  // Primer chequeo inmediato (no esperar 30s)
+  validarSesionRemota();
+  sessionPollTimer = setInterval(validarSesionRemota, 30000);
 }
 
 function detenerPollSesion() {
   if (sessionPollTimer) { clearInterval(sessionPollTimer); sessionPollTimer = null; }
+}
+
+function _cerrarSesionForzada() {
+  detenerPollSesion();
+  sessionStorage.removeItem(SESSION_KEY);
+  const sesion = verificarSesion();
+  if (sesion) liberarSession(sesion.email);
+  usuariosDB = null;
+  mostrarLogin();
+  const errorMsg = document.getElementById('loginError');
+  if (errorMsg) {
+    errorMsg.textContent = 'Tu sesión fue cerrada porque se inició sesión desde otro dispositivo.';
+    errorMsg.style.display = 'block';
+  }
 }
 
 async function validarSesionRemota() {
@@ -62,18 +93,7 @@ async function validarSesionRemota() {
       headers: { 'Authorization': `Bearer ${crearCredenciales(sesion)}` },
       signal: AbortSignal.timeout(8000)
     });
-    if (resp.status === 401) {
-      detenerPollSesion();
-      sessionStorage.removeItem(SESSION_KEY);
-      liberarSession(sesion.email);
-      usuariosDB = null;
-      mostrarLogin();
-      const errorMsg = document.getElementById('loginError');
-      if (errorMsg) {
-        errorMsg.textContent = 'Tu sesión fue cerrada porque se inició sesión desde otro dispositivo.';
-        errorMsg.style.display = 'block';
-      }
-    }
+    if (resp.status === 401) _cerrarSesionForzada();
   } catch {}
 }
 
@@ -225,6 +245,8 @@ async function _doLogin(force) {
 
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
     registrarSession(usuario.email);
+    // Notificar a otras pestañas del mismo navegador que hubo un nuevo login
+    _sessionChannel?.postMessage({ type: 'new_login', email: usuario.email });
     mostrarDashboard(usuario);
   } catch (err) {
     errorMsg.textContent = err.message;
@@ -501,6 +523,11 @@ function mostrarMensajeAdmin(msg, tipo) {
 }
 
 // ── Inicialización ────────────────────────────────────────────────────────────
+
+// Chequeo inmediato al volver a la pestaña (sin esperar el siguiente ciclo del poll)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') validarSesionRemota();
+});
 
 window.addEventListener('DOMContentLoaded', async () => {
   if (ES_LOCAL) await cargarUsuarios();
