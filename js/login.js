@@ -430,7 +430,7 @@ function buscarUsuario(valor) {
   cargarTablaUsuarios();
 }
 
-function cambiarRol(idx) {
+async function cambiarRol(idx) {
   const u      = usuariosDB[idx];
   const nuevoRol = u.rol === 'admin' ? 'usuario' : 'admin';
 
@@ -441,6 +441,7 @@ function cambiarRol(idx) {
 
   usuariosDB[idx].rol = nuevoRol;
   cargarTablaUsuarios();
+  await guardarUsuarios();
 }
 
 async function agregarUsuario() {
@@ -519,7 +520,7 @@ function mostrarMensajeAdmin(msg, tipo) {
   if (!div) return;
   div.textContent = msg; div.className = `admin-mensaje admin-mensaje-${tipo}`;
   div.style.display = 'block';
-  setTimeout(() => div.style.display = 'none', 4000);
+  if (tipo !== 'error') setTimeout(() => div.style.display = 'none', 6000);
 }
 
 // ── Inicialización ────────────────────────────────────────────────────────────
