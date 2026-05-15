@@ -194,8 +194,12 @@ async function _doLogin(force) {
   const email    = (input.value || '').trim().toLowerCase();
   errorMsg.style.display = 'none';
 
-  if (!email.includes('@') || email.length < 5) {
+  if (!email.includes('@')) {
     errorMsg.textContent = 'Ingresa un correo electrónico válido.';
+    errorMsg.style.display = 'block'; return;
+  }
+  if (!email.endsWith('@arauco.com')) {
+    errorMsg.textContent = 'Acceso restringido. Solo se permiten correos @arauco.com.';
     errorMsg.style.display = 'block'; return;
   }
 
@@ -449,8 +453,8 @@ async function agregarUsuario() {
   const cargo      = cargoInput.value.trim();
   errorDiv.style.display = 'none';
 
-  if (!email.includes('@') || email.length < 5) {
-    errorDiv.textContent = 'Ingresa un correo electrónico válido';
+  if (!email.endsWith('@arauco.com')) {
+    errorDiv.textContent = 'Solo se permiten correos @arauco.com';
     errorDiv.style.display = 'block'; return;
   }
   if (usuariosDB.find(u => u.email === email)) {

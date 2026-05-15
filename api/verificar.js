@@ -30,8 +30,8 @@ export default async function handler(req, res) {
 
   const { force } = req.body || {};
   const email = ((req.body || {}).email || '').trim().toLowerCase();
-  if (!email.includes('@') || email.length < 5) {
-    return res.status(400).json({ error: 'Correo electrónico inválido' });
+  if (!email.endsWith('@arauco.com')) {
+    return res.status(400).json({ error: 'Solo se permiten correos @arauco.com' });
   }
 
   const secret      = process.env.ADMIN_SECRET;

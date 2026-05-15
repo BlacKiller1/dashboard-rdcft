@@ -27,8 +27,8 @@ export default async function handler(req, res) {
   if (!nombre || !cargo || !email) {
     return res.status(400).json({ error: 'Todos los campos son requeridos' });
   }
-  if (!email.includes('@') || email.length < 5) {
-    return res.status(400).json({ error: 'Correo electrónico inválido' });
+  if (!email.endsWith('@arauco.com')) {
+    return res.status(400).json({ error: 'Solo se permiten correos @arauco.com' });
   }
 
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
