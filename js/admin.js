@@ -198,6 +198,15 @@ async function guardarUsuarios() {
       body: JSON.stringify({ usuarios: usuariosDB })
     });
     if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
+
+    // Si el admin cambió su propio cargo o rol, actualizar sessionStorage
+    const self = usuariosDB.find(u => u.email === sesion.email);
+    if (self && (self.cargo !== sesion.cargo || self.rol !== sesion.rol)) {
+      sesion.cargo = self.cargo;
+      sesion.rol   = self.rol;
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(sesion));
+    }
+
     mostrarMensaje('✅ Usuarios actualizados correctamente.', 'success');
   } catch (err) {
     mostrarMensaje('❌ ' + err.message, 'error');
