@@ -94,26 +94,32 @@ export default async function handler(req, res) {
   try {
     const nuevoValor = JSON.stringify({ usuarios });
 
-    // Paso 1 — Obtener ID de la variable USUARIOS_DB
+    // Paso 1 — Obtener TODOS los registros de USUARIOS_DB (puede haber uno por environment)
     const envResp = await fetch(`https://api.vercel.com/v10/projects/${PROJECT_ID}/env`, {
       headers: { 'Authorization': `Bearer ${VERCEL_TOKEN}` }
     });
+    if (!envResp.ok) throw new Error(`Error consultando env vars de Vercel: ${envResp.status}`);
     const envData = await envResp.json();
-    const envVar  = envData.envs?.find(e => e.key === 'USUARIOS_DB');
+    const envVars = (envData.envs || []).filter(e => e.key === 'USUARIOS_DB');
 
-    if (envVar) {
-      // Paso 2 — Actualizar variable existente
-      const patchResp = await fetch(`https://api.vercel.com/v10/projects/${PROJECT_ID}/env/${envVar.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${VERCEL_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ value: nuevoValor, target: ['production'] })
-      });
-      if (!patchResp.ok) throw new Error(`Vercel PATCH: ${patchResp.status}`);
+    if (envVars.length > 0) {
+      // Paso 2 — Actualizar TODOS los registros sin cambiar su target
+      for (const envVar of envVars) {
+        const patchResp = await fetch(`https://api.vercel.com/v10/projects/${PROJECT_ID}/env/${envVar.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${VERCEL_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ value: nuevoValor })
+        });
+        if (!patchResp.ok) {
+          const patchErr = await patchResp.json().catch(() => ({}));
+          throw new Error(`Error actualizando USUARIOS_DB (target: ${JSON.stringify(envVar.target)}): ${patchErr.error?.message || patchResp.status}`);
+        }
+      }
     } else {
-      // Paso 2b — Crear variable si no existe
+      // Paso 2b — Crear la variable si no existe
       const postResp = await fetch(`https://api.vercel.com/v10/projects/${PROJECT_ID}/env`, {
         method: 'POST',
         headers: {
@@ -127,7 +133,10 @@ export default async function handler(req, res) {
           target: ['production']
         })
       });
-      if (!postResp.ok) throw new Error(`Vercel POST: ${postResp.status}`);
+      if (!postResp.ok) {
+        const postErr = await postResp.json().catch(() => ({}));
+        throw new Error(`Error creando USUARIOS_DB: ${postErr.error?.message || postResp.status}`);
+      }
     }
 
     // Paso 3 — Obtener nombre real del proyecto en Vercel
