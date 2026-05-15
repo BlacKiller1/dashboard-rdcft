@@ -1228,24 +1228,6 @@ html, body {
   color: var(--c-text-dim);
 }
 
-/* ── Mapa semáforo general ── */
-.resumen-mapa-estados {
-  flex: 1;
-  min-height: 260px;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--c-border);
-}
-.resumen-mapa-estados .leaflet-tooltip {
-  background: rgba(20,18,14,0.92);
-  border: 1px solid var(--c-border-md);
-  color: var(--c-text);
-  font-size: 11px;
-  border-radius: 6px;
-  padding: 4px 8px;
-  box-shadow: none;
-}
-
 /* ── Panel paisajes (derecha) ── */
 .resumen-panel {
   background: rgba(20,18,14,0.87);
