@@ -1,4 +1,6 @@
 // api/solicitar-acceso.js — Envía solicitud de acceso al administrador
+import { enviarCorreo } from './_mail.js';
+
 const ALLOWED_ORIGINS = [
   'https://arauco-rdcft.vercel.app',
   'http://localhost:5500',
@@ -29,8 +31,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Solo se permiten correos @arauco.com' });
   }
 
-  const RESEND_KEY = process.env.RESEND_API_KEY;
-  if (!RESEND_KEY) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     return res.status(500).json({ error: 'Servicio de correo no configurado' });
   }
 
@@ -64,25 +65,11 @@ export default async function handler(req, res) {
   `;
 
   try {
-    const resp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'RDCFT Dashboard <onboarding@resend.dev>',
-        to: 'abmorareta@gmail.com',
-        subject: `[RDCFT] Solicitud de acceso — ${nombre}`,
-        html
-      })
+    await enviarCorreo({
+      to: process.env.GMAIL_USER,
+      subject: `[RDCFT] Solicitud de acceso — ${nombre}`,
+      html
     });
-
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(err.message || `Resend ${resp.status}`);
-    }
-
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('[RDCFT] Error enviando solicitud:', err);

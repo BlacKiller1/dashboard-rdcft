@@ -1,5 +1,6 @@
 // api/usuarios.js — Actualizar usuarios (requiere sesión de admin firmada)
 import crypto from 'crypto';
+import { enviarCorreo } from './_mail.js';
 
 async function redis(command) {
   const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
@@ -175,8 +176,8 @@ export default async function handler(req, res) {
     // Notificar por correo a usuarios recién agregados (no bloquea la respuesta)
     const emailsExistentes = new Set(existingUsuarios.map(u => u.email));
     const nuevos = usuarios.filter(u => !emailsExistentes.has(u.email));
-    if (nuevos.length > 0 && process.env.RESEND_API_KEY) {
-      Promise.all(nuevos.map(u => enviarBienvenida(u, process.env.RESEND_API_KEY)))
+    if (nuevos.length > 0 && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      Promise.all(nuevos.map(u => enviarBienvenida(u)))
         .catch(e => console.warn('[RDCFT] Error enviando correos de bienvenida:', e));
     }
 
@@ -196,7 +197,7 @@ function esc(str) {
   return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-async function enviarBienvenida(usuario, resendKey) {
+async function enviarBienvenida(usuario) {
   const rolTexto = usuario.rol === 'admin' ? '⭐ Administrador' : '👤 Usuario';
   const html = `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#f9f9f9;border-radius:10px;overflow:hidden;">
@@ -233,23 +234,10 @@ async function enviarBienvenida(usuario, resendKey) {
     </div>
   `;
 
-  const resp = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${resendKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      from: 'RDCFT Dashboard <onboarding@resend.dev>',
-      to: usuario.email,
-      subject: '[RDCFT] Tu acceso al Dashboard ha sido habilitado',
-      html
-    })
+  await enviarCorreo({
+    to: usuario.email,
+    subject: '[RDCFT] Tu acceso al Dashboard ha sido habilitado',
+    html
   });
-
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(`Resend ${resp.status}: ${err.message || JSON.stringify(err)}`);
-  }
   console.log('[RDCFT] Correo de bienvenida enviado a:', usuario.email);
 }
