@@ -197,46 +197,54 @@ function esc(str) {
   return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function nombreDeEmail(email) {
+  const local = email.split('@')[0];
+  const primera = local.split('.')[0];
+  return primera.toUpperCase();
+}
+
+function idDeEmail(email) {
+  let hash = 0;
+  for (const c of email) hash = (hash * 31 + c.charCodeAt(0)) & 0xffff;
+  return 1000 + (hash % 9000);
+}
+
 async function enviarBienvenida(usuario) {
-  const rolTexto = usuario.rol === 'admin' ? '⭐ Administrador' : '👤 Usuario';
+  const nombre = nombreDeEmail(usuario.email);
+  const idUser = idDeEmail(usuario.email);
   const html = `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#f9f9f9;border-radius:10px;overflow:hidden;">
       <div style="background:#E8820A;padding:20px 28px;">
         <span style="color:#fff;font-size:18px;font-weight:700;letter-spacing:.1em;">arauco</span>
-        <p style="color:rgba(255,255,255,.85);margin:4px 0 0;font-size:12px;">Dashboard RDCFT · Acceso habilitado</p>
+        <p style="color:rgba(255,255,255,.85);margin:4px 0 0;font-size:12px;">Dashboard RDCFT · Notificación automática</p>
       </div>
-      <div style="padding:28px;">
-        <p style="font-size:14px;color:#333;margin:0 0 20px;">Tu acceso al Dashboard Meteorológico RDCFT ha sido habilitado por el administrador.</p>
-        <table style="width:100%;border-collapse:collapse;font-size:13px;">
-          <tr style="border-bottom:1px solid #eee;">
-            <td style="padding:10px 12px;color:#888;width:100px;">Correo</td>
-            <td style="padding:10px 12px;color:#E8820A;font-weight:600;">${esc(usuario.email)}</td>
-          </tr>
-          <tr style="border-bottom:1px solid #eee;">
-            <td style="padding:10px 12px;color:#888;">Cargo</td>
-            <td style="padding:10px 12px;color:#111;font-weight:600;">${esc(usuario.cargo || '-')}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 12px;color:#888;">Rol</td>
-            <td style="padding:10px 12px;color:#111;font-weight:600;">${esc(rolTexto)}</td>
-          </tr>
-        </table>
-        <div style="margin:24px 0 0;text-align:center;">
+      <div style="padding:32px 28px;color:#222;font-size:14px;line-height:1.7;">
+        <p style="margin:0 0 20px;">
+          Estimado(a): <strong>${esc(nombre)}</strong>
+          <span style="color:#888;font-size:12px;margin-left:8px;">[ID-USER: ${idUser}]</span>
+        </p>
+        <p style="margin:0 0 20px;">
+          Le informamos que sus credenciales de acceso han sido habilitadas exitosamente en la plataforma.
+        </p>
+        <div style="margin:24px 0;text-align:center;">
           <a href="https://arauco-rdcft.vercel.app"
              style="display:inline-block;background:#E8820A;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:700;font-size:14px;">
             Ingresar al Dashboard →
           </a>
         </div>
-        <p style="font-size:12px;color:#999;margin:20px 0 0;border-top:1px solid #eee;padding-top:16px;">
-          Ingresa con tu correo corporativo en <a href="https://arauco-rdcft.vercel.app" style="color:#E8820A;">arauco-rdcft.vercel.app</a>
+        <p style="margin:20px 0 0;">
+          Si presenta inconvenientes o requiere soporte adicional, por favor responda a este hilo de comunicación.
         </p>
+        <p style="margin:24px 0 0;">Atentamente,</p>
+        <p style="margin:4px 0 0;font-weight:600;">Equipo Dashboard RDCFT — Arauco</p>
+        <p style="margin:4px 0 0;font-size:12px;color:#888;">${esc(usuario.email)}</p>
       </div>
     </div>
   `;
 
   await enviarCorreo({
     to: usuario.email,
-    subject: '[RDCFT] Tu acceso al Dashboard ha sido habilitado',
+    subject: '[NOTIFICACIÓN AUTOMÁTICA] - Confirmación de Acceso',
     html
   });
   console.log('[RDCFT] Correo de bienvenida enviado a:', usuario.email);
