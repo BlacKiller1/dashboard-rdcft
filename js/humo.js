@@ -523,10 +523,14 @@ async function generarPdfHumo() {
     try {
       const mapEl = document.getElementById('humoMapContainer');
       if (mapEl && humoMap) {
+        const capLat = parseFloat(document.getElementById('humoLat').value);
+        const capLon = parseFloat(document.getElementById('humoLon').value);
+        if (capLat && capLon) humoMap.setView([capLat, capLon], 10, { animate: false });
         humoMap.invalidateSize();
-        await new Promise(r => setTimeout(r, 350));
+        await new Promise(r => setTimeout(r, 900));
         const mc = await html2canvas(mapEl, {
-          scale: 2, useCORS: true, allowTaint: true, logging: false
+          scale: 2, useCORS: true, allowTaint: true, logging: false,
+          scrollX: 0, scrollY: 0
         });
         mapImgData = mc.toDataURL('image/jpeg', 0.92);
       }
@@ -640,12 +644,12 @@ async function generarPdfHumo() {
     // ── 5. FILA DE COORDENADAS ─────────────────────────────────────
     const COL = CW / 3;
 
-    function coordItem(x, icono, colorIcono, etiq, valor) {
-      pdf.setFontSize(8.5);
-      pdf.setTextColor(...colorIcono);
-      pdf.text(icono, x, y);
-      const iW = pdf.getTextWidth(icono) + 1.5;
+    function coordItem(x, colorRGB, etiq, valor) {
+      pdf.setFillColor(...colorRGB);
+      pdf.circle(x + 1.5, y - 1.8, 1.2, 'F');
+      const iW = 4.5;
       pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8.5);
       pdf.setTextColor(102, 102, 102);
       pdf.text(etiq, x + iW, y);
       const eW = pdf.getTextWidth(etiq);
@@ -655,9 +659,9 @@ async function generarPdfHumo() {
     }
 
     pdf.setFont('helvetica', 'normal');
-    coordItem(ML,           '●', [217, 83, 79],   'Latitud: ',        lat);
-    coordItem(ML + COL,     '●', [217, 83, 79],   'Longitud: ',       lon);
-    coordItem(ML + 2 * COL, '↑', [102, 102, 102], 'Altura emisión: ', `${altura} m`);
+    coordItem(ML,           [217, 83, 79],   'Latitud: ',        lat);
+    coordItem(ML + COL,     [217, 83, 79],   'Longitud: ',       lon);
+    coordItem(ML + 2 * COL, [102, 102, 102], 'Altura emision: ', `${altura} m`);
     y += 9;  // ≈ 117
 
     // ── 6. CONDICIONES DE VIENTO ──────────────────────────────────
