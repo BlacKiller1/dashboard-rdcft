@@ -562,22 +562,19 @@ async function enviarFeedback() {
   btn.textContent = '⏳ Enviando...'; btn.disabled = true;
 
   try {
-    if (ES_LOCAL) {
-      await new Promise(r => setTimeout(r, 700));
-    } else {
-      const sesion = verificarSesion();
-      const resp = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(sesion ? { 'Authorization': `Bearer ${crearCredenciales(sesion)}` } : {})
-        },
-        body: JSON.stringify({ tipo, mensaje, email: sesion?.email || '' })
-      });
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || `Error ${resp.status}`);
-      }
+    const sesion  = verificarSesion();
+    const apiBase = ES_LOCAL ? 'https://arauco-rdcft.vercel.app' : '';
+    const resp = await fetch(`${apiBase}/api/feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(sesion ? { 'Authorization': `Bearer ${crearCredenciales(sesion)}` } : {})
+      },
+      body: JSON.stringify({ tipo, mensaje, email: sesion?.email || '' })
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `Error ${resp.status}`);
     }
 
     okDiv.style.display = 'block';
