@@ -69,9 +69,13 @@ export default async function handler(req, res) {
 
   // Validar sessionId contra Redis (si fue provisto)
   if (creds.sessionId) {
-    const stored = await redis(['GET', `session:${creds.email}`]);
-    if (!stored || stored !== creds.sessionId) {
-      return res.status(401).json({ error: 'Sesión inválida o expirada. Vuelve a iniciar sesión.' });
+    try {
+      const stored = await redis(['GET', `session:${creds.email}`]);
+      if (!stored || stored !== creds.sessionId) {
+        return res.status(401).json({ error: 'Sesión inválida o expirada. Vuelve a iniciar sesión.' });
+      }
+    } catch (redisErr) {
+      console.warn('[RDCFT] Redis no disponible, continuando con validación HMAC:', redisErr.message);
     }
   }
 
@@ -126,28 +130,38 @@ export default async function handler(req, res) {
       if (!postResp.ok) throw new Error(`Vercel POST: ${postResp.status}`);
     }
 
-    // Paso 3 — Redesplegar el último deployment de producción
+    // Paso 3 — Obtener nombre real del proyecto en Vercel
+    const projectResp = await fetch(`https://api.vercel.com/v9/projects/${PROJECT_ID}`, {
+      headers: { 'Authorization': `Bearer ${VERCEL_TOKEN}` }
+    });
+    if (!projectResp.ok) throw new Error(`No se pudo obtener el proyecto de Vercel: ${projectResp.status}`);
+    const projectData = await projectResp.json();
+    const projectName = projectData.name;
+    if (!projectName) throw new Error('Nombre del proyecto no encontrado en Vercel');
+
+    // Paso 4 — Obtener último deployment de producción
     const listResp = await fetch(
       `https://api.vercel.com/v6/deployments?projectId=${PROJECT_ID}&limit=1&target=production`,
       { headers: { 'Authorization': `Bearer ${VERCEL_TOKEN}` } }
     );
     const listData = await listResp.json();
     const latestUid = listData.deployments?.[0]?.uid;
+    if (!latestUid) throw new Error('No se encontró un deployment previo de producción para redesplegar');
 
-    if (latestUid) {
-      const deployResp = await fetch(`https://api.vercel.com/v13/deployments`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${VERCEL_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ deploymentId: latestUid, name: 'dashboard-rdcft', projectId: PROJECT_ID, target: 'production' })
-      });
-      const deployData = await deployResp.json();
-      console.log('[RDCFT] Redespliegue iniciado:', deployData.id || deployData.uid || deployData);
-    } else {
-      console.warn('[RDCFT] No se encontró deployment previo para redesplegar');
+    // Paso 5 — Lanzar redespliegue con el nombre real del proyecto
+    const deployResp = await fetch(`https://api.vercel.com/v13/deployments`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${VERCEL_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ deploymentId: latestUid, name: projectName, projectId: PROJECT_ID, target: 'production' })
+    });
+    const deployData = await deployResp.json();
+    if (!deployResp.ok) {
+      throw new Error(`Redeploy falló (${deployResp.status}): ${deployData.error?.message || JSON.stringify(deployData)}`);
     }
+    console.log('[RDCFT] Redespliegue iniciado:', deployData.id || deployData.uid);
 
     return res.status(200).json({
       ok: true,
