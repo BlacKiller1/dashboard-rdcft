@@ -452,7 +452,7 @@ async function generarComentariosAuto(lat, lon) {
     textoViento += `• Dirección predominante: ${dirLabel} (${dirAvg}°)\n`;
 
     if (diasOkViento.length > 0) {
-      textoViento += `• Días dentro del límite (≤${VIENTO_LIMITE_RDCFT} km/h): ${diasOkViento.map(d => fmtFecha(d.date)).join(', ')}\n`;
+      textoViento += `• Días dentro del límite (<=${VIENTO_LIMITE_RDCFT} km/h): ${diasOkViento.map(d => fmtFecha(d.date)).join(', ')}\n`;
     }
     if (diasMarViento.length > 0) {
       const detalle = diasMarViento.map(d => {
@@ -477,7 +477,7 @@ async function generarComentariosAuto(lat, lon) {
       ? `Ventana óptima: ${fmtFecha(mejorDia.date)} — horarios operables: ${mejorDia.slots.filter(s => s.rdcft.operable).map(s => s.hora).join(', ')}.`
       : 'No se identifican ventanas completamente favorables en el período consultado.';
 
-    let textoQuema = `Evaluación RDCFT — límite viento ≤${VIENTO_LIMITE_RDCFT} km/h:\n`;
+    let textoQuema = `Evaluación RDCFT — límite viento <=${VIENTO_LIMITE_RDCFT} km/h:\n`;
     textoQuema += `Estado general: ${estadoGlobal}\n\n`;
     textoQuema += `• Días completamente favorables: ${nOk}/${days.length}\n`;
     textoQuema += `• Días con restricciones parciales: ${nWarn}/${days.length}\n`;
@@ -521,27 +521,20 @@ async function generarPdfHumo() {
     // ── 1. Capturar mapa ──────────────────────────────────────────
     let mapImgData = null;
     try {
-      const mapEl = document.getElementById('humoMapContainer');
+      const mapEl  = document.getElementById('humoMapContainer');
+      const pdfMod = document.getElementById('humoPdfModal');
       if (mapEl && humoMap) {
         const capLat = parseFloat(document.getElementById('humoLat').value);
         const capLon = parseFloat(document.getElementById('humoLon').value);
-        // Centrar en el punto de emisión a zoom fijo para captura limpia
-        if (capLat && capLon) {
-          humoMap.setView([capLat, capLon], 11, { animate: false });
-        }
+        if (capLat && capLon) humoMap.setView([capLat, capLon], 11, { animate: false });
         humoMap.invalidateSize();
-        // Esperar a que los tiles satelitales carguen completamente
-        await new Promise(r => setTimeout(r, 1400));
-        const rect = mapEl.getBoundingClientRect();
+        // Ocultar modal para que no interfiera con la captura
+        if (pdfMod) pdfMod.style.visibility = 'hidden';
+        await new Promise(r => setTimeout(r, 1500));
         const mc = await html2canvas(mapEl, {
-          scale: 2, useCORS: true, allowTaint: true, logging: false,
-          x: rect.left + window.scrollX,
-          y: rect.top  + window.scrollY,
-          width:  rect.width,
-          height: rect.height,
-          windowWidth:  document.documentElement.scrollWidth,
-          windowHeight: document.documentElement.scrollHeight
+          scale: 2, useCORS: true, allowTaint: true, logging: false
         });
+        if (pdfMod) pdfMod.style.visibility = '';
         mapImgData = mc.toDataURL('image/jpeg', 0.92);
       }
     } catch (_) {}
