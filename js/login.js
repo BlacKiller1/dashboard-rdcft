@@ -64,7 +64,7 @@ function iniciarPollSesion() {
   detenerPollSesion();
   // Primer chequeo inmediato (no esperar 30s)
   validarSesionRemota();
-  sessionPollTimer = setInterval(validarSesionRemota, 30000);
+  sessionPollTimer = setInterval(validarSesionRemota, 15000);
 }
 
 function detenerPollSesion() {
@@ -110,9 +110,9 @@ function detenerPollAdmin() {
 
 function _cerrarSesionForzada() {
   detenerPollSesion();
-  sessionStorage.removeItem(SESSION_KEY);
-  const sesion = verificarSesion();
+  const sesion = verificarSesion();          // leer ANTES de borrar
   if (sesion) liberarSession(sesion.email);
+  sessionStorage.removeItem(SESSION_KEY);
   usuariosDB = null;
   mostrarLogin();
   const errorMsg = document.getElementById('loginError');
@@ -661,10 +661,11 @@ async function enviarFeedback() {
 
 // ── Inicialización ────────────────────────────────────────────────────────────
 
-// Chequeo inmediato al volver a la pestaña (sin esperar el siguiente ciclo del poll)
+// Chequeo inmediato al volver a la pestaña o ventana (sin esperar el siguiente ciclo del poll)
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') validarSesionRemota();
 });
+window.addEventListener('focus', validarSesionRemota);
 
 window.addEventListener('DOMContentLoaded', async () => {
   if (ES_LOCAL) await cargarUsuarios();

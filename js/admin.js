@@ -237,6 +237,35 @@ function mostrarMensaje(msg, tipo) {
   if (tipo !== 'error') setTimeout(() => { div.style.display = 'none'; }, 6000);
 }
 
+// ── Validación de sesión remota ───────────────────────────────────────────
+
+let _adminSesionTimer = null;
+
+async function validarSesionAdmin() {
+  const s = verificarSesion();
+  if (!s?.sessionId) { window.location.href = '/'; return; }
+  try {
+    const resp = await fetch('/api/ping-sesion', {
+      headers: { Authorization: `Bearer ${crearCredenciales(s)}` },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (resp.status === 401) window.location.href = '/';
+  } catch {}
+}
+
+function iniciarPollAdmin_sesion() {
+  validarSesionAdmin();
+  _adminSesionTimer = setInterval(validarSesionAdmin, 15000);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') validarSesionAdmin();
+});
+window.addEventListener('focus', validarSesionAdmin);
+
 // ── Init ──────────────────────────────────────────────────────────────────
 
-window.addEventListener('DOMContentLoaded', cargarDatos);
+window.addEventListener('DOMContentLoaded', () => {
+  cargarDatos();
+  iniciarPollAdmin_sesion();
+});
