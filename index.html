@@ -75,6 +75,68 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+     PANTALLA DE PIN (ADMINISTRADORES)
+     ══════════════════════════════════════ -->
+<div id="pinScreen" style="display:none;">
+  <div class="login-bg">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="lg2" cx="78%" cy="88%" r="52%">
+          <stop offset="0%" stop-color="#1A52A8" stop-opacity=".65"/>
+          <stop offset="100%" stop-color="#181714" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="1200" height="800" fill="#0d0c09"/>
+      <g fill="#1a1812" opacity=".97">
+        <rect x="0" y="510" width="19" height="290"/><polygon points="9,350 -10,528 29,528"/>
+        <rect x="200" y="517" width="18" height="283"/><polygon points="209,357 188,535 230,535"/>
+        <rect x="855" y="506" width="15" height="294"/><polygon points="862,346 842,524 882,524"/>
+        <rect x="965" y="517" width="15" height="283"/><polygon points="972,357 953,535 991,535"/>
+      </g>
+      <rect width="1200" height="800" fill="url(#lg2)"/>
+    </svg>
+  </div>
+  <div class="login-card">
+    <div class="login-brand">arauco</div>
+    <div class="login-brand-sub">Verificación de Seguridad · Administrador</div>
+    <div class="pin-icon-wrap">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+    <div class="login-title" id="pinTitle">Verificación de administrador</div>
+    <div class="login-desc" id="pinSubtitle">Ingresa tu PIN de seguridad para continuar.</div>
+    <div id="pinEmailDisplay" class="pin-email-display"></div>
+    <input type="hidden" id="pinScreenMode" value="verify"/>
+    <input
+      type="password"
+      id="inputPin"
+      class="login-input"
+      placeholder="PIN de seguridad"
+      onkeydown="handlePinKeyDown(event)"
+      autocomplete="new-password"
+      maxlength="64"
+    />
+    <div id="pinConfirmGroup" style="display:none; margin-top:10px;">
+      <input
+        type="password"
+        id="inputPinConfirm"
+        class="login-input"
+        placeholder="Confirmar PIN"
+        onkeydown="handlePinKeyDown(event)"
+        autocomplete="new-password"
+        maxlength="64"
+      />
+      <div class="pin-hint">Minimo 4 caracteres. Letras, numeros o simbolos.</div>
+    </div>
+    <div id="pinError" class="login-error" style="display:none;"></div>
+    <button class="login-btn" id="btnPIN" onclick="verificarPIN()">Continuar &rarr;</button>
+    <button class="solicitud-link-btn" onclick="cancelarPIN()">&larr; Volver al inicio</button>
+  </div>
+</div>
+
 <div id="appShell" style="display:none;">
 <div class="shell">
 

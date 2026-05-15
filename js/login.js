@@ -41,9 +41,10 @@ function forzarLogin() {
   _doLogin(true);
 }
 
-let usuariosDB       = null;
-let sessionPollTimer = null;
-let adminPollTimer   = null;
+let usuariosDB          = null;
+let sessionPollTimer    = null;
+let adminPollTimer      = null;
+let _pinUsuarioPendiente = null;
 
 // BroadcastChannel: notifica a otras pestañas del mismo navegador cuando hay un nuevo login
 const _sessionChannel = typeof BroadcastChannel !== 'undefined'
@@ -293,11 +294,15 @@ async function _doLogin(force) {
       usuario = await resp.json();
     }
 
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
-    registrarSession(usuario.email);
-    // Notificar a otras pestañas del mismo navegador que hubo un nuevo login
-    _sessionChannel?.postMessage({ type: 'new_login', email: usuario.email });
-    mostrarDashboard(usuario);
+    if (usuario.rol === 'admin') {
+      // Los admins pasan por verificación de PIN antes de acceder
+      await mostrarPantallaPIN(usuario);
+    } else {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
+      registrarSession(usuario.email);
+      _sessionChannel?.postMessage({ type: 'new_login', email: usuario.email });
+      mostrarDashboard(usuario);
+    }
   } catch (err) {
     errorMsg.textContent = err.message;
     errorMsg.style.display = 'block';
@@ -330,6 +335,147 @@ function cerrarSesion() {
 }
 
 function handleKeyDown(e) { if (e.key === 'Enter') verificarCorreo(); }
+function handlePinKeyDown(e) { if (e.key === 'Enter') verificarPIN(); }
+
+// ── PIN de seguridad (solo admins) ────────────────────────────────────────────
+
+async function _hashPinLocal(pin, email) {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode('rdcft-admin-pin-local');
+  const msgData = encoder.encode(`${pin}:${email}`);
+  const key = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig  = await crypto.subtle.sign('HMAC', key, msgData);
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function mostrarPantallaPIN(usuario) {
+  _pinUsuarioPendiente = usuario;
+
+  const pinScreen       = document.getElementById('pinScreen');
+  const pinTitle        = document.getElementById('pinTitle');
+  const pinSubtitle     = document.getElementById('pinSubtitle');
+  const pinEmailDisplay = document.getElementById('pinEmailDisplay');
+  const pinError        = document.getElementById('pinError');
+  const pinInput        = document.getElementById('inputPin');
+  const pinConfirmGroup = document.getElementById('pinConfirmGroup');
+  const pinConfirmInput = document.getElementById('inputPinConfirm');
+  const modeInput       = document.getElementById('pinScreenMode');
+
+  document.getElementById('loginScreen').style.display = 'none';
+  pinScreen.style.display = 'flex';
+  pinError.style.display  = 'none';
+  pinInput.value = '';
+  if (pinConfirmInput) pinConfirmInput.value = '';
+  if (pinEmailDisplay) pinEmailDisplay.textContent = usuario.email;
+
+  let hasPin = false;
+  if (ES_LOCAL) {
+    hasPin = !!localStorage.getItem(`admin-pin:${usuario.email}`);
+  } else {
+    try {
+      const resp = await fetch('/api/admin-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(usuario)}` },
+        body: JSON.stringify({ action: 'check' })
+      });
+      if (resp.ok) { const d = await resp.json(); hasPin = d.hasPin || false; }
+    } catch {}
+  }
+
+  if (hasPin) {
+    pinTitle.textContent    = 'Verificacion de administrador';
+    pinSubtitle.textContent = 'Ingresa tu PIN de seguridad para continuar.';
+    if (pinConfirmGroup) pinConfirmGroup.style.display = 'none';
+    if (modeInput) modeInput.value = 'verify';
+  } else {
+    pinTitle.textContent    = 'Crear PIN de seguridad';
+    pinSubtitle.textContent = 'Como administrador debes crear un PIN personal. Lo necesitaras cada vez que inicies sesion.';
+    if (pinConfirmGroup) pinConfirmGroup.style.display = 'block';
+    if (modeInput) modeInput.value = 'create';
+  }
+
+  setTimeout(() => pinInput.focus(), 100);
+}
+
+async function verificarPIN() {
+  const pin     = (document.getElementById('inputPin')?.value || '');
+  const mode    = document.getElementById('pinScreenMode')?.value;
+  const errorEl = document.getElementById('pinError');
+  const btn     = document.getElementById('btnPIN');
+  if (errorEl) errorEl.style.display = 'none';
+
+  if (!pin || pin.length < 4) {
+    if (errorEl) { errorEl.textContent = 'El PIN debe tener al menos 4 caracteres.'; errorEl.style.display = 'block'; }
+    return;
+  }
+
+  if (btn) { btn.textContent = 'Verificando...'; btn.disabled = true; }
+
+  try {
+    if (mode === 'create') {
+      const pinConfirm = (document.getElementById('inputPinConfirm')?.value || '');
+      if (pin !== pinConfirm) {
+        if (errorEl) { errorEl.textContent = 'Los PINs no coinciden.'; errorEl.style.display = 'block'; }
+        return;
+      }
+      // Guardar PIN
+      if (ES_LOCAL) {
+        const hash = await _hashPinLocal(pin, _pinUsuarioPendiente.email);
+        localStorage.setItem(`admin-pin:${_pinUsuarioPendiente.email}`, hash);
+      } else {
+        const resp = await fetch('/api/admin-pin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(_pinUsuarioPendiente)}` },
+          body: JSON.stringify({ action: 'set', pin })
+        });
+        if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
+      }
+    } else {
+      // Verificar PIN
+      let ok = false;
+      if (ES_LOCAL) {
+        const stored = localStorage.getItem(`admin-pin:${_pinUsuarioPendiente.email}`);
+        if (!stored) throw new Error('PIN no configurado. Recarga la pagina.');
+        const hash = await _hashPinLocal(pin, _pinUsuarioPendiente.email);
+        ok = (hash === stored);
+      } else {
+        const resp = await fetch('/api/admin-pin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(_pinUsuarioPendiente)}` },
+          body: JSON.stringify({ action: 'verify', pin })
+        });
+        if (resp.status === 401) { ok = false; }
+        else if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
+        else { ok = true; }
+      }
+      if (!ok) {
+        if (errorEl) { errorEl.textContent = 'PIN incorrecto. Intenta nuevamente.'; errorEl.style.display = 'block'; }
+        const pinInput = document.getElementById('inputPin');
+        if (pinInput) { pinInput.value = ''; pinInput.focus(); }
+        return;
+      }
+    }
+
+    // Exito: completar login
+    document.getElementById('pinScreen').style.display = 'none';
+    const usuario = _pinUsuarioPendiente;
+    _pinUsuarioPendiente = null;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
+    registrarSession(usuario.email);
+    _sessionChannel?.postMessage({ type: 'new_login', email: usuario.email });
+    mostrarDashboard(usuario);
+  } catch (err) {
+    if (errorEl) { errorEl.textContent = err.message; errorEl.style.display = 'block'; }
+  } finally {
+    if (btn) { btn.textContent = 'Continuar →'; btn.disabled = false; }
+  }
+}
+
+function cancelarPIN() {
+  _pinUsuarioPendiente = null;
+  document.getElementById('pinScreen').style.display = 'none';
+  mostrarLogin();
+}
 
 // ── Solicitud de acceso ───────────────────────────────────────────────────────
 

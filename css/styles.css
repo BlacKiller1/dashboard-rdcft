@@ -1295,8 +1295,48 @@ html, body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   LOGIN SCREEN
+   LOGIN SCREEN  /  PIN SCREEN
    ═══════════════════════════════════════════════════════════════════════ */
+#pinScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-bg);
+}
+
+.pin-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(26,82,168,0.13);
+  border: 1px solid rgba(26,82,168,0.3);
+  color: #6a9fd8;
+  margin: 6px auto 2px;
+}
+
+.pin-email-display {
+  font-size: 11px;
+  color: var(--c-text-dim);
+  text-align: center;
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.pin-hint {
+  font-size: 11px;
+  color: var(--c-text-dim);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+[data-theme="light"] #pinScreen { background: var(--c-bg); }
+
 #loginScreen {
   position: fixed;
   inset: 0;
