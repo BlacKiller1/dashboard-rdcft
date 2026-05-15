@@ -326,6 +326,7 @@ async function ejecutarSimulacion() {
           document.getElementById('humoDownloadLink').href = evento.url;
           document.getElementById('humoResult').style.display = 'flex';
           document.getElementById('btnAbrirPdfHumo').disabled = false;
+          if (humoMarcador) humoMarcador.closePopup();
           if (evento.trayectorias) try { mostrarTrayectorias(evento.trayectorias); } catch(_) {}
           break;
         } else if (evento.tipo === 'error') {
@@ -393,12 +394,11 @@ function mostrarTrayectorias(geojson) {
     const bounds = humoCapaTrayectoria.getBounds();
     if (bounds.isValid()) {
       humoMap.fitBounds(bounds, { padding: [40, 40] });
-      // Si las trayectorias se extienden demasiado lejos, volver a vista regional
-      if (humoMap.getZoom() < 7) {
+      if (humoMap.getZoom() < 9) {
         const lat = parseFloat(document.getElementById('humoLat')?.value);
         const lon = parseFloat(document.getElementById('humoLon')?.value);
         const centro = (lat && lon) ? [lat, lon] : bounds.getCenter();
-        humoMap.setView(centro, 7, { animate: true });
+        humoMap.setView(centro, 9, { animate: true });
       }
     }
   } catch(_) {}
