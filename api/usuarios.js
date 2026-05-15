@@ -172,6 +172,14 @@ export default async function handler(req, res) {
     }
     console.log('[RDCFT] Redespliegue iniciado:', deployData.id || deployData.uid);
 
+    // Notificar por correo a usuarios recién agregados (no bloquea la respuesta)
+    const emailsExistentes = new Set(existingUsuarios.map(u => u.email));
+    const nuevos = usuarios.filter(u => !emailsExistentes.has(u.email));
+    if (nuevos.length > 0 && process.env.RESEND_API_KEY) {
+      Promise.all(nuevos.map(u => enviarBienvenida(u, process.env.RESEND_API_KEY)))
+        .catch(e => console.warn('[RDCFT] Error enviando correos de bienvenida:', e));
+    }
+
     return res.status(200).json({
       ok: true,
       total: usuarios.length,
@@ -182,4 +190,66 @@ export default async function handler(req, res) {
     console.error('[RDCFT] Error:', err);
     return res.status(500).json({ error: err.message });
   }
+}
+
+function esc(str) {
+  return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+async function enviarBienvenida(usuario, resendKey) {
+  const rolTexto = usuario.rol === 'admin' ? '⭐ Administrador' : '👤 Usuario';
+  const html = `
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#f9f9f9;border-radius:10px;overflow:hidden;">
+      <div style="background:#E8820A;padding:20px 28px;">
+        <span style="color:#fff;font-size:18px;font-weight:700;letter-spacing:.1em;">arauco</span>
+        <p style="color:rgba(255,255,255,.85);margin:4px 0 0;font-size:12px;">Dashboard RDCFT · Acceso habilitado</p>
+      </div>
+      <div style="padding:28px;">
+        <p style="font-size:14px;color:#333;margin:0 0 20px;">Tu acceso al Dashboard Meteorológico RDCFT ha sido habilitado por el administrador.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px 12px;color:#888;width:100px;">Correo</td>
+            <td style="padding:10px 12px;color:#E8820A;font-weight:600;">${esc(usuario.email)}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px 12px;color:#888;">Cargo</td>
+            <td style="padding:10px 12px;color:#111;font-weight:600;">${esc(usuario.cargo || '-')}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 12px;color:#888;">Rol</td>
+            <td style="padding:10px 12px;color:#111;font-weight:600;">${esc(rolTexto)}</td>
+          </tr>
+        </table>
+        <div style="margin:24px 0 0;text-align:center;">
+          <a href="https://arauco-rdcft.vercel.app"
+             style="display:inline-block;background:#E8820A;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:700;font-size:14px;">
+            Ingresar al Dashboard →
+          </a>
+        </div>
+        <p style="font-size:12px;color:#999;margin:20px 0 0;border-top:1px solid #eee;padding-top:16px;">
+          Ingresa con tu correo corporativo en <a href="https://arauco-rdcft.vercel.app" style="color:#E8820A;">arauco-rdcft.vercel.app</a>
+        </p>
+      </div>
+    </div>
+  `;
+
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${resendKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: 'RDCFT Dashboard <onboarding@resend.dev>',
+      to: usuario.email,
+      subject: '[RDCFT] Tu acceso al Dashboard ha sido habilitado',
+      html
+    })
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(`Resend ${resp.status}: ${err.message || JSON.stringify(err)}`);
+  }
+  console.log('[RDCFT] Correo de bienvenida enviado a:', usuario.email);
 }
