@@ -107,10 +107,12 @@ function iniciarMapa() {
         );
         layer.on('mouseover', function() {
           layer.setStyle({ fillOpacity: 0.30, weight: 2, color: '#45d490' });
-          layer.openPopup();
         });
         layer.on('mouseout', function() {
           layer.setStyle({ fillOpacity: 0.12, weight: 1.2, color: '#2DB87A' });
+        });
+        layer.on('click', function() {
+          layer.openPopup();
         });
         layer.on('mousedown', function(e) { L.DomEvent.stopPropagation(e); });
         layer.on('touchstart', function(e) { L.DomEvent.stopPropagation(e); });
@@ -168,7 +170,7 @@ function iniciarMapa() {
       if (navigator.vibrate) navigator.vibrate(60);
       longPressLat = null;
       longPressLon = null;
-    }, 500);
+    }, 1000);
   }
 
   function cancelarLongPress() {
