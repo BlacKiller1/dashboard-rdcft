@@ -156,6 +156,7 @@
       <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema"></button>
       <button class="logout-btn" onclick="cerrarSesion()" title="Cerrar sesión">⎋ <span class="btn-text">Salir</span></button>
       <button class="consulta-btn" onclick="abrirConsulta()" title="Consultar coordenadas">📍 <span class="btn-text">Consultar coordenadas</span></button>
+      <button class="feedback-btn" onclick="abrirFeedback()" title="Recomendaciones y consultas">💬 <span class="btn-text">Sugerencias</span></button>
     </header>
 
     <!-- ── Modal consulta por coordenadas ── -->
@@ -338,6 +339,46 @@
   window.addEventListener("DOMContentLoaded", actualizarMenuBtn);
 </script>
 
+
+<!-- ══════════════════════════════════════
+     PANEL SUGERENCIAS / CONSULTAS
+     ══════════════════════════════════════ -->
+<div class="modal-overlay" id="feedbackOverlay" onclick="cerrarFeedback()"></div>
+<div class="modal" id="feedbackModal">
+  <div class="modal-header">
+    <span class="modal-title">💬 Recomendaciones, consultas y mejoras</span>
+    <button class="modal-close" onclick="cerrarFeedback()">✕</button>
+  </div>
+  <div class="modal-body">
+    <p class="modal-desc">Comparte una recomendación, consulta o sugerencia de mejora para el dashboard.</p>
+
+    <div class="feedback-tipo-row">
+      <label class="feedback-tipo-opt">
+        <input type="radio" name="feedbackTipo" value="recomendacion" checked/>
+        💡 Recomendación
+      </label>
+      <label class="feedback-tipo-opt">
+        <input type="radio" name="feedbackTipo" value="consulta"/>
+        ❓ Consulta
+      </label>
+      <label class="feedback-tipo-opt">
+        <input type="radio" name="feedbackTipo" value="mejora"/>
+        🔧 Mejora
+      </label>
+    </div>
+
+    <textarea
+      id="feedbackMensaje"
+      class="feedback-textarea"
+      placeholder="Escribe tu mensaje aquí...">
+    </textarea>
+
+    <div id="feedbackError" class="modal-error" style="display:none;"></div>
+    <div id="feedbackOk" class="feedback-ok" style="display:none;">✅ Mensaje enviado. ¡Gracias por tu aporte!</div>
+
+    <button class="modal-submit" id="btnFeedback" onclick="enviarFeedback()">Enviar →</button>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════
      PANEL ADMINISTRACIÓN

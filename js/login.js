@@ -523,6 +523,73 @@ function mostrarMensajeAdmin(msg, tipo) {
   if (tipo !== 'error') setTimeout(() => div.style.display = 'none', 6000);
 }
 
+// ── Panel Sugerencias ─────────────────────────────────────────────────────────
+
+function abrirFeedback() {
+  document.getElementById('feedbackOverlay').style.display = 'block';
+  document.getElementById('feedbackModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('feedbackMensaje').focus(), 80);
+}
+
+function cerrarFeedback() {
+  document.getElementById('feedbackOverlay').style.display = 'none';
+  document.getElementById('feedbackModal').style.display = 'none';
+  document.getElementById('feedbackMensaje').value = '';
+  document.getElementById('feedbackError').style.display = 'none';
+  document.getElementById('feedbackOk').style.display = 'none';
+  const btn = document.getElementById('btnFeedback');
+  if (btn) { btn.textContent = 'Enviar →'; btn.disabled = false; btn.style.display = ''; }
+  const radios = document.querySelectorAll('input[name="feedbackTipo"]');
+  if (radios[0]) radios[0].checked = true;
+}
+
+async function enviarFeedback() {
+  const mensaje  = (document.getElementById('feedbackMensaje').value || '').trim();
+  const tipo     = document.querySelector('input[name="feedbackTipo"]:checked')?.value || 'consulta';
+  const errorDiv = document.getElementById('feedbackError');
+  const okDiv    = document.getElementById('feedbackOk');
+  const btn      = document.getElementById('btnFeedback');
+
+  errorDiv.style.display = 'none';
+  okDiv.style.display    = 'none';
+
+  if (mensaje.length < 10) {
+    errorDiv.textContent = 'El mensaje debe tener al menos 10 caracteres.';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = '⏳ Enviando...'; btn.disabled = true;
+
+  try {
+    if (ES_LOCAL) {
+      await new Promise(r => setTimeout(r, 700));
+    } else {
+      const sesion = verificarSesion();
+      const resp = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(sesion ? { 'Authorization': `Bearer ${crearCredenciales(sesion)}` } : {})
+        },
+        body: JSON.stringify({ tipo, mensaje, email: sesion?.email || '' })
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || `Error ${resp.status}`);
+      }
+    }
+
+    okDiv.style.display = 'block';
+    btn.style.display   = 'none';
+    setTimeout(cerrarFeedback, 2500);
+  } catch (err) {
+    errorDiv.textContent = '❌ ' + err.message;
+    errorDiv.style.display = 'block';
+    btn.textContent = 'Enviar →'; btn.disabled = false;
+  }
+}
+
 // ── Inicialización ────────────────────────────────────────────────────────────
 
 // Chequeo inmediato al volver a la pestaña (sin esperar el siguiente ciclo del poll)

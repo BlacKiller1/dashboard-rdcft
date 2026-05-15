@@ -746,6 +746,77 @@ html, body {
 }
 .consulta-btn:hover { background: rgba(74,158,232,0.2); border-color: var(--c-blue); }
 
+/* ── Botón sugerencias ── */
+.feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 6px 11px;
+  border-radius: 7px;
+  border: 0.5px solid rgba(45,184,122,0.25);
+  background: rgba(45,184,122,0.08);
+  color: var(--c-green);
+  cursor: pointer;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.feedback-btn:hover { background: rgba(45,184,122,0.18); border-color: var(--c-green); }
+
+/* ── Modal sugerencias ── */
+.feedback-tipo-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.feedback-tipo-opt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid var(--c-border-md);
+  border-radius: 6px;
+  padding: 7px 13px;
+  transition: all .12s;
+  user-select: none;
+}
+.feedback-tipo-opt:has(input:checked) {
+  color: var(--c-green);
+  border-color: var(--c-green);
+  background: rgba(45,184,122,0.1);
+}
+.feedback-tipo-opt input[type="radio"] { display: none; }
+.feedback-textarea {
+  width: 100%;
+  min-height: 110px;
+  background: rgba(255,255,255,0.05);
+  border: 0.5px solid var(--c-border-md);
+  border-radius: 6px;
+  color: var(--c-text);
+  font-size: 13px;
+  padding: 10px 12px;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color .12s;
+  box-sizing: border-box;
+}
+.feedback-textarea:focus { outline: none; border-color: var(--c-green); }
+.feedback-textarea::placeholder { color: var(--c-text-dim); }
+.feedback-ok {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--c-green);
+  background: rgba(45,184,122,0.1);
+  border: 0.5px solid rgba(45,184,122,0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
 /* Overlay */
 .modal-overlay {
   display: none;
@@ -1414,6 +1485,7 @@ html, body {
 
   /* Botones más compactos */
   .consulta-btn { font-size: 10px; padding: 6px 10px; }
+  .feedback-btn { font-size: 10px; padding: 6px 10px; }
   .logout-btn   { font-size: 10px; padding: 5px 9px; }
 
   /* ── Main ── */
@@ -1567,6 +1639,7 @@ html, body {
   .topbar-title p  { font-size: 9px; }
   .scard, .user-badge { display: none; }
   .consulta-btn { font-size: 10px; padding: 6px 10px; }
+  .feedback-btn { font-size: 10px; padding: 6px 10px; }
   .logout-btn   { font-size: 10px; padding: 5px 9px; }
 
   /* Botón hamburguesa */
@@ -2105,7 +2178,9 @@ html, body {
 [data-theme="light"] .modal-field input,
 [data-theme="light"] .login-input,
 [data-theme="light"] .admin-input,
-[data-theme="light"] .admin-select { background: rgba(0,0,0,0.05); }
+[data-theme="light"] .admin-select,
+[data-theme="light"] .feedback-textarea { background: rgba(0,0,0,0.05); }
+[data-theme="light"] .feedback-tipo-opt { background: rgba(0,0,0,0.04); }
 
 /* Hovers de lista */
 [data-theme="light"] .p-item:hover      { background: rgba(0,0,0,0.04); }
