@@ -527,6 +527,32 @@ async function guardarUsuarios() {
   }
 }
 
+function exportarCSV() {
+  if (!usuariosDB || usuariosDB.length === 0) {
+    mostrarMensajeAdmin('No hay usuarios para exportar.', 'error');
+    return;
+  }
+  const header = ['Correo', 'Rol', 'Cargo', 'Último acceso'];
+  const rows = usuariosDB.map(u => [
+    u.email,
+    u.rol,
+    u.cargo || '',
+    u.lastlogin ? new Date(u.lastlogin).toLocaleString('es-CL') : 'Nunca'
+  ]);
+  const csv = [header, ...rows]
+    .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `usuarios_rdcft_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function mostrarMensajeAdmin(msg, tipo) {
   const div = document.getElementById('adminMensaje');
   if (!div) return;

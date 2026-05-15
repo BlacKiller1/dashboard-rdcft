@@ -2106,7 +2106,7 @@ html, body {
 }
 .admin-del-btn:hover { background: rgba(201,64,64,0.2); }
 
-.admin-footer { display: flex; justify-content: flex-end; padding-top: 8px; border-top: 0.5px solid var(--c-border); }
+.admin-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 0.5px solid var(--c-border); gap: 8px; }
 
 .admin-save-btn {
   padding: 10px 20px; border-radius: 9px; border: 0.5px solid rgba(232,130,10,0.4);
@@ -2114,6 +2114,13 @@ html, body {
   font-weight: 700; cursor: pointer; transition: all .15s;
 }
 .admin-save-btn:hover { background: rgba(232,130,10,0.22); }
+
+.admin-export-btn {
+  padding: 10px 20px; border-radius: 9px; border: 0.5px solid rgba(80,180,120,0.4);
+  background: rgba(80,180,120,0.10); color: #50b478; font-size: 13px;
+  font-weight: 700; cursor: pointer; transition: all .15s;
+}
+.admin-export-btn:hover { background: rgba(80,180,120,0.20); }
 
 .admin-mensaje { font-size: 12px; padding: 10px 14px; border-radius: 8px; }
 .admin-mensaje-success { background: rgba(45,184,122,0.1); color: var(--c-green); border: 0.5px solid rgba(45,184,122,0.3); }
