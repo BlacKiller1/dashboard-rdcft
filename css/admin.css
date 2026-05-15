@@ -125,8 +125,19 @@ html, body { overflow: auto; height: auto; }
 .rol-badge.rol-admin   { background: rgba(232,130,10,0.15); color: var(--c-orange); border: 1px solid rgba(232,130,10,0.3); }
 .rol-badge.rol-usuario { background: rgba(74,158,232,0.10); color: var(--c-blue);   border: 1px solid rgba(74,158,232,0.25); }
 
+/* ── Cargo input inline ──────────────────────────────── */
+.ap-cargo-input {
+  width: 100%; min-width: 90px; padding: 4px 8px; border-radius: 6px;
+  border: 1px solid transparent; background: transparent;
+  color: var(--c-text); font-size: 13px; outline: none; transition: border-color .15s, background .15s;
+}
+.ap-cargo-input:hover { border-color: var(--c-border-md); background: rgba(255,255,255,0.04); }
+.ap-cargo-input:focus { border-color: var(--c-orange); background: rgba(255,255,255,0.06); }
+[data-theme="light"] .ap-cargo-input:hover  { background: rgba(0,0,0,0.04); }
+[data-theme="light"] .ap-cargo-input:focus  { background: #fff; }
+
 /* ── Acciones ────────────────────────────────────────── */
-.ap-acciones { display: flex; gap: 6px; }
+.ap-acciones { display: flex; gap: 6px; align-items: center; }
 .btn-rol {
   padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
   cursor: pointer; transition: all .15s; border: 1px solid;
@@ -141,6 +152,12 @@ html, body { overflow: auto; height: auto; }
   color: var(--c-red); cursor: pointer; transition: all .15s;
 }
 .btn-del:hover { background: rgba(201,64,64,0.2); }
+.btn-logout {
+  padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  border: 1px solid rgba(140,140,200,0.35); background: rgba(140,140,200,0.08);
+  color: #8888cc; cursor: pointer; transition: all .15s;
+}
+.btn-logout:hover { background: rgba(140,140,200,0.2); }
 .self-label { font-size: 11px; color: var(--c-text-dim); }
 
 /* ── Footer ──────────────────────────────────────────── */

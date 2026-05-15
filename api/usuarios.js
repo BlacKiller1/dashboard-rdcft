@@ -86,7 +86,14 @@ export default async function handler(req, res) {
   }
 
   // ── Validar payload ────────────────────────────────────────────────────────
-  const { usuarios } = req.body || {};
+  const { action, email: targetEmail, usuarios } = req.body || {};
+
+  if (action === 'force-logout') {
+    if (!targetEmail) return res.status(400).json({ error: 'Email requerido' });
+    await redis(['DEL', `session:${targetEmail}`]);
+    return res.status(200).json({ ok: true, mensaje: `Sesión de ${targetEmail} cerrada.` });
+  }
+
   if (!Array.isArray(usuarios)) return res.status(400).json({ error: 'Datos inválidos' });
 
   try {

@@ -99,14 +99,15 @@ function renderTabla() {
           <tr>
             <td>${escapeHtml(u.email)}</td>
             <td><span class="rol-badge rol-${escapeHtml(u.rol)}">${esAdmin ? '⭐ Admin' : '👤 Usuario'}</span></td>
-            <td>${escapeHtml(u.cargo || '—')}</td>
+            <td><input class="ap-cargo-input" value="${escapeHtml(u.cargo || '')}" placeholder="—" oninput="editarCargo(${idx},this.value)"/></td>
             <td>${formatLastLogin(u.lastlogin)}</td>
             <td class="ap-acciones">
               ${!esSelf ? `
                 <button class="btn-rol ${esAdmin ? 'btn-quitar' : 'btn-dar'}" onclick="cambiarRol(${idx})">
                   ${esAdmin ? '⬇ Usuario' : '⬆ Admin'}
                 </button>
-                <button class="btn-del" onclick="eliminarUsuario(${idx})" title="Eliminar">✕</button>
+                <button class="btn-logout" onclick="forzarLogout(${idx})" title="Cerrar sesión activa">&#x21A9; Logout</button>
+                <button class="btn-del" onclick="eliminarUsuario(${idx})" title="Eliminar">&#x2715;</button>
               ` : '<span class="self-label">Tú</span>'}
             </td>
           </tr>
@@ -130,6 +131,26 @@ async function cambiarRol(idx) {
   usuariosDB[idx].rol = nuevoRol;
   renderTabla();
   await guardarUsuarios();
+}
+
+function editarCargo(idx, valor) {
+  usuariosDB[idx].cargo = valor.trim();
+}
+
+async function forzarLogout(idx) {
+  const u = usuariosDB[idx];
+  if (!confirm(`¿Cerrar la sesión activa de ${u.email}?`)) return;
+  try {
+    const resp = await fetch('/api/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(sesion)}` },
+      body: JSON.stringify({ action: 'force-logout', email: u.email })
+    });
+    if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
+    mostrarMensaje(`Sesión de ${u.email} cerrada. Deberá volver a iniciar sesión.`, 'success');
+  } catch (err) {
+    mostrarMensaje('❌ ' + err.message, 'error');
+  }
 }
 
 async function agregarUsuario() {
