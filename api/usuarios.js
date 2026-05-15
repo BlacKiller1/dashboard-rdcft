@@ -173,12 +173,15 @@ export default async function handler(req, res) {
     }
     console.log('[RDCFT] Redespliegue iniciado:', deployData.id || deployData.uid);
 
-    // Notificar por correo a usuarios recién agregados (no bloquea la respuesta)
+    // Notificar por correo a usuarios recién agregados (bloqueante para que no se corte antes de enviar)
     const emailsExistentes = new Set(existingUsuarios.map(u => u.email));
     const nuevos = usuarios.filter(u => !emailsExistentes.has(u.email));
     if (nuevos.length > 0 && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-      Promise.all(nuevos.map(u => enviarBienvenida(u)))
-        .catch(e => console.warn('[RDCFT] Error enviando correos de bienvenida:', e));
+      try {
+        await Promise.all(nuevos.map(u => enviarBienvenida(u)));
+      } catch (e) {
+        console.warn('[RDCFT] Error enviando correos de bienvenida:', e);
+      }
     }
 
     return res.status(200).json({
