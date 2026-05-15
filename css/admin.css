@@ -1,0 +1,183 @@
+/* ═══════════════════════════════════════════════════
+   admin.css — Página dedicada de administración RDCFT
+   ═══════════════════════════════════════════════════ */
+
+html, body { overflow: auto; height: auto; }
+.admin-page { min-height: 100vh; background: var(--c-bg); color: var(--c-text); }
+
+/* ── Header ─────────────────────────────────────────── */
+.ap-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 32px; background: rgba(0,0,0,0.35);
+  border-bottom: 1px solid var(--c-border);
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.ap-header-left  { display: flex; align-items: center; gap: 16px; }
+.ap-header-right { display: flex; align-items: center; gap: 14px; }
+
+.ap-brand {
+  font-size: 22px; font-weight: 300; letter-spacing: .08em;
+  color: var(--c-text-muted);
+}
+.ap-title {
+  font-size: 13px; font-weight: 600; color: var(--c-text);
+  padding-left: 16px; border-left: 1px solid var(--c-border-md);
+}
+.ap-user {
+  font-size: 11px; color: var(--c-text-muted);
+}
+.ap-back-btn {
+  padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--c-border-md); background: rgba(255,255,255,0.05);
+  color: var(--c-text); cursor: pointer; transition: all .15s;
+}
+.ap-back-btn:hover { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.22); }
+
+/* ── Main ────────────────────────────────────────────── */
+.ap-main { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
+
+/* ── Stats ───────────────────────────────────────────── */
+.ap-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  margin-bottom: 32px;
+}
+.ap-stat-card {
+  display: flex; align-items: center; gap: 16px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--c-border);
+  border-radius: 14px; padding: 20px 22px; transition: border-color .2s;
+}
+.ap-stat-card:hover { border-color: var(--c-border-md); }
+.ap-stat-card--alert { border-color: rgba(201,64,64,0.5); background: rgba(201,64,64,0.07); }
+.ap-stat-card--alert .ap-stat-value { color: var(--c-red); }
+
+.ap-stat-icon { font-size: 26px; }
+.ap-stat-value { font-size: 28px; font-weight: 700; line-height: 1; color: var(--c-orange); }
+.ap-stat-label { font-size: 11px; color: var(--c-text-muted); margin-top: 4px; }
+
+/* ── Sections ────────────────────────────────────────── */
+.ap-section {
+  background: rgba(255,255,255,0.03); border: 1px solid var(--c-border);
+  border-radius: 14px; padding: 24px; margin-bottom: 20px;
+}
+.ap-section--table { padding-bottom: 0; }
+.ap-section-title  { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--c-text-muted); text-transform: uppercase; margin-bottom: 16px; }
+
+/* ── Form ────────────────────────────────────────────── */
+.ap-form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.ap-input {
+  flex: 1; min-width: 160px; padding: 9px 12px; border-radius: 8px;
+  border: 1px solid var(--c-border-md); background: rgba(255,255,255,0.05);
+  color: var(--c-text); font-size: 13px; outline: none; transition: border-color .15s;
+}
+.ap-input:focus { border-color: var(--c-orange); }
+.ap-select {
+  padding: 9px 12px; border-radius: 8px; border: 1px solid var(--c-border-md);
+  background: rgba(255,255,255,0.05); color: var(--c-text); font-size: 13px; cursor: pointer;
+}
+.ap-add-btn {
+  padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 700;
+  border: 1px solid rgba(45,184,122,0.4); background: rgba(45,184,122,0.1);
+  color: var(--c-green); cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.ap-add-btn:hover { background: rgba(45,184,122,0.2); }
+.ap-error { font-size: 12px; color: var(--c-red); margin-top: 10px; }
+
+/* ── Table toolbar ───────────────────────────────────── */
+.ap-table-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+}
+.ap-table-toolbar-left  { display: flex; align-items: center; gap: 12px; }
+.ap-table-toolbar-right { display: flex; align-items: center; gap: 10px; }
+.ap-table-toolbar-left .ap-section-title { margin-bottom: 0; }
+
+.ap-counter { font-size: 11px; color: var(--c-text-dim); }
+.ap-search  { max-width: 240px; flex: none; }
+.ap-export-btn {
+  padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  border: 1px solid rgba(80,180,120,0.4); background: rgba(80,180,120,0.10);
+  color: #50b478; cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.ap-export-btn:hover { background: rgba(80,180,120,0.20); }
+
+/* ── Tabla ───────────────────────────────────────────── */
+.ap-tabla-wrap { overflow-x: auto; }
+.ap-tabla {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.ap-tabla thead tr { border-bottom: 1px solid var(--c-border-md); }
+.ap-tabla th {
+  padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600;
+  color: var(--c-text-muted); text-transform: uppercase; letter-spacing: .05em;
+}
+.ap-tabla td { padding: 12px 14px; border-bottom: 1px solid var(--c-border); }
+.ap-tabla tbody tr:last-child td { border-bottom: none; }
+.ap-tabla tbody tr:hover td { background: rgba(255,255,255,0.02); }
+.ap-tabla-loading, .ap-tabla-empty {
+  text-align: center; color: var(--c-text-dim); padding: 32px !important;
+}
+
+/* ── Rol badge ───────────────────────────────────────── */
+.rol-badge {
+  display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.rol-badge.rol-admin   { background: rgba(232,130,10,0.15); color: var(--c-orange); border: 1px solid rgba(232,130,10,0.3); }
+.rol-badge.rol-usuario { background: rgba(74,158,232,0.10); color: var(--c-blue);   border: 1px solid rgba(74,158,232,0.25); }
+
+/* ── Acciones ────────────────────────────────────────── */
+.ap-acciones { display: flex; gap: 6px; }
+.btn-rol {
+  padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: all .15s; border: 1px solid;
+}
+.btn-dar   { border-color: rgba(232,130,10,0.4); background: rgba(232,130,10,0.1); color: var(--c-orange); }
+.btn-quitar{ border-color: rgba(74,158,232,0.35); background: rgba(74,158,232,0.08); color: var(--c-blue); }
+.btn-dar:hover    { background: rgba(232,130,10,0.22); }
+.btn-quitar:hover { background: rgba(74,158,232,0.18); }
+.btn-del {
+  padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;
+  border: 1px solid rgba(201,64,64,0.35); background: rgba(201,64,64,0.08);
+  color: var(--c-red); cursor: pointer; transition: all .15s;
+}
+.btn-del:hover { background: rgba(201,64,64,0.2); }
+.self-label { font-size: 11px; color: var(--c-text-dim); }
+
+/* ── Footer ──────────────────────────────────────────── */
+.ap-table-footer {
+  display: flex; justify-content: flex-end;
+  padding: 16px 0; border-top: 1px solid var(--c-border);
+}
+.ap-save-btn {
+  padding: 10px 22px; border-radius: 9px; font-size: 13px; font-weight: 700;
+  border: 1px solid rgba(232,130,10,0.4); background: rgba(232,130,10,0.12);
+  color: var(--c-orange); cursor: pointer; transition: all .15s;
+}
+.ap-save-btn:hover { background: rgba(232,130,10,0.22); }
+
+/* ── Mensaje ─────────────────────────────────────────── */
+.ap-mensaje {
+  font-size: 12px; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;
+}
+.ap-mensaje--success { background: rgba(45,184,122,0.1); color: var(--c-green); border: 1px solid rgba(45,184,122,0.3); }
+.ap-mensaje--error   { background: var(--c-red-dim);     color: var(--c-red);   border: 1px solid rgba(201,64,64,0.3); }
+
+/* ── Light theme overrides ───────────────────────────── */
+[data-theme="light"] .ap-back-btn   { color: #1a1a1a; border-color: rgba(0,0,0,0.18); background: rgba(0,0,0,0.04); }
+[data-theme="light"] .ap-back-btn:hover { background: rgba(0,0,0,0.09); }
+[data-theme="light"] .ap-input,
+[data-theme="light"] .ap-select     { background: #fff; border-color: rgba(0,0,0,0.18); color: #1a1a1a; }
+[data-theme="light"] .ap-tabla tbody tr:hover td { background: rgba(0,0,0,0.02); }
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 900px) {
+  .ap-stats { grid-template-columns: repeat(2,1fr); }
+  .ap-header { padding: 12px 18px; }
+  .ap-main   { padding: 20px 14px 40px; }
+}
+@media (max-width: 600px) {
+  .ap-stats  { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ap-title  { display: none; }
+  .ap-table-toolbar { flex-direction: column; align-items: flex-start; }
+  .ap-form-row { flex-direction: column; }
+}

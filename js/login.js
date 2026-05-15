@@ -419,23 +419,11 @@ async function enviarSolicitud() {
 
 // ── Panel Admin ───────────────────────────────────────────────────────────────
 
-async function abrirAdmin() {
+function abrirAdmin() {
   const u = verificarSesion();
   if (!u || u.rol !== 'admin') return;
-  document.getElementById('adminPanel').style.display = 'flex';
-  // Limpiar badge y resetear contador en Redis
   mostrarBadgeAdmin(0);
-  if (!ES_LOCAL) {
-    fetch(`/api/token?type=reset-pendientes`, {
-      headers: { Authorization: `Bearer ${crearCredenciales(u)}` }
-    }).catch(() => {});
-  }
-  if (ES_LOCAL) {
-    if (!usuariosDB) await cargarUsuarios();
-  } else {
-    await cargarUsuariosConAuth();
-  }
-  cargarTablaUsuarios();
+  window.location.href = '/admin.html';
 }
 
 function cerrarAdmin() {

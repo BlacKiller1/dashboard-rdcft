@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Administración — Dashboard RDCFT · Arauco</title>
+  <script>
+    (function(){
+      var t = localStorage.getItem('rdcft-theme');
+      if (t === 'light') document.documentElement.setAttribute('data-theme','light');
+    })();
+  </script>
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/admin.css"/>
+</head>
+<body class="admin-page">
+
+  <!-- ── Header ── -->
+  <header class="ap-header">
+    <div class="ap-header-left">
+      <span class="ap-brand">arauco</span>
+      <span class="ap-title">Panel de Administración</span>
+    </div>
+    <div class="ap-header-right">
+      <span id="apUserEmail" class="ap-user"></span>
+      <button class="ap-back-btn" onclick="window.location.href='/'">← Retornar al Dashboard</button>
+    </div>
+  </header>
+
+  <main class="ap-main">
+
+    <!-- ── Stats ── -->
+    <div class="ap-stats">
+      <div class="ap-stat-card">
+        <div class="ap-stat-icon">👥</div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-value" id="statTotal">—</div>
+          <div class="ap-stat-label">Total usuarios</div>
+        </div>
+      </div>
+      <div class="ap-stat-card">
+        <div class="ap-stat-icon">⭐</div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-value" id="statAdmins">—</div>
+          <div class="ap-stat-label">Administradores</div>
+        </div>
+      </div>
+      <div class="ap-stat-card">
+        <div class="ap-stat-icon">👤</div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-value" id="statUsuarios">—</div>
+          <div class="ap-stat-label">Usuarios regulares</div>
+        </div>
+      </div>
+      <div class="ap-stat-card" id="statPendientesCard">
+        <div class="ap-stat-icon">🔔</div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-value" id="statPendientes">—</div>
+          <div class="ap-stat-label">Solicitudes pendientes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Agregar usuario ── -->
+    <section class="ap-section">
+      <div class="ap-section-title">Agregar nuevo usuario</div>
+      <div class="ap-form-row">
+        <input type="email" id="nuevoEmail"  class="ap-input" placeholder="correo@arauco.com"/>
+        <select id="nuevoRol" class="ap-select">
+          <option value="usuario">👤 Usuario</option>
+          <option value="admin">⭐ Admin</option>
+        </select>
+        <input type="text"  id="nuevoCargo" class="ap-input" placeholder="Cargo (opcional)"/>
+        <button class="ap-add-btn" onclick="agregarUsuario()">+ Agregar</button>
+      </div>
+      <div id="formError" class="ap-error" style="display:none;"></div>
+    </section>
+
+    <!-- ── Tabla usuarios ── -->
+    <section class="ap-section ap-section--table">
+      <div class="ap-table-toolbar">
+        <div class="ap-table-toolbar-left">
+          <div class="ap-section-title">Usuarios</div>
+          <span id="counter" class="ap-counter"></span>
+        </div>
+        <div class="ap-table-toolbar-right">
+          <input type="text" class="ap-input ap-search" placeholder="🔍 Buscar por correo o cargo…" oninput="buscar(this.value)"/>
+          <button class="ap-export-btn" onclick="exportarCSV()">📥 Exportar CSV</button>
+        </div>
+      </div>
+
+      <div id="mensaje" class="ap-mensaje" style="display:none;"></div>
+
+      <div class="ap-tabla-wrap">
+        <table class="ap-tabla">
+          <thead>
+            <tr>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Cargo</th>
+              <th>Último acceso</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaBody">
+            <tr><td colspan="5" class="ap-tabla-loading">Cargando usuarios…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ap-table-footer">
+        <button id="btnGuardar" class="ap-save-btn" onclick="guardarUsuarios()">💾 Guardar cambios</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
