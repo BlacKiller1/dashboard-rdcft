@@ -99,6 +99,17 @@ async function validarSesionRemota() {
 
 // ── Utilidades ────────────────────────────────────────────────────────────────
 
+function formatLastLogin(iso) {
+  if (!iso) return '<span style="color:var(--c-text-dim);font-size:11px;">Nunca</span>';
+  const d    = new Date(iso);
+  const diff = Date.now() - d;
+  if (diff < 60000)     return '<span style="color:var(--c-green);font-size:11px;">Ahora</span>';
+  if (diff < 3600000)   return `<span style="font-size:11px;">Hace ${Math.floor(diff/60000)} min</span>`;
+  if (diff < 86400000)  return `<span style="font-size:11px;">Hoy ${d.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}</span>`;
+  if (diff < 172800000) return `<span style="font-size:11px;">Ayer ${d.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}</span>`;
+  return `<span style="font-size:11px;">${d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'2-digit'})}</span>`;
+}
+
 function escapeHtml(str) {
   return String(str == null ? '' : str)
     .replace(/&/g, '&amp;')
@@ -410,6 +421,7 @@ function cargarTablaUsuarios() {
             <td>${escapeHtml(u.email)}</td>
             <td><span class="rol-badge rol-${escapeHtml(u.rol)}">${esAdmin ? '⭐ Admin' : '👤 Usuario'}</span></td>
             <td>${escapeHtml(u.cargo || '-')}</td>
+            <td>${formatLastLogin(u.lastlogin)}</td>
             <td class="admin-acciones">
               ${!esSelf ? `
                 <button class="admin-rol-btn ${esAdmin ? 'admin-rol-quitar' : 'admin-rol-dar'}"

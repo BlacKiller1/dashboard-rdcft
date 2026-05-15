@@ -984,6 +984,9 @@ function abrirConsulta() {
   document.getElementById('inputLat').value             = '';
   document.getElementById('inputLon').value             = '';
   document.getElementById('inputNombre').value          = '';
+
+  // Cargar historial de consultas del usuario
+  _cargarHistorial();
 }
 
 function cerrarConsulta() {
@@ -1122,6 +1125,9 @@ async function ejecutarConsulta() {
         </table>
       </div>`;
 
+    // Guardar en historial (no bloquea)
+    _guardarEnHistorial(lat, lon, nombre, fechaSel);
+
   } catch (err) {
     errDiv.textContent   = `Error: ${err.message}`;
     errDiv.style.display = 'block';
@@ -1130,6 +1136,76 @@ async function ejecutarConsulta() {
     btn.textContent = '🔍 Consultar pronóstico';
     btn.disabled    = false;
   }
+}
+
+// ── Historial de consultas ────────────────────────────────────────────────
+
+let _historialCache = [];
+
+function _apiBase() {
+  return ES_LOCAL ? 'https://arauco-rdcft.vercel.app' : '';
+}
+
+function _authHeader() {
+  const sesion = typeof verificarSesion === 'function' ? verificarSesion() : null;
+  if (!sesion?.token) return null;
+  return btoa(JSON.stringify({ email: sesion.email, token: sesion.token, sessionId: sesion.sessionId }));
+}
+
+async function _cargarHistorial() {
+  const auth = _authHeader();
+  if (!auth) return;
+  try {
+    const resp = await fetch(`${_apiBase()}/api/historial`, {
+      headers: { 'Authorization': `Bearer ${auth}` },
+      signal: AbortSignal.timeout(5000)
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    _historialCache = data.historial || [];
+    _renderHistorial();
+  } catch {}
+}
+
+function _renderHistorial() {
+  const panel = document.getElementById('historialPanel');
+  const cont  = document.getElementById('historialItems');
+  if (!panel || !cont) return;
+  if (_historialCache.length === 0) { panel.style.display = 'none'; return; }
+  cont.innerHTML = _historialCache.map((h, i) =>
+    `<button class="historial-item" onclick="_aplicarHistorial(${i})">
+       <span class="historial-nombre">${escapeHtml(h.nombre)}</span>
+       <span class="historial-coords">${h.lat}, ${h.lon}</span>
+       <span class="historial-fecha">${h.fecha}</span>
+     </button>`
+  ).join('');
+  panel.style.display = 'block';
+}
+
+function _aplicarHistorial(idx) {
+  const h = _historialCache[idx];
+  if (!h) return;
+  document.getElementById('inputLat').value    = h.lat;
+  document.getElementById('inputLon').value    = h.lon;
+  document.getElementById('inputNombre').value = h.nombre;
+  if (h.fecha) document.getElementById('inputFecha').value = h.fecha;
+}
+
+async function _guardarEnHistorial(lat, lon, nombre, fecha) {
+  const auth = _authHeader();
+  if (!auth) return;
+  try {
+    await fetch(`${_apiBase()}/api/historial`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth}` },
+      body: JSON.stringify({ lat, lon, nombre, fecha }),
+      signal: AbortSignal.timeout(5000)
+    });
+    // Refrescar historial visible
+    _historialCache.unshift({ lat, lon, nombre, fecha });
+    if (_historialCache.length > 5) _historialCache.length = 5;
+    _renderHistorial();
+  } catch {}
 }
 
 // ── Sidebar tabs ─────────────────────────────────────────────────────────

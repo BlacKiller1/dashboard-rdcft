@@ -78,7 +78,15 @@ export default async function handler(req, res) {
       if (!usuario || usuario.rol !== 'admin') {
         return res.status(403).json({ error: 'Sin permisos de administrador' });
       }
-      return res.status(200).json({ usuarios });
+      // Obtener último acceso de cada usuario en un solo MGET
+      const lastLogins = usuarios.length > 0
+        ? await redis(['MGET', ...usuarios.map(u => `lastlogin:${u.email}`)])
+        : [];
+      const usuariosConAcceso = usuarios.map((u, i) => ({
+        ...u,
+        lastlogin: lastLogins[i] || null
+      }));
+      return res.status(200).json({ usuarios: usuariosConAcceso });
     } catch {
       return res.status(500).json({ error: 'Error interno' });
     }

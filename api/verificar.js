@@ -61,6 +61,9 @@ export default async function handler(req, res) {
   const sessionId = crypto.randomBytes(16).toString('hex');
   await redis(['SET', sessionKey, sessionId, 'EX', '86400']); // TTL 24h
 
+  // Registrar último acceso (sin TTL — persiste para el log admin)
+  await redis(['SET', `lastlogin:${email}`, new Date().toISOString()]);
+
   const fecha = new Date().toISOString().slice(0, 10);
   const token = crypto.createHmac('sha256', secret).update(`${email}:${fecha}`).digest('hex');
 

@@ -168,6 +168,13 @@
       </div>
       <div class="modal-body">
         <p class="modal-desc">Ingresa las coordenadas del punto a consultar. Se mostrará el pronóstico horario para las próximas 24 horas.</p>
+
+        <!-- Historial de consultas recientes -->
+        <div id="historialPanel" class="historial-panel" style="display:none;">
+          <div class="historial-label">Recientes</div>
+          <div id="historialItems" class="historial-items"></div>
+        </div>
+
         <div class="modal-fields">
           <div class="modal-field">
             <label>Latitud</label>
@@ -427,6 +434,7 @@
               <th>Correo</th>
               <th>Rol</th>
               <th>Cargo</th>
+              <th>Último acceso</th>
               <th>Acciones</th>
             </tr>
           </thead>
