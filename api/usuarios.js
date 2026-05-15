@@ -155,7 +155,7 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${VERCEL_TOKEN}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ deploymentId: latestUid, name: projectName, projectId: PROJECT_ID, target: 'production' })
+      body: JSON.stringify({ deploymentId: latestUid, name: projectName, target: 'production' })
     });
     const deployData = await deployResp.json();
     if (!deployResp.ok) {
