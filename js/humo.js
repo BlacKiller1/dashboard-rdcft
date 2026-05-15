@@ -525,12 +525,22 @@ async function generarPdfHumo() {
       if (mapEl && humoMap) {
         const capLat = parseFloat(document.getElementById('humoLat').value);
         const capLon = parseFloat(document.getElementById('humoLon').value);
-        if (capLat && capLon) humoMap.setView([capLat, capLon], 10, { animate: false });
+        // Centrar en el punto de emisión a zoom fijo para captura limpia
+        if (capLat && capLon) {
+          humoMap.setView([capLat, capLon], 11, { animate: false });
+        }
         humoMap.invalidateSize();
-        await new Promise(r => setTimeout(r, 900));
+        // Esperar a que los tiles satelitales carguen completamente
+        await new Promise(r => setTimeout(r, 1400));
+        const rect = mapEl.getBoundingClientRect();
         const mc = await html2canvas(mapEl, {
           scale: 2, useCORS: true, allowTaint: true, logging: false,
-          scrollX: 0, scrollY: 0
+          x: rect.left + window.scrollX,
+          y: rect.top  + window.scrollY,
+          width:  rect.width,
+          height: rect.height,
+          windowWidth:  document.documentElement.scrollWidth,
+          windowHeight: document.documentElement.scrollHeight
         });
         mapImgData = mc.toDataURL('image/jpeg', 0.92);
       }
