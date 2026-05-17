@@ -231,6 +231,8 @@ function mostrarDashboard(usuario) {
 
   const btnAdmin = document.getElementById('btnAdmin');
   if (btnAdmin) btnAdmin.style.display = usuario.rol === 'admin' ? 'inline-flex' : 'none';
+  const btnResetPin = document.getElementById('btnResetPin');
+  if (btnResetPin) btnResetPin.style.display = usuario.rol === 'admin' ? 'inline-flex' : 'none';
   if (usuario.rol === 'admin') iniciarPollAdmin();
 }
 
@@ -805,6 +807,170 @@ async function enviarFeedback() {
   }
 }
 
+// ── Restablecer PIN ───────────────────────────────────────────────────────────
+
+function abrirResetPin() {
+  const sesion = verificarSesion();
+  if (!sesion || sesion.rol !== 'admin') return;
+  const emailEl  = document.getElementById('resetPinModalEmail');
+  const errorEl  = document.getElementById('resetPinModalError');
+  const okEl     = document.getElementById('resetPinModalOk');
+  const btn      = document.getElementById('btnEnviarResetPin');
+  if (emailEl)  emailEl.textContent   = sesion.email;
+  if (errorEl)  errorEl.style.display = 'none';
+  if (okEl)     okEl.style.display    = 'none';
+  if (btn)      { btn.textContent = 'Enviar enlace →'; btn.disabled = false; btn.style.display = ''; }
+  document.getElementById('resetPinOverlay').style.display = 'block';
+  document.getElementById('resetPinModal').style.display   = 'flex';
+}
+
+function cerrarResetPin() {
+  document.getElementById('resetPinOverlay').style.display = 'none';
+  document.getElementById('resetPinModal').style.display   = 'none';
+}
+
+async function _enviarEnlaceResetPin(email) {
+  const resp = await fetch('/api/reset-pin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'request', email })
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error || 'Error al enviar el enlace.');
+  }
+}
+
+async function solicitarResetPin() {
+  const sesion  = verificarSesion();
+  if (!sesion) return;
+  const btn     = document.getElementById('btnEnviarResetPin');
+  const errorEl = document.getElementById('resetPinModalError');
+  const okEl    = document.getElementById('resetPinModalOk');
+  btn.textContent = '⏳ Enviando...'; btn.disabled = true;
+  errorEl.style.display = 'none';
+  try {
+    await _enviarEnlaceResetPin(sesion.email);
+    okEl.textContent  = '✅ Enlace enviado a ' + escapeHtml(sesion.email) + '. Válido por 15 minutos.';
+    okEl.style.display = 'block';
+    btn.style.display  = 'none';
+  } catch (err) {
+    errorEl.textContent   = '❌ ' + err.message;
+    errorEl.style.display = 'block';
+    btn.textContent = 'Enviar enlace →'; btn.disabled = false;
+  }
+}
+
+async function olvidarPIN() {
+  const email   = _pinUsuarioPendiente?.email;
+  if (!email) return;
+  const btn     = document.getElementById('btnOlvidarPin');
+  const errorEl = document.getElementById('pinError');
+  if (btn) { btn.textContent = '⏳ Enviando...'; btn.disabled = true; }
+  if (errorEl) errorEl.style.display = 'none';
+  try {
+    await _enviarEnlaceResetPin(email);
+    if (errorEl) {
+      errorEl.textContent   = '✅ Enlace enviado a ' + escapeHtml(email) + '. Revisa tu correo.';
+      errorEl.style.display = 'block';
+    }
+  } catch (err) {
+    if (errorEl) { errorEl.textContent = '❌ ' + err.message; errorEl.style.display = 'block'; }
+  } finally {
+    if (btn) { btn.textContent = '¿Olvidaste tu PIN? Enviar enlace →'; btn.disabled = false; }
+  }
+}
+
+async function mostrarResetPinScreen(token) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('pinScreen').style.display   = 'none';
+  document.getElementById('appShell').style.display    = 'none';
+  document.getElementById('resetPinScreen').style.display = 'flex';
+
+  const titleEl = document.getElementById('resetPinTitle');
+  const descEl  = document.getElementById('resetPinDesc');
+  const emailEl = document.getElementById('resetPinEmailShow');
+  const formEl  = document.getElementById('resetPinForm');
+  const btnEl   = document.getElementById('btnGuardarNuevoPin');
+  const errorEl = document.getElementById('resetPinScreenError');
+
+  titleEl.textContent    = 'Verificando enlace...';
+  descEl.textContent     = '';
+  errorEl.style.display  = 'none';
+  if (formEl) formEl.style.display = 'none';
+  if (btnEl)  btnEl.style.display  = 'none';
+
+  try {
+    const resp = await fetch('/api/reset-pin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'verify', token })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Token inválido o expirado.');
+
+    titleEl.textContent = 'Crear nuevo PIN';
+    descEl.textContent  = 'Ingresa y confirma tu nuevo PIN de seguridad.';
+    if (emailEl) emailEl.textContent = data.email;
+    if (formEl)  formEl.style.display = 'block';
+    if (btnEl)   btnEl.style.display  = '';
+    window._resetPinToken = token;
+    document.getElementById('inputNewPin')?.focus();
+  } catch (err) {
+    titleEl.textContent = 'Enlace no válido';
+    descEl.textContent  = err.message;
+  }
+}
+
+function handleNewPinKeyDown(e) {
+  if (e.key === 'Enter') ejecutarResetPin();
+}
+
+async function ejecutarResetPin() {
+  const pin        = (document.getElementById('inputNewPin')?.value        || '');
+  const pinConfirm = (document.getElementById('inputNewPinConfirm')?.value || '');
+  const errorEl    = document.getElementById('resetPinScreenError');
+  const btn        = document.getElementById('btnGuardarNuevoPin');
+  if (errorEl) errorEl.style.display = 'none';
+
+  if (pin.length < 4) {
+    if (errorEl) { errorEl.textContent = 'El PIN debe tener al menos 4 caracteres.'; errorEl.style.display = 'block'; }
+    return;
+  }
+  if (pin !== pinConfirm) {
+    if (errorEl) { errorEl.textContent = 'Los PINs no coinciden.'; errorEl.style.display = 'block'; }
+    return;
+  }
+  if (btn) { btn.textContent = 'Guardando...'; btn.disabled = true; }
+
+  try {
+    const resp = await fetch('/api/reset-pin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'set', token: window._resetPinToken, pin })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Error al guardar el PIN.');
+
+    document.getElementById('resetPinTitle').textContent = '¡PIN actualizado!';
+    document.getElementById('resetPinDesc').textContent  = 'Tu PIN ha sido restablecido. Inicia sesión normalmente.';
+    if (document.getElementById('resetPinEmailShow')) document.getElementById('resetPinEmailShow').textContent = '';
+    if (document.getElementById('resetPinForm'))      document.getElementById('resetPinForm').style.display = 'none';
+    if (btn) btn.style.display = 'none';
+    window._resetPinToken = null;
+    setTimeout(() => { window.location.href = window.location.pathname; }, 2000);
+  } catch (err) {
+    if (errorEl) { errorEl.textContent = err.message; errorEl.style.display = 'block'; }
+    if (btn) { btn.textContent = 'Guardar PIN →'; btn.disabled = false; }
+  }
+}
+
+function cancelarResetPin() {
+  window._resetPinToken = null;
+  document.getElementById('resetPinScreen').style.display = 'none';
+  window.location.href = window.location.pathname;
+}
+
 // ── Inicialización ────────────────────────────────────────────────────────────
 
 // Chequeo inmediato al volver a la pestaña o ventana (sin esperar el siguiente ciclo del poll)
@@ -814,6 +980,13 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('focus', validarSesionRemota);
 
 window.addEventListener('DOMContentLoaded', async () => {
+  // Si hay token de reset en la URL, mostrar pantalla de restablecimiento
+  const resetToken = new URLSearchParams(window.location.search).get('reset');
+  if (resetToken && !ES_LOCAL) {
+    await mostrarResetPinScreen(resetToken);
+    return;
+  }
+
   if (ES_LOCAL) await cargarUsuarios();
   const sesion = verificarSesion();
   if (sesion) {

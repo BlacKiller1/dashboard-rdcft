@@ -134,6 +134,7 @@
     <div id="pinError" class="login-error" style="display:none;"></div>
     <button class="login-btn" id="btnPIN" onclick="verificarPIN()">Continuar &rarr;</button>
     <button class="solicitud-link-btn" onclick="cancelarPIN()">&larr; Volver al inicio</button>
+    <button class="solicitud-link-btn" id="btnOlvidarPin" onclick="olvidarPIN()" style="margin-top:4px;">¿Olvidaste tu PIN? Enviar enlace &rarr;</button>
   </div>
 </div>
 
@@ -215,6 +216,7 @@
       </div>
       <span id="userBadge" class="user-badge"></span>
       <button id="btnAdmin" class="admin-btn" onclick="abrirAdmin()" style="display:none;" title="Gestionar usuarios">⚙️ <span class="btn-text">Gestionar usuarios</span><span id="adminBadge" class="admin-badge" style="display:none;"></span></button>
+      <button id="btnResetPin" class="admin-btn" onclick="abrirResetPin()" style="display:none;" title="Restablecer PIN">🔑 <span class="btn-text">Restablecer PIN</span></button>
       <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema"></button>
       <button class="logout-btn" onclick="cerrarSesion()" title="Cerrar sesión">⎋ <span class="btn-text">Salir</span></button>
       <button class="consulta-btn" onclick="abrirConsulta()" title="Consultar coordenadas">📍 <span class="btn-text">Consultar coordenadas</span></button>
@@ -542,6 +544,73 @@
         📄 Generar PDF
       </button>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA RESTABLECER PIN (enlace por correo)
+     ══════════════════════════════════════ -->
+<div id="resetPinScreen" style="display:none;">
+  <div class="login-bg">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="lg3" cx="50%" cy="88%" r="52%">
+          <stop offset="0%" stop-color="#2DB87A" stop-opacity=".45"/>
+          <stop offset="100%" stop-color="#181714" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="1200" height="800" fill="#0d0c09"/>
+      <g fill="#1a1812" opacity=".97">
+        <rect x="0" y="510" width="19" height="290"/><polygon points="9,350 -10,528 29,528"/>
+        <rect x="200" y="517" width="18" height="283"/><polygon points="209,357 188,535 230,535"/>
+        <rect x="855" y="506" width="15" height="294"/><polygon points="862,346 842,524 882,524"/>
+        <rect x="965" y="517" width="15" height="283"/><polygon points="972,357 953,535 991,535"/>
+      </g>
+      <rect width="1200" height="800" fill="url(#lg3)"/>
+    </svg>
+  </div>
+  <div class="login-card">
+    <div class="login-brand">arauco</div>
+    <div class="login-brand-sub">Restablecer PIN &middot; Administrador</div>
+    <div class="pin-icon-wrap">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+    <div class="login-title" id="resetPinTitle">Verificando enlace...</div>
+    <div class="login-desc" id="resetPinDesc"></div>
+    <div id="resetPinEmailShow" class="pin-email-display"></div>
+    <div id="resetPinForm" style="display:none; width:100%;">
+      <input type="password" id="inputNewPin" class="login-input" placeholder="Nuevo PIN"
+        onkeydown="handleNewPinKeyDown(event)" autocomplete="new-password" maxlength="64"/>
+      <div style="margin-top:10px;">
+        <input type="password" id="inputNewPinConfirm" class="login-input" placeholder="Confirmar nuevo PIN"
+          onkeydown="handleNewPinKeyDown(event)" autocomplete="new-password" maxlength="64"/>
+      </div>
+      <div class="pin-hint">M&iacute;nimo 4 caracteres. Letras, n&uacute;meros o s&iacute;mbolos.</div>
+    </div>
+    <div id="resetPinScreenError" class="login-error" style="display:none;"></div>
+    <button class="login-btn" id="btnGuardarNuevoPin" onclick="ejecutarResetPin()" style="display:none;">Guardar PIN &rarr;</button>
+    <button class="solicitud-link-btn" onclick="cancelarResetPin()">&larr; Volver al inicio</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL RESTABLECER PIN (desde la app)
+     ══════════════════════════════════════ -->
+<div class="modal-overlay" id="resetPinOverlay" onclick="cerrarResetPin()" style="display:none;"></div>
+<div class="modal" id="resetPinModal" style="display:none;">
+  <div class="modal-header">
+    <span class="modal-title">🔑 Restablecer PIN de seguridad</span>
+    <button class="modal-close" onclick="cerrarResetPin()">✕</button>
+  </div>
+  <div class="modal-body">
+    <p class="modal-desc">Se enviar&aacute; un enlace de restablecimiento a tu correo corporativo. V&aacute;lido por 15 minutos.</p>
+    <div id="resetPinModalEmail" class="pin-email-display" style="margin-bottom:16px;"></div>
+    <div id="resetPinModalError" class="modal-error" style="display:none;"></div>
+    <div id="resetPinModalOk" class="feedback-ok" style="display:none;"></div>
+    <button class="modal-submit" id="btnEnviarResetPin" onclick="solicitarResetPin()">Enviar enlace &rarr;</button>
   </div>
 </div>
 
