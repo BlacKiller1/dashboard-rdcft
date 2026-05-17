@@ -830,6 +830,7 @@ function cerrarResetPin() {
 }
 
 async function _enviarEnlaceResetPin(email) {
+  if (ES_LOCAL) throw new Error('Solo disponible en producción (arauco-rdcft.vercel.app).');
   const resp = await fetch('/api/reset-pin', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
