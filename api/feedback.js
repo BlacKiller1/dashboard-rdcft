@@ -1,11 +1,6 @@
 // api/feedback.js — Recibe sugerencias, consultas y mejoras del dashboard
+import { setCorsHeaders } from './_auth.js';
 import { enviarCorreo } from './_mail.js';
-
-const ALLOWED_ORIGINS = [
-  'https://arauco-rdcft.vercel.app',
-  'http://localhost:5500',
-  'http://127.0.0.1:5500'
-];
 
 const TIPO_LABEL = {
   recomendacion: '💡 Recomendación',
@@ -18,10 +13,7 @@ function esc(str) {
 }
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin || '';
-  if (ALLOWED_ORIGINS.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  setCorsHeaders(req, res, 'POST, OPTIONS', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });

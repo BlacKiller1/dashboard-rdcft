@@ -2,18 +2,7 @@
 // Los usuarios se guardan en la key "usuarios_db" sin TTL.
 // Si la key aún no existe (primera ejecución tras la migración),
 // cae al env var USUARIOS_DB como fuente de datos.
-
-async function redis(command) {
-  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(command)
-  });
-  return (await res.json()).result;
-}
+import { redis } from './_auth.js';
 
 export async function getUsuarios() {
   try {

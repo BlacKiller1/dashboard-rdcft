@@ -1,27 +1,8 @@
 // api/ping-sesion.js — Verifica si el sessionId del cliente sigue activo en Redis
-const ALLOWED_ORIGINS = [
-  'https://arauco-rdcft.vercel.app',
-  'http://localhost:5500',
-  'http://127.0.0.1:5500'
-];
-
-async function redis(command) {
-  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(command)
-  });
-  return (await res.json()).result;
-}
+import { redis, setCorsHeaders } from './_auth.js';
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin || '';
-  if (ALLOWED_ORIGINS.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Authorization');
+  setCorsHeaders(req, res, 'GET, OPTIONS', 'Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).end();

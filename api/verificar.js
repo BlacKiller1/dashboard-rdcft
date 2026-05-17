@@ -1,30 +1,10 @@
 // api/verificar.js — Verifica credenciales, controla sesión única via Redis
 import crypto from 'crypto';
+import { redis, setCorsHeaders } from './_auth.js';
 import { getUsuarios } from './_db.js';
 
-const ALLOWED_ORIGINS = [
-  'https://arauco-rdcft.vercel.app',
-  'http://localhost:5500',
-  'http://127.0.0.1:5500'
-];
-
-async function redis(command) {
-  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(command)
-  });
-  return (await res.json()).result;
-}
-
 export default async function handler(req, res) {
-  const origin = req.headers.origin || '';
-  if (ALLOWED_ORIGINS.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  setCorsHeaders(req, res, 'POST, OPTIONS', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
@@ -48,7 +28,7 @@ export default async function handler(req, res) {
   }
 
   // ── Sesión única: bloquear si ya hay sesión activa en otro dispositivo ──
-  const sessionKey     = `session:${email}`;
+  const sessionKey      = `session:${email}`;
   const existingSession = await redis(['GET', sessionKey]);
   if (existingSession && !force) {
     return res.status(409).json({
