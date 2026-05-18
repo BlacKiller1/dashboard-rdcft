@@ -220,25 +220,6 @@
           <span id="userBadge" class="user-badge"></span>
           <span class="umenu-chevron">▾</span>
         </button>
-        <div class="user-menu-dropdown" id="userMenuDropdown" role="menu">
-          <button id="btnAdmin" class="umenu-item umenu-item--admin" onclick="abrirAdmin(); cerrarUserMenu()" style="display:none;" role="menuitem">
-            ⚙️ Gestionar usuarios<span id="adminBadge" class="admin-badge" style="display:none;"></span>
-          </button>
-          <button id="btnResetPin" class="umenu-item umenu-item--admin" onclick="abrirResetPin(); cerrarUserMenu()" style="display:none;" role="menuitem">
-            🔑 Restablecer PIN
-          </button>
-          <div class="umenu-sep" id="umenuAdminSep" style="display:none;"></div>
-          <button class="umenu-item umenu-item--consulta" onclick="abrirConsulta(); cerrarUserMenu()" role="menuitem">
-            📍 Consultar coordenadas
-          </button>
-          <button class="umenu-item umenu-item--feedback" onclick="abrirFeedback(); cerrarUserMenu()" role="menuitem">
-            💬 Sugerencias
-          </button>
-          <div class="umenu-sep"></div>
-          <button class="umenu-item umenu-item--logout" onclick="cerrarSesion()" role="menuitem">
-            ⎋ Salir
-          </button>
-        </div>
       </div>
     </header>
 
@@ -686,5 +667,26 @@
     });
   }
 </script>
+
+<!-- Dropdown menú usuario — fuera de cualquier contenedor con overflow/transform -->
+<div class="user-menu-dropdown" id="userMenuDropdown" role="menu">
+  <button id="btnAdmin" class="umenu-item umenu-item--admin" onclick="abrirAdmin(); cerrarUserMenu()" style="display:none;" role="menuitem">
+    ⚙️ Gestionar usuarios<span id="adminBadge" class="admin-badge" style="display:none;"></span>
+  </button>
+  <button id="btnResetPin" class="umenu-item umenu-item--admin" onclick="abrirResetPin(); cerrarUserMenu()" style="display:none;" role="menuitem">
+    🔑 Restablecer PIN
+  </button>
+  <div class="umenu-sep" id="umenuAdminSep" style="display:none;"></div>
+  <button class="umenu-item umenu-item--consulta" onclick="abrirConsulta(); cerrarUserMenu()" role="menuitem">
+    📍 Consultar coordenadas
+  </button>
+  <button class="umenu-item umenu-item--feedback" onclick="abrirFeedback(); cerrarUserMenu()" role="menuitem">
+    💬 Sugerencias
+  </button>
+  <div class="umenu-sep"></div>
+  <button class="umenu-item umenu-item--logout" onclick="cerrarSesion()" role="menuitem">
+    ⎋ Salir
+  </button>
+</div>
 </body>
 </html>
