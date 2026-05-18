@@ -1,7 +1,7 @@
 // api/usuarios.js — Actualizar usuarios en Redis (requiere sesión de admin firmada)
 import { redis, setCorsHeaders, parseAuth, verificarToken } from './_auth.js';
 import { getUsuarios, setUsuarios } from './_db.js';
-import { enviarCorreo } from './_mail.js';
+import { enviarCorreo, ADMINS_CC } from './_mail.js';
 
 export default async function handler(req, res) {
   setCorsHeaders(req, res, 'POST, OPTIONS', 'Content-Type, Authorization');
@@ -132,6 +132,7 @@ async function enviarBienvenida(usuario) {
 
   await enviarCorreo({
     to: usuario.email,
+    cc: ADMINS_CC,
     subject: '[NOTIFICACIÓN AUTOMÁTICA] - Confirmación de Acceso',
     html
   });

@@ -1,6 +1,6 @@
 // api/solicitar-acceso.js — Envía solicitud de acceso al administrador
 import { redis, setCorsHeaders } from './_auth.js';
-import { enviarCorreo } from './_mail.js';
+import { enviarCorreo, ADMINS_CC } from './_mail.js';
 
 function esc(str) {
   return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -59,6 +59,7 @@ export default async function handler(req, res) {
   try {
     await enviarCorreo({
       to: process.env.GMAIL_USER,
+      cc: ADMINS_CC,
       subject: `[RDCFT] Solicitud de acceso — ${nombre}`,
       html
     });
