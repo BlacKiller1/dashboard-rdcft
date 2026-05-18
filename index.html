@@ -429,11 +429,19 @@
   window.addEventListener("DOMContentLoaded", actualizarMenuBtn);
 
   // ── User menu dropdown ──────────────────────────────────────────────────
+  function posicionarUserMenu() {
+    var dd   = document.getElementById("userMenuDropdown");
+    var btn  = document.getElementById("userMenuTrigger");
+    var rect = btn.getBoundingClientRect();
+    dd.style.top   = (rect.bottom + 6) + "px";
+    dd.style.right = (window.innerWidth - rect.right) + "px";
+  }
   function toggleUserMenu() {
-    var dd  = document.getElementById("userMenuDropdown");
-    var btn = document.getElementById("userMenuTrigger");
+    var dd   = document.getElementById("userMenuDropdown");
+    var btn  = document.getElementById("userMenuTrigger");
     var open = dd.classList.toggle("open");
     btn.setAttribute("aria-expanded", open);
+    if (open) posicionarUserMenu();
   }
   function cerrarUserMenu() {
     var dd  = document.getElementById("userMenuDropdown");
@@ -447,6 +455,9 @@
   });
   document.addEventListener("keydown", function(e) {
     if (e.key === "Escape") cerrarUserMenu();
+  });
+  window.addEventListener("resize", function() {
+    if (document.getElementById("userMenuDropdown").classList.contains("open")) posicionarUserMenu();
   });
 </script>
 
