@@ -1,6 +1,6 @@
 // api/usuarios.js — Actualizar usuarios en Redis (requiere sesión de admin firmada)
 import { redis, setCorsHeaders, parseAuth, verificarToken } from './_auth.js';
-import { getUsuarios, setUsuarios } from './_db.js';
+import { getUsuarios, setUsuarios, pushAuditLog } from './_db.js';
 import { enviarCorreo, ADMINS_CC } from './_mail.js';
 
 export default async function handler(req, res) {
@@ -49,6 +49,7 @@ export default async function handler(req, res) {
   if (action === 'force-logout') {
     if (!targetEmail) return res.status(400).json({ error: 'Email requerido' });
     await redis(['DEL', `session:${targetEmail}`]);
+    await pushAuditLog({ admin: creds.email, accion: 'forzar_logout', usuario: targetEmail, detalle: 'Sesión cerrada forzosamente' }).catch(() => {});
     return res.status(200).json({ ok: true, mensaje: `Sesión de ${targetEmail} cerrada.` });
   }
 
@@ -58,9 +59,32 @@ export default async function handler(req, res) {
     // Guardar en Redis — instantáneo, sin redeploy
     await setUsuarios(usuarios);
 
+    // Detectar cambios y registrar en auditoría
+    const mapExistente = new Map(existingUsuarios.map(u => [u.email, u]));
+    const mapNuevo     = new Map(usuarios.map(u => [u.email, u]));
+    const eventos      = [];
+
+    for (const u of usuarios) {
+      if (!mapExistente.has(u.email)) {
+        eventos.push({ admin: creds.email, accion: 'agregar', usuario: u.email, detalle: `Rol: ${u.rol}${u.cargo ? ` · Cargo: ${u.cargo}` : ''}` });
+      } else {
+        const prev = mapExistente.get(u.email);
+        if (prev.rol !== u.rol)
+          eventos.push({ admin: creds.email, accion: 'cambiar_rol', usuario: u.email, detalle: `${prev.rol} → ${u.rol}` });
+        if ((prev.cargo || '') !== (u.cargo || ''))
+          eventos.push({ admin: creds.email, accion: 'cambiar_cargo', usuario: u.email, detalle: `"${prev.cargo || ''}" → "${u.cargo || ''}"` });
+      }
+    }
+    for (const u of existingUsuarios) {
+      if (!mapNuevo.has(u.email))
+        eventos.push({ admin: creds.email, accion: 'eliminar', usuario: u.email, detalle: `Rol anterior: ${u.rol}` });
+    }
+
+    if (eventos.length > 0)
+      await Promise.all(eventos.map(e => pushAuditLog(e))).catch(() => {});
+
     // Enviar correo de bienvenida a usuarios recién agregados
-    const emailsExistentes = new Set(existingUsuarios.map(u => u.email));
-    const nuevos = usuarios.filter(u => !emailsExistentes.has(u.email));
+    const nuevos = usuarios.filter(u => !mapExistente.has(u.email));
     if (nuevos.length > 0 && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
       try {
         await Promise.all(nuevos.map(u => enviarBienvenida(u)));

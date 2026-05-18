@@ -263,6 +263,99 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('focus', validarSesionAdmin);
 
+// ── Tabs ──────────────────────────────────────────────────────────────────
+
+let tabActual = 'usuarios';
+
+function switchTab(tab) {
+  tabActual = tab;
+  document.getElementById('tabUsuarios').classList.toggle('active', tab === 'usuarios');
+  document.getElementById('tabAuditoria').classList.toggle('active', tab === 'auditoria');
+
+  const secUs = document.querySelectorAll('.ap-stats, .ap-section:not(#seccionAuditoria)');
+  const secAu = document.getElementById('seccionAuditoria');
+
+  secUs.forEach(el => el.style.display = tab === 'usuarios' ? '' : 'none');
+  secAu.style.display = tab === 'auditoria' ? '' : 'none';
+
+  if (tab === 'auditoria') cargarAuditoria();
+}
+
+// ── Auditoría ─────────────────────────────────────────────────────────────
+
+let auditLog     = [];
+let auditFiltro  = '';
+
+const ACCION_LABEL = {
+  agregar:       { txt: 'Agregar usuario',   cls: 'audit-add'    },
+  eliminar:      { txt: 'Eliminar usuario',  cls: 'audit-del'    },
+  cambiar_rol:   { txt: 'Cambiar rol',       cls: 'audit-rol'    },
+  cambiar_cargo: { txt: 'Cambiar cargo',     cls: 'audit-cargo'  },
+  forzar_logout: { txt: 'Forzar logout',     cls: 'audit-logout' },
+};
+
+function formatFecha(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-CL', { day:'2-digit', month:'2-digit', year:'numeric' })
+    + ' ' + d.toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+async function cargarAuditoria() {
+  const tbody = document.getElementById('auditBody');
+  tbody.innerHTML = '<tr><td colspan="5" class="ap-tabla-loading">Cargando…</td></tr>';
+
+  try {
+    const resp = await fetch('/api/auditoria', {
+      headers: { Authorization: `Bearer ${crearCredenciales(sesion)}` }
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    auditLog = data.log || [];
+    renderAuditoria();
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" class="ap-tabla-empty">❌ Error cargando auditoría: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function filtrarAudit(val) {
+  auditFiltro = val.toLowerCase();
+  renderAuditoria();
+}
+
+function renderAuditoria() {
+  const tbody   = document.getElementById('auditBody');
+  const counter = document.getElementById('auditCounter');
+
+  const filtrados = auditLog.filter(e =>
+    !auditFiltro ||
+    (e.usuario || '').toLowerCase().includes(auditFiltro) ||
+    (e.accion  || '').toLowerCase().includes(auditFiltro) ||
+    (e.admin   || '').toLowerCase().includes(auditFiltro) ||
+    (e.detalle || '').toLowerCase().includes(auditFiltro)
+  );
+
+  if (counter) counter.textContent = `${filtrados.length} de ${auditLog.length} registros`;
+
+  if (filtrados.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="ap-tabla-empty">Sin registros de actividad aún.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtrados.map(e => {
+    const info = ACCION_LABEL[e.accion] || { txt: e.accion, cls: '' };
+    return `
+      <tr>
+        <td class="audit-fecha">${formatFecha(e.fecha)}</td>
+        <td><span class="audit-badge ${info.cls}">${info.txt}</span></td>
+        <td class="audit-email">${escapeHtml(e.usuario || '—')}</td>
+        <td class="audit-detalle">${escapeHtml(e.detalle || '—')}</td>
+        <td class="audit-admin">${escapeHtml(e.admin || '—')}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────
 
 window.addEventListener('DOMContentLoaded', () => {

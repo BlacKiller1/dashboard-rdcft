@@ -29,6 +29,12 @@
 
   <main class="ap-main">
 
+    <!-- ── Tabs ── -->
+    <div class="ap-tabs">
+      <button class="ap-tab active" id="tabUsuarios" onclick="switchTab('usuarios')">👥 Usuarios</button>
+      <button class="ap-tab"        id="tabAuditoria" onclick="switchTab('auditoria')">📋 Auditoría</button>
+    </div>
+
     <!-- ── Stats ── -->
     <div class="ap-stats">
       <div class="ap-stat-card">
@@ -110,6 +116,36 @@
 
       <div class="ap-table-footer">
         <button id="btnGuardar" class="ap-save-btn" onclick="guardarUsuarios()">💾 Guardar cambios</button>
+      </div>
+    </section>
+
+    <!-- ── Sección Auditoría ── -->
+    <section class="ap-section ap-section--table" id="seccionAuditoria" style="display:none;">
+      <div class="ap-table-toolbar">
+        <div class="ap-table-toolbar-left">
+          <div class="ap-section-title">Registro de actividad</div>
+          <span id="auditCounter" class="ap-counter"></span>
+        </div>
+        <div class="ap-table-toolbar-right">
+          <input type="text" class="ap-input ap-search" placeholder="🔍 Filtrar por usuario o acción…" oninput="filtrarAudit(this.value)"/>
+        </div>
+      </div>
+
+      <div class="ap-tabla-wrap">
+        <table class="ap-tabla">
+          <thead>
+            <tr>
+              <th>Fecha y hora</th>
+              <th>Acción</th>
+              <th>Usuario afectado</th>
+              <th>Detalle</th>
+              <th>Realizado por</th>
+            </tr>
+          </thead>
+          <tbody id="auditBody">
+            <tr><td colspan="5" class="ap-tabla-loading">Cargando…</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
