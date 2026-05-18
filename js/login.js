@@ -230,9 +230,11 @@ function mostrarDashboard(usuario) {
   }
 
   const btnAdmin = document.getElementById('btnAdmin');
-  if (btnAdmin) btnAdmin.style.display = usuario.rol === 'admin' ? 'inline-flex' : 'none';
+  if (btnAdmin) btnAdmin.style.display = usuario.rol === 'admin' ? 'flex' : 'none';
   const btnResetPin = document.getElementById('btnResetPin');
-  if (btnResetPin) btnResetPin.style.display = usuario.rol === 'admin' ? 'inline-flex' : 'none';
+  if (btnResetPin) btnResetPin.style.display = usuario.rol === 'admin' ? 'flex' : 'none';
+  const umenuAdminSep = document.getElementById('umenuAdminSep');
+  if (umenuAdminSep) umenuAdminSep.style.display = usuario.rol === 'admin' ? 'block' : 'none';
   if (usuario.rol === 'admin') iniciarPollAdmin();
 }
 

@@ -214,13 +214,32 @@
       <div class="topbar-title">
         <h1 id="mainTitle">Selecciona un paisaje</h1>
       </div>
-      <span id="userBadge" class="user-badge"></span>
-      <button id="btnAdmin" class="admin-btn" onclick="abrirAdmin()" style="display:none;" title="Gestionar usuarios">⚙️ <span class="btn-text">Gestionar usuarios</span><span id="adminBadge" class="admin-badge" style="display:none;"></span></button>
-      <button id="btnResetPin" class="admin-btn" onclick="abrirResetPin()" style="display:none;" title="Restablecer PIN">🔑 <span class="btn-text">Restablecer PIN</span></button>
       <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema"></button>
-      <button class="logout-btn" onclick="cerrarSesion()" title="Cerrar sesión">⎋ <span class="btn-text">Salir</span></button>
-      <button class="consulta-btn" onclick="abrirConsulta()" title="Consultar coordenadas">📍 <span class="btn-text">Consultar coordenadas</span></button>
-      <button class="feedback-btn" onclick="abrirFeedback()" title="Recomendaciones y consultas">💬 <span class="btn-text">Sugerencias</span></button>
+      <div class="user-menu" id="userMenu">
+        <button class="user-menu-trigger" id="userMenuTrigger" onclick="toggleUserMenu()" aria-haspopup="true" aria-expanded="false">
+          <span id="userBadge" class="user-badge"></span>
+          <span class="umenu-chevron">▾</span>
+        </button>
+        <div class="user-menu-dropdown" id="userMenuDropdown" role="menu">
+          <button id="btnAdmin" class="umenu-item umenu-item--admin" onclick="abrirAdmin(); cerrarUserMenu()" style="display:none;" role="menuitem">
+            ⚙️ Gestionar usuarios<span id="adminBadge" class="admin-badge" style="display:none;"></span>
+          </button>
+          <button id="btnResetPin" class="umenu-item umenu-item--admin" onclick="abrirResetPin(); cerrarUserMenu()" style="display:none;" role="menuitem">
+            🔑 Restablecer PIN
+          </button>
+          <div class="umenu-sep" id="umenuAdminSep" style="display:none;"></div>
+          <button class="umenu-item umenu-item--consulta" onclick="abrirConsulta(); cerrarUserMenu()" role="menuitem">
+            📍 Consultar coordenadas
+          </button>
+          <button class="umenu-item umenu-item--feedback" onclick="abrirFeedback(); cerrarUserMenu()" role="menuitem">
+            💬 Sugerencias
+          </button>
+          <div class="umenu-sep"></div>
+          <button class="umenu-item umenu-item--logout" onclick="cerrarSesion()" role="menuitem">
+            ⎋ Salir
+          </button>
+        </div>
+      </div>
     </header>
 
     <!-- ── Modal consulta por coordenadas ── -->
@@ -408,6 +427,27 @@
   }
   window.addEventListener("resize", actualizarMenuBtn);
   window.addEventListener("DOMContentLoaded", actualizarMenuBtn);
+
+  // ── User menu dropdown ──────────────────────────────────────────────────
+  function toggleUserMenu() {
+    var dd  = document.getElementById("userMenuDropdown");
+    var btn = document.getElementById("userMenuTrigger");
+    var open = dd.classList.toggle("open");
+    btn.setAttribute("aria-expanded", open);
+  }
+  function cerrarUserMenu() {
+    var dd  = document.getElementById("userMenuDropdown");
+    var btn = document.getElementById("userMenuTrigger");
+    dd.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+  }
+  document.addEventListener("click", function(e) {
+    var menu = document.getElementById("userMenu");
+    if (menu && !menu.contains(e.target)) cerrarUserMenu();
+  });
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") cerrarUserMenu();
+  });
 </script>
 
 
