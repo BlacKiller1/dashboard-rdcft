@@ -57,10 +57,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // JS, CSS y datos → Network First
+  // JS, CSS y datos → Network First (bypass caché HTTP del navegador)
   if (NETWORK_FIRST_PATHS.some(p => url.pathname.startsWith(p))) {
     event.respondWith(
-      fetch(event.request).then(response => {
+      fetch(event.request, { cache: 'no-cache' }).then(response => {
         if (response && response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
