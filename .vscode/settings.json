@@ -1,3 +1,17 @@
 {
-  "css.lint.vendorPrefix": "ignore"
+  "css.lint.vendorPrefix": "ignore",
+  "files.exclude": {
+    "node_modules/": true,
+    "**/__pycache__/": true,
+    "**/*.pyc": true,
+    ".git/": true,
+    ".claude/": true,
+    "package-lock.json": true
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "package.json": "package-lock.json",
+    "vercel.json": "manifest.json",
+    "index.html": "admin.html, service-worker.js"
+  }
 }
