@@ -309,12 +309,32 @@ async function cargarAuditoria() {
     const resp = await fetch('/api/auditoria', {
       headers: { Authorization: `Bearer ${crearCredenciales(sesion)}` }
     });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
     auditLog = data.log || [];
     renderAuditoria();
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" class="ap-tabla-empty">❌ Error cargando auditoría: ${escapeHtml(err.message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="ap-tabla-empty">❌ ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+async function recargarUsuarios() {
+  const btn = document.querySelector('.ap-reload-btn');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+  try {
+    const resp = await fetch('/api/token?type=usuarios', {
+      headers: { Authorization: `Bearer ${crearCredenciales(sesion)}` }
+    });
+    if (resp.status === 401) { window.location.href = '/'; return; }
+    const data = await resp.json();
+    usuariosDB = data.usuarios || [];
+    renderTabla();
+    actualizarStats(0);
+    mostrarMensaje('✅ Lista actualizada.', 'success');
+  } catch (err) {
+    mostrarMensaje('❌ Error al recargar: ' + err.message, 'error');
+  } finally {
+    if (btn) { btn.textContent = '↻ Recargar'; btn.disabled = false; }
   }
 }
 

@@ -30,6 +30,11 @@ export default async function handler(req, res) {
   if (!reqUser || reqUser.rol !== 'admin')
     return res.status(403).json({ error: 'Sin permisos de administrador' });
 
-  const log = await getAuditLog(200);
-  return res.status(200).json({ log });
+  try {
+    const log = await getAuditLog(200);
+    return res.status(200).json({ log });
+  } catch (err) {
+    console.error('[RDCFT] Error getAuditLog:', err);
+    return res.status(500).json({ error: err.message || 'Error al leer auditoría' });
+  }
 }

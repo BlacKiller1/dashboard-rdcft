@@ -92,6 +92,7 @@
         <div class="ap-table-toolbar-right">
           <input type="text" class="ap-input ap-search" placeholder="🔍 Buscar por correo o cargo…" oninput="buscar(this.value)"/>
           <button class="ap-export-btn" onclick="exportarCSV()">📥 Exportar CSV</button>
+          <button class="ap-reload-btn" onclick="recargarUsuarios()" title="Recargar lista">↻ Recargar</button>
         </div>
       </div>
 
@@ -128,6 +129,7 @@
         </div>
         <div class="ap-table-toolbar-right">
           <input type="text" class="ap-input ap-search" placeholder="🔍 Filtrar por usuario o acción…" oninput="filtrarAudit(this.value)"/>
+          <button class="ap-reload-btn" onclick="cargarAuditoria()" title="Recargar registros">↻ Recargar</button>
         </div>
       </div>
 

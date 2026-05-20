@@ -27,10 +27,10 @@ export async function pushAuditLog(entry) {
 }
 
 export async function getAuditLog(limit = 100) {
-  try {
-    const rows = await redis(['LRANGE', AUDIT_KEY, 0, limit - 1]);
-    return (rows || []).map(r => JSON.parse(r));
-  } catch {
-    return [];
-  }
+  const rows = await redis(['LRANGE', AUDIT_KEY, '0', String(limit - 1)]);
+  if (!Array.isArray(rows)) return [];
+  return rows.map(r => {
+    try { return typeof r === 'string' ? JSON.parse(r) : r; }
+    catch { return null; }
+  }).filter(Boolean);
 }

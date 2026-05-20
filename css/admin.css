@@ -179,6 +179,15 @@ html, body { overflow: auto; height: auto; }
 .ap-mensaje--success { background: rgba(45,184,122,0.1); color: var(--c-green); border: 1px solid rgba(45,184,122,0.3); }
 .ap-mensaje--error   { background: var(--c-red-dim);     color: var(--c-red);   border: 1px solid rgba(201,64,64,0.3); }
 
+/* ── Botón recargar ──────────────────────────────────── */
+.ap-reload-btn {
+  padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--c-border-md); background: rgba(255,255,255,0.05);
+  color: var(--c-text-muted); cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.ap-reload-btn:hover    { background: rgba(255,255,255,0.10); color: var(--c-text); }
+.ap-reload-btn:disabled { opacity: .5; cursor: not-allowed; }
+
 /* ── Tabs ────────────────────────────────────────────── */
 .ap-tabs {
   display: flex; gap: 6px; margin-bottom: 28px;
