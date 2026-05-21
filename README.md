@@ -24,11 +24,11 @@ Desplegado en Vercel: [arauco-rdcft.vercel.app](https://arauco-rdcft.vercel.app)
 - **Long press sobre predios** — captura automática de coordenadas para simulación de humo
 
 ### Simulación de dispersión de humo (HYSPLIT)
-- **Simulación HYSPLIT Ensemble** (NOAA) ejecutada en servidor propio desplegado en **Railway** con Docker
+- **Simulación HYSPLIT Ensemble** (NOAA) ejecutada en servidor propio autoalojado con Docker
 - **Trayectorias visualizadas directamente en el mapa** — capas de polilíneas por ensemble
 - **Botón Limpiar** para resetear el mapa tras la simulación
 - **Health check automático** con indicador de estado del servidor (oculto hasta primer check)
-- **Streaming SSE** para evitar timeouts en Railway durante simulaciones largas
+- **Streaming SSE** para resultados en tiempo real durante simulaciones largas
 - **Informe PDF de simulación** (en proceso de elaboración) — layout portrait con mapa, coordenadas, rosa de vientos y comentarios operacionales
 - **Auto-generación de comentarios** de viento y condiciones de quema en el informe PDF
 
@@ -83,12 +83,6 @@ Los administradores pueden agregar, eliminar y cambiar el rol de usuarios direct
 | `VERCEL_TOKEN` | Token de API de Vercel para actualizar `USUARIOS_DB` vía panel admin |
 | `VERCEL_PROJECT_ID` | ID del proyecto en Vercel |
 
-### Railway (servidor HYSPLIT)
-
-| Variable | Descripción |
-|----------|-------------|
-| `HUMO_BASE` | URL base del servidor Railway (ej: `https://mi-servidor.railway.app`) |
-
 Para generar un `ADMIN_SECRET` seguro:
 ```bash
 openssl rand -hex 32
@@ -123,7 +117,7 @@ dashboard-rdcft/
 ├── vendor/                             — Librerías locales (html2canvas, jsPDF, Leaflet)
 ├── service-worker.js                   — PWA: caché de recursos estáticos (nunca cachea index.html)
 ├── vercel.json                         — Configuración de despliegue + headers de seguridad + CSP
-├── Dockerfile                          — Imagen Docker para servidor HYSPLIT en Railway
+├── Dockerfile                          — Imagen Docker para servidor HYSPLIT autoalojado
 ├── server.py                           — Servidor Flask con SSE para simulación HYSPLIT
 └── .github/
     └── workflows/
@@ -142,13 +136,13 @@ El módulo de simulación usa el modelo **NOAA HYSPLIT Ensemble** para predecir 
 ### Arquitectura
 
 - **Frontend** (`js/humo.js`): interfaz de usuario, mapa de trayectorias y generación de PDF
-- **Backend** (`server.py`): servidor Flask desplegado en Railway con Docker, ejecuta HYSPLIT y transmite resultados vía **Server-Sent Events (SSE)**
-- **CSP**: `vercel.json` incluye la URL de Railway en `connect-src`
+- **Backend** (`server.py`): servidor Flask autoalojado con Docker, ejecuta HYSPLIT y transmite resultados vía **Server-Sent Events (SSE)**
+- **CSP**: `vercel.json` incluye la URL del servidor en `connect-src`
 
 ### Flujo de simulación
 
 1. El usuario ingresa coordenadas (manualmente o por long press sobre un predio)
-2. El cliente envía la solicitud al servidor Railway via SSE
+2. El cliente envía la solicitud al servidor vía SSE
 3. El servidor ejecuta HYSPLIT Ensemble y transmite el progreso en tiempo real
 4. Al finalizar, las trayectorias se renderizan como polilíneas coloreadas en el mapa
 5. El mapa ajusta la vista a las trayectorias (zoom regional máximo)
@@ -187,11 +181,16 @@ Para el servidor HYSPLIT en local, instala las dependencias de Python y ejecuta 
 2. Configura las variables de entorno (`USUARIOS_DB`, `ADMIN_SECRET`, `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`)
 3. Cada push a `main` despliega automáticamente y actualiza la versión del caché PWA
 
-### Railway (servidor HYSPLIT)
+### Servidor HYSPLIT (autoalojado)
 
-1. Conecta el repositorio en [railway.app](https://railway.app)
-2. Railway detecta el `Dockerfile` y construye la imagen automáticamente
-3. Configura la variable `HUMO_BASE` en Vercel con la URL pública asignada por Railway
+1. Requiere un servidor con Docker accesible públicamente vía HTTPS
+2. Construir y ejecutar la imagen:
+   ```bash
+   docker build -t rdcft-backend .
+   docker run -d --name rdcft-backend --restart unless-stopped -p 8080:8080 rdcft-backend
+   ```
+3. Configurar nginx como proxy inverso con certificado SSL (Let's Encrypt)
+4. Actualizar la URL en `js/humo.js` y el `connect-src` en `vercel.json`
 
 ---
 
@@ -221,7 +220,7 @@ El workflow `.github/workflows/precipitaciones.yml` ejecuta el script cada **lun
 | Autorización | Rol admin verificado en servidor antes de cualquier operación de escritura |
 | XSS | `escapeHtml()` en toda salida de datos de usuario en el panel admin |
 | Transporte | HTTPS forzado por Vercel; `Strict-Transport-Security` en CDN |
-| Headers | CSP (incluye Railway en `connect-src`), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`, `Permissions-Policy` |
+| Headers | CSP (incluye servidor HYSPLIT en `connect-src`), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`, `Permissions-Policy` |
 | Service Worker | Nunca cachea `index.html` — garantiza que el CSP y la lógica de autenticación sean siempre frescos |
 | Datos | `data/usuarios.json` en `.gitignore`; usuarios en producción solo en variables de entorno cifradas |
 
@@ -252,7 +251,7 @@ const VIENTO_LIMITE_RDCFT = 10; // km/h
 
 Para actualizar coordenadas o agregar paisajes, edita `js/paisajes.js`.
 
-Para cambiar la URL del servidor HYSPLIT, actualiza la variable de entorno `HUMO_BASE` en Vercel.
+Para cambiar la URL del servidor HYSPLIT, edita `HUMO_BASE` en `js/humo.js` y actualiza el `connect-src` en `vercel.json`.
 
 ---
 
@@ -264,7 +263,7 @@ Para cambiar la URL del servidor HYSPLIT, actualiza la variable de entorno `HUMO
 - [html2canvas](https://html2canvas.hertzen.com) + [jsPDF](https://github.com/parallax/jsPDF) — exportación PDF (servido localmente)
 - [NOAA HYSPLIT](https://www.ready.noaa.gov/HYSPLIT.php) — modelo de dispersión de trayectorias
 - Python + Flask + SSE — servidor de simulación HYSPLIT
-- Docker + Railway — despliegue del servidor HYSPLIT en la nube
+- Docker + nginx + Let's Encrypt — servidor HYSPLIT autoalojado con HTTPS
 - Python + Selenium + pandas — descarga automática de precipitaciones
 - Vercel Serverless Functions — API de autenticación y gestión de usuarios
 - GitHub Actions — automatización semanal + PWA cache
