@@ -4,9 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════════
 
 // URL del servidor de simulación.
-// En desarrollo apunta a localhost; en producción cambiar por la URL de Railway:
-//   const HUMO_BASE = 'https://TU-SERVICIO.up.railway.app';
-const HUMO_BASE   = 'https://dashboard-rdcft-production.up.railway.app';
+const HUMO_BASE   = 'http://dashboardrdcft.duckdns.org:8080';
 const HUMO_API    = `${HUMO_BASE}/api/simular-humo`;
 const HUMO_HEALTH = `${HUMO_BASE}/api/health`;
 
