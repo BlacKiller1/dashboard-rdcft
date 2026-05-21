@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════════
 
 // URL del servidor de simulación.
-const HUMO_BASE   = 'http://dashboardrdcft.duckdns.org:8080';
+const HUMO_BASE   = 'https://dashboardrdcft.duckdns.org';
 const HUMO_API    = `${HUMO_BASE}/api/simular-humo`;
 const HUMO_HEALTH = `${HUMO_BASE}/api/health`;
 
