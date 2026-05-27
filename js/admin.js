@@ -269,6 +269,7 @@ let tabActual = 'usuarios';
 
 function switchTab(tab) {
   tabActual = tab;
+  sessionStorage.setItem('rdcft_admin_tab', tab);
   document.getElementById('tabUsuarios').classList.toggle('active', tab === 'usuarios');
   document.getElementById('tabAuditoria').classList.toggle('active', tab === 'auditoria');
 
@@ -379,6 +380,9 @@ function renderAuditoria() {
 // ── Init ──────────────────────────────────────────────────────────────────
 
 window.addEventListener('DOMContentLoaded', () => {
-  cargarDatos();
+  cargarDatos().then(() => {
+    const tabGuardada = sessionStorage.getItem('rdcft_admin_tab');
+    if (tabGuardada && tabGuardada !== 'usuarios') switchTab(tabGuardada);
+  });
   iniciarPollAdmin_sesion();
 });
