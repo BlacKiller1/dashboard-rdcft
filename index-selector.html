@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Selector de Plataforma — Arauco</title>
+  <link rel="stylesheet" href="css/leaflet.css"/>
+  <style>
+    /* ── Paleta Arauco ── */
+    :root {
+      --corteza:  #696158;
+      --verde:    #BFB800;
+      --naranja:  #EA7600;
+      --madera:   #DFD1A7;
+      --calipso:  #5DBAA9;
+      --rojo:     #B46A5F;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; width: 100%; overflow: hidden; background: #1a1713; font-family: 'Segoe UI', system-ui, sans-serif; color: var(--madera); }
+
+    /* ── Mapa de fondo ── */
+    #map { position: fixed; inset: 0; z-index: 0; }
+    #map::after { content: ''; position: absolute; inset: 0; background: rgba(30,24,16,0.60); z-index: 1; pointer-events: none; }
+
+    /* ── Pantallas ── */
+    .screen { position: fixed; inset: 0; z-index: 5; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .screen.active { display: flex; }
+
+    /* ════════════════════════════════
+       BADGE USUARIO
+    ════════════════════════════════ */
+    #userBadge {
+      position: fixed; top: 14px; right: 16px; z-index: 10;
+      display: none; align-items: center; gap: 8px;
+      background: rgba(26,21,14,0.90); border: 0.5px solid var(--corteza);
+      border-radius: 999px; padding: 7px 16px 7px 10px;
+      font-size: 13px; color: rgba(223,209,167,0.7);
+      backdrop-filter: blur(10px);
+    }
+    #userBadge strong { color: var(--madera); }
+    #userBadge button { background: none; border: none; color: var(--calipso); cursor: pointer; font-size: 13px; text-decoration: underline; }
+
+    /* ════════════════════════════════
+       CARD PRINCIPAL
+    ════════════════════════════════ */
+    .main-card {
+      background: rgba(26,21,14,0.90);
+      border: 1px solid var(--corteza);
+      border-radius: 20px; padding: 36px 36px 32px;
+      width: min(840px, 95vw);
+      display: flex; flex-direction: column; align-items: center; gap: 22px;
+      backdrop-filter: blur(16px);
+    }
+    .sel-brand { font-size: 2.6rem; font-weight: 900; letter-spacing: .14em; color: var(--naranja); font-style: italic; text-transform: lowercase; line-height: 1; }
+    .sel-subtitle { color: rgba(223,209,167,0.72); font-size: 1rem; text-align: center; margin-top: -10px; }
+
+    /* ════════════════════════════════
+       TARJETAS PLATAFORMA
+    ════════════════════════════════ */
+    .platforms { display: flex; gap: 16px; width: 100%; }
+    .plat-card {
+      flex: 1; background: rgba(36,30,20,0.88);
+      border: 1px solid var(--corteza); border-radius: 14px;
+      padding: 22px 18px 18px; display: flex; flex-direction: column; gap: 10px;
+      cursor: pointer; transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+
+    /* Silvícola → Verde */
+    .plat-card.silvicola:hover {
+      border-color: var(--verde);
+      box-shadow: 0 6px 28px rgba(191,184,0,0.16);
+      transform: translateY(-3px);
+    }
+    .plat-card.silvicola .plat-tag {
+      background: rgba(191,184,0,0.12); color: var(--verde);
+      border: 0.5px solid rgba(191,184,0,0.35);
+    }
+    .plat-card.silvicola .plat-btn { background: var(--verde); color: #1a1713; }
+    .plat-card.silvicola .plat-btn:hover { background: #a8a200; }
+
+    /* Protección → Naranja / Rojo */
+    .plat-card.proteccion:hover {
+      border-color: var(--rojo);
+      box-shadow: 0 6px 28px rgba(180,106,95,0.20);
+      transform: translateY(-3px);
+    }
+    .plat-card.proteccion .plat-tag {
+      background: rgba(234,118,0,0.12); color: var(--naranja);
+      border: 0.5px solid rgba(234,118,0,0.35);
+    }
+    .plat-card.proteccion .plat-btn { background: var(--naranja); color: #fff; }
+    .plat-card.proteccion .plat-btn:hover { background: #cc6600; }
+
+    /* Alertas → Calipso */
+    .plat-card.alertas:hover {
+      border-color: var(--calipso);
+      box-shadow: 0 6px 28px rgba(93,186,169,0.18);
+      transform: translateY(-3px);
+    }
+    .plat-card.alertas .plat-tag {
+      background: rgba(93,186,169,0.12); color: var(--calipso);
+      border: 0.5px solid rgba(93,186,169,0.35);
+    }
+    .plat-card.alertas .plat-btn { background: var(--calipso); color: #1a1713; }
+    .plat-card.alertas .plat-btn:hover { background: #4aa597; }
+
+    .plat-tag {
+      font-size: .65rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; border-radius: 4px; padding: 3px 7px;
+      align-self: flex-start;
+    }
+    .plat-title { font-size: .9rem; font-weight: 800; color: var(--madera); text-transform: uppercase; letter-spacing: .05em; line-height: 1.3; }
+    .plat-desc  { color: rgba(223,209,167,0.5); font-size: .8rem; line-height: 1.5; flex: 1; }
+    .plat-icon  { align-self: flex-end; font-size: 2.6rem; line-height: 1; }
+    .plat-btn {
+      border: none; border-radius: 8px; padding: 11px 16px;
+      font-size: .9rem; font-weight: 700;
+      cursor: pointer; width: 100%; margin-top: 4px; transition: background .15s;
+    }
+
+    @media (max-width: 700px) {
+      .platforms { flex-direction: column; }
+      .main-card { padding: 28px 20px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- ══ Badge usuario (visible solo en selector) ══ -->
+<div id="userBadge">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="opacity:.65"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+  <strong id="uNombre"></strong>
+  (<span id="uEmail"></span>)
+  <span style="opacity:.35;">|</span>
+  <button onclick="mostrarLogin()">Cerrar Sesión</button>
+</div>
+
+<!-- ══ PANTALLA LOGIN ══ -->
+<div id="loginScreen" class="screen">
+  <div class="main-card">
+    <div class="sel-brand">arauco</div>
+    <div style="font-size:10px; color:rgba(223,209,167,0.35); letter-spacing:.12em; text-transform:uppercase; text-align:center; margin-top:-14px; line-height:1.7;">Optimización de Reducción de Combustible<br>mediante Fuego Técnico · Dashboard Meteorológico</div>
+    <div style="font-size:15px; font-weight:500; color:rgba(223,209,167,0.9);">Acceso restringido</div>
+    <div style="font-size:12px; color:rgba(223,209,167,0.45); text-align:center; line-height:1.6; margin-top:-10px;">Ingresa tu correo corporativo <strong style="color:var(--naranja);">@arauco.com</strong> para acceder.</div>
+    <input type="email" id="inputEmail" style="width:100%; background:rgba(105,97,88,0.15); border:0.5px solid var(--corteza); border-radius:10px; padding:13px 16px; font-size:14px; color:var(--madera); outline:none; text-align:center;" placeholder="tucorreo@arauco.com" onkeydown="if(event.key==='Enter') simularLogin()" autocomplete="email"/>
+    <button onclick="simularLogin()" style="width:100%; padding:13px; border-radius:10px; border:0.5px solid rgba(234,118,0,0.4); background:rgba(234,118,0,0.12); color:var(--naranja); font-size:13px; font-weight:700; cursor:pointer; letter-spacing:.04em;">Acceder →</button>
+    <div id="loginError" style="display:none; font-size:11px; color:#e07070; background:rgba(180,106,95,0.12); border:0.5px solid rgba(180,106,95,0.35); border-radius:8px; padding:9px 12px; width:100%;">Solo se permiten correos @arauco.com</div>
+    <button style="font-size:11px; color:rgba(223,209,167,0.3); background:none; border:none; cursor:pointer; text-decoration:underline;">¿No tienes acceso? Solicitar →</button>
+  </div>
+</div>
+
+<!-- ══ PANTALLA SELECTOR ══ -->
+<div id="selectorScreen" class="screen active">
+  <div class="main-card">
+    <div class="sel-brand">arauco</div>
+    <p class="sel-subtitle">¡Bienvenido/a! Selecciona la plataforma para continuar.</p>
+    <div class="platforms">
+      <div class="plat-card silvicola" onclick="this.querySelector('.plat-btn').click()">
+        <span class="plat-tag">Silvícola</span>
+        <div class="plat-title">Plataforma<br>Silvícola</div>
+        <div class="plat-desc">Gestión y Optimización de Masas Forestales.</div>
+        <div class="plat-icon">🌲</div>
+        <button class="plat-btn" onclick="alert('Plataforma Silvícola — próximamente')">Entrar →</button>
+      </div>
+      <div class="plat-card proteccion" onclick="this.querySelector('.plat-btn').click()">
+        <span class="plat-tag">Protección</span>
+        <div class="plat-title">Plataforma de<br>Protección</div>
+        <div class="plat-desc">Prevención y Combate de Incendios Forestales.</div>
+        <div class="plat-icon">🔥</div>
+        <button class="plat-btn" onclick="window.location.href='/'">Entrar →</button>
+      </div>
+      <div class="plat-card alertas" onclick="this.querySelector('.plat-btn').click()">
+        <span class="plat-tag">Alertas</span>
+        <div class="plat-title">Alertas Comunales<br>Preventivas</div>
+        <div class="plat-desc">Monitoreo de alertas por comuna en tiempo real.</div>
+        <div class="plat-icon">🗺️</div>
+        <button class="plat-btn" onclick="window.open('https://www.arcgis.com/apps/dashboards/f2588dc1601f424cab7c4c8eb7c8d502','_blank')">Ver mapa →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/vendor/leaflet.js"></script>
+<script>
+  // Mapa satelital de fondo
+  const map = L.map('map', {
+    center: [-37.75, -72.9], zoom: 11,
+    zoomControl: false, dragging: false,
+    scrollWheelZoom: false, doubleClickZoom: false,
+    touchZoom: false, keyboard: false, attributionControl: false
+  });
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 18
+  }).addTo(map);
+
+  function mostrarLogin() {
+    document.getElementById('selectorScreen').classList.remove('active');
+    document.getElementById('userBadge').style.display = 'none';
+    document.getElementById('loginScreen').classList.add('active');
+    document.getElementById('inputEmail').value = '';
+    document.getElementById('loginError').style.display = 'none';
+  }
+
+  function simularLogin() {
+    const email = document.getElementById('inputEmail').value.trim().toLowerCase();
+    const errEl = document.getElementById('loginError');
+    if (!email.endsWith('@arauco.com')) { errEl.style.display = 'block'; return; }
+    errEl.style.display = 'none';
+
+    const nombre = email.split('@')[0].replace(/\./g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    document.getElementById('uNombre').textContent = nombre;
+    document.getElementById('uEmail').textContent  = email;
+    document.getElementById('userBadge').style.display = 'flex';
+
+    document.getElementById('loginScreen').classList.remove('active');
+    document.getElementById('selectorScreen').classList.add('active');
+  }
+</script>
+</body>
+</html>
