@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Dashboard Meteorológico RDCFT — Arauco</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
+  <meta name="theme-color" content="#E8820A"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="RDCFT Arauco"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/leaflet.css"/>
+  <script>
+    (function(){
+      var t = localStorage.getItem('rdcft-theme');
+      if (t === 'light') document.documentElement.setAttribute('data-theme','light');
+    })();
+  </script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     PANTALLA DE LOGIN
+     ══════════════════════════════════════ -->
+<div id="loginScreen" style="display:none;">
+  <div class="login-bg">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="lg1" cx="22%" cy="88%" r="52%">
+          <stop offset="0%" stop-color="#E8520A" stop-opacity=".78"/>
+          <stop offset="100%" stop-color="#181714" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="1200" height="800" fill="#0d0c09"/>
+      <g fill="#1a1812" opacity=".97">
+        <rect x="0" y="510" width="19" height="290"/><polygon points="9,350 -10,528 29,528"/>
+        <rect x="200" y="517" width="18" height="283"/><polygon points="209,357 188,535 230,535"/>
+        <rect x="855" y="506" width="15" height="294"/><polygon points="862,346 842,524 882,524"/>
+        <rect x="965" y="517" width="15" height="283"/><polygon points="972,357 953,535 991,535"/>
+      </g>
+      <rect width="1200" height="800" fill="url(#lg1)"/>
+    </svg>
+  </div>
+  <div class="login-card">
+    <div class="login-brand">arauco</div>
+    <div class="login-brand-sub">Optimización de Reducción de Combustible mediante Fuego Técnico · Dashboard Meteorológico</div>
+    <div class="login-title">Acceso restringido</div>
+    <div class="login-desc">Ingresa tu correo corporativo <strong>@arauco.com</strong> para acceder.</div>
+    <input
+      type="email"
+      id="inputEmail"
+      class="login-input"
+      placeholder="tucorreo@arauco.com"
+      onkeydown="handleKeyDown(event)"
+      autocomplete="email"
+    />
+    <button class="login-btn" id="btnAcceder" onclick="verificarCorreo()">
+      Acceder →
+    </button>
+    <button class="solicitud-link-btn" onclick="toggleSolicitud()">¿No tienes acceso? Solicitar →</button>
+    <div id="loginError" class="login-error" style="display:none;"></div>
+
+    <!-- Solicitud de acceso -->
+    <div id="solicitudPanel" class="solicitud-panel" style="display:none;">
+      <div class="solicitud-sep"><span>Solicitar acceso</span></div>
+      <input type="text"  id="solicitudNombre" class="login-input solicitud-input" placeholder="Nombre completo" autocomplete="name" />
+      <input type="text"  id="solicitudCargo"  class="login-input solicitud-input" placeholder="Cargo" />
+      <div class="solicitud-email-preview" id="solicitudEmailPreview"></div>
+      <button class="login-btn solicitud-btn" id="btnSolicitud" onclick="enviarSolicitud()">Enviar solicitud →</button>
+      <div id="solicitudMsg" class="solicitud-msg" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA DE PIN (ADMINISTRADORES)
+     ══════════════════════════════════════ -->
+<div id="pinScreen" style="display:none;">
+  <div class="login-bg">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="lg2" cx="78%" cy="88%" r="52%">
+          <stop offset="0%" stop-color="#1A52A8" stop-opacity=".65"/>
+          <stop offset="100%" stop-color="#181714" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="1200" height="800" fill="#0d0c09"/>
+      <g fill="#1a1812" opacity=".97">
+        <rect x="0" y="510" width="19" height="290"/><polygon points="9,350 -10,528 29,528"/>
+        <rect x="200" y="517" width="18" height="283"/><polygon points="209,357 188,535 230,535"/>
+        <rect x="855" y="506" width="15" height="294"/><polygon points="862,346 842,524 882,524"/>
+        <rect x="965" y="517" width="15" height="283"/><polygon points="972,357 953,535 991,535"/>
+      </g>
+      <rect width="1200" height="800" fill="url(#lg2)"/>
+    </svg>
+  </div>
+  <div class="login-card">
+    <div class="login-brand">arauco</div>
+    <div class="login-brand-sub">Verificación de Seguridad · Administrador</div>
+    <div class="pin-icon-wrap">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+    <div class="login-title" id="pinTitle">Verificación de administrador</div>
+    <div class="login-desc" id="pinSubtitle">Ingresa tu PIN de seguridad para continuar.</div>
+    <div id="pinEmailDisplay" class="pin-email-display"></div>
+    <input type="hidden" id="pinScreenMode" value="verify"/>
+    <input
+      type="password"
+      id="inputPin"
+      class="login-input"
+      placeholder="PIN de seguridad"
+      onkeydown="handlePinKeyDown(event)"
+      autocomplete="new-password"
+      maxlength="64"
+    />
+    <div id="pinConfirmGroup" style="display:none; margin-top:10px;">
+      <input
+        type="password"
+        id="inputPinConfirm"
+        class="login-input"
+        placeholder="Confirmar PIN"
+        onkeydown="handlePinKeyDown(event)"
+        autocomplete="new-password"
+        maxlength="64"
+      />
+      <div class="pin-hint">Minimo 4 caracteres. Letras, numeros o simbolos.</div>
+    </div>
+    <div id="pinError" class="login-error" style="display:none;"></div>
+    <button class="login-btn" id="btnPIN" onclick="verificarPIN()">Continuar &rarr;</button>
+    <button class="solicitud-link-btn" onclick="cancelarPIN()">&larr; Volver al inicio</button>
+    <button class="solicitud-link-btn" id="btnOlvidarPin" onclick="olvidarPIN()" style="margin-top:4px;">¿Olvidaste tu PIN? Enviar enlace &rarr;</button>
+  </div>
+</div>
+
+<div id="appShell" style="display:none;">
+<div class="shell">
+
+  <!-- ── Fondo bosque ── -->
+  <div class="bg-cover">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="g1" cx="22%" cy="88%" r="52%">
+          <stop offset="0%"   stop-color="#E8520A" stop-opacity=".78"/>
+          <stop offset="100%" stop-color="#181714" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="g2" cx="74%" cy="90%" r="48%">
+          <stop offset="0%"   stop-color="#C84010" stop-opacity=".58"/>
+          <stop offset="100%" stop-color="#181714" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="g3" cx="50%" cy="52%" r="68%">
+          <stop offset="0%"   stop-color="#F0A030" stop-opacity=".10"/>
+          <stop offset="100%" stop-color="#181714" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="1200" height="800" fill="#0d0c09"/>
+      <g fill="#1a1812" opacity=".97">
+        <rect x="0"   y="510" width="19" height="290"/><polygon points="9,350 -10,528 29,528"/>
+        <rect x="33"  y="524" width="16" height="276"/><polygon points="41,368 20,542 62,542"/>
+        <rect x="58"  y="514" width="19" height="286"/><polygon points="67,354 46,532 88,532"/>
+        <rect x="88"  y="532" width="15" height="268"/><polygon points="95,376 75,550 115,550"/>
+        <rect x="112" y="517" width="18" height="283"/><polygon points="121,357 100,535 142,535"/>
+        <rect x="145" y="537" width="14" height="263"/><polygon points="152,381 131,554 173,554"/>
+        <rect x="168" y="520" width="17" height="280"/><polygon points="176,360 156,538 196,538"/>
+        <rect x="198" y="510" width="15" height="290"/><polygon points="205,350 186,528 224,528"/>
+        <rect x="855" y="506" width="15" height="294"/><polygon points="862,346 842,524 882,524"/>
+        <rect x="882" y="522" width="17" height="278"/><polygon points="890,362 870,540 910,540"/>
+        <rect x="910" y="512" width="14" height="288"/><polygon points="917,352 898,530 936,530"/>
+        <rect x="965" y="517" width="15" height="283"/><polygon points="972,357 953,535 991,535"/>
+        <rect x="490" y="548" width="12" height="252"/><polygon points="496,392 480,562 512,562"/>
+        <rect x="602" y="550" width="13" height="250"/><polygon points="608,394 592,564 624,564"/>
+        <rect x="715" y="548" width="14" height="252"/><polygon points="722,392 706,562 738,562"/>
+      </g>
+      <rect width="1200" height="800" fill="url(#g1)"/>
+      <rect width="1200" height="800" fill="url(#g2)"/>
+      <rect width="1200" height="800" fill="url(#g3)"/>
+    </svg>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SIDEBAR
+       ══════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">arauco</div>
+      <div class="brand-sub">RDCFT · 7 días</div>
+    </div>
+    <div class="sidebar-tabs">
+      <button class="stab active" id="stabPaisajes" onclick="switchSidebarTab('paisajes')">Paisajes</button>
+      <button class="stab" id="stabHumo" onclick="switchSidebarTab('humo')">Simul. Humo</button>
+    </div>
+    <div class="sidebar-list" id="sidebarList"></div>
+    <div class="sidebar-legend">
+      <div class="leg-title">Estado operacional</div>
+      <div class="leg-row"><span class="leg-d" style="background:var(--c-green)"></span>Favorable</div>
+      <div class="leg-row"><span class="leg-d" style="background:var(--c-yellow)"></span>Con restricciones</div>
+      <div class="leg-row"><span class="leg-d" style="background:var(--c-red)"></span>No favorable</div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="cerrarSidebar()"></div>
+
+  <!-- ══════════════════════════════════════
+       MAIN
+       ══════════════════════════════════════ -->
+  <main class="main">
+
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title">
+        <h1 id="mainTitle">Selecciona un paisaje</h1>
+      </div>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema"></button>
+      <div class="user-menu" id="userMenu">
+        <button class="user-menu-trigger" id="userMenuTrigger" onclick="toggleUserMenu()" aria-haspopup="true" aria-expanded="false">
+          <span id="userBadge" class="user-badge"></span>
+          <span class="umenu-chevron">▾</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Modal consulta por coordenadas ── -->
+    <div class="modal-overlay" id="modalOverlay" onclick="cerrarConsulta(); resetMapa();"></div>
+    <div class="modal" id="modalConsulta">
+      <div class="modal-header">
+        <span class="modal-title">Consulta meteorológica por coordenadas</span>
+        <button class="modal-close" onclick="cerrarConsulta(); resetMapa();">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Ingresa las coordenadas del punto a consultar. Se mostrará el pronóstico horario para las próximas 24 horas.</p>
+
+        <!-- Historial de consultas recientes -->
+        <div id="historialPanel" class="historial-panel" style="display:none;">
+          <div class="historial-label">Recientes <span style="font-size:.7rem; font-weight:400; opacity:.45; margin-left:6px;">· se eliminan en 24 h</span></div>
+          <div id="historialItems" class="historial-items"></div>
+        </div>
+
+        <div class="modal-fields">
+          <div class="modal-field">
+            <label>Latitud</label>
+            <input type="number" id="inputLat" placeholder="-37.4751" step="0.0001"/>
+          </div>
+          <div class="modal-field">
+            <label>Longitud</label>
+            <input type="number" id="inputLon" placeholder="-73.3519" step="0.0001"/>
+          </div>
+          <div class="modal-field">
+            <label>Fecha a consultar</label>
+            <input type="date" id="inputFecha"/>
+          </div>
+          <div class="modal-field">
+            <label>Nombre del punto (opcional)</label>
+            <input type="text" id="inputNombre" placeholder="Ej: Sector Quilaco"/>
+          </div>
+        </div>
+        <div id="modalError" class="modal-error" style="display:none;"></div>
+
+        <!-- Botón abrir mapa -->
+        <button class="map-toggle-btn" id="btnMapa" onclick="toggleMapa()">
+          🗺️ Seleccionar en mapa
+        </button>
+
+        <!-- Panel del mapa -->
+        <div id="mapPanel" style="display:none;">
+          <div class="map-layer-btns">
+            <button id="btnCapaMapa" class="map-layer-btn active" onclick="cambiarCapa('mapa')">🗺️ Mapa</button>
+            <button id="btnCapaSatelite" class="map-layer-btn" onclick="cambiarCapa('satelite')">🛰️ Satélite</button>
+            <button id="btnPredios" class="map-layer-btn active" onclick="togglePredios()" title="Mostrar/ocultar predios">🟧 Predios</button>
+            <button id="btnGeo" class="map-geo-btn" onclick="miUbicacion()" title="Usar mi ubicación actual">📍</button>
+          </div>
+          <div id="mapContainer"></div>
+          <div id="mapConfirm" class="map-confirm" style="display:none;"></div>
+        </div>
+
+        <button class="modal-submit" id="btnConsultar" onclick="ejecutarConsulta()">
+          🔍 Consultar pronóstico
+        </button>
+      </div>
+      <div id="modalResult" class="modal-result"></div>
+    </div>
+
+    <div class="detail" id="detailPanel"></div>
+    <div class="humo-panel" id="humoPanel" style="display:none;">
+      <div class="humo-layout">
+
+        <!-- Columna izquierda: mapa -->
+        <div class="humo-map-col">
+          <div class="humo-map-toolbar">
+            <button id="hBtnMapa"     class="map-layer-btn active" onclick="humoSetCapa('mapa')">🗺️ Mapa</button>
+            <button id="hBtnSatelite" class="map-layer-btn"        onclick="humoSetCapa('satelite')">🛰️ Satélite</button>
+            <button id="hBtnPredios"  class="map-layer-btn active" onclick="humoTogglePredios()">🟧 Predios</button>
+            <button id="hBtnGeo"      class="map-geo-btn"          onclick="humoGeolocate()" title="Mi ubicación">📍</button>
+            <button id="hBtnHCFM"    class="map-layer-btn" onclick="humoToggleHCFM()" title="Mostrar/ocultar capa de humedad combustible">🔥 HCFM</button>
+            <button id="hBtnLimpiar"  class="map-layer-btn humo-btn-limpiar" onclick="humoLimpiar()" title="Limpiar simulación">🗑 Limpiar</button>
+          </div>
+          <div id="humoMapContainer" class="humo-map-container"></div>
+          <div class="humo-map-hint">📌 Clic en el mapa · Mantén presionado sobre un predio para seleccionarlo</div>
+        </div>
+
+        <!-- Columna derecha: parámetros + resultado -->
+        <div class="humo-form-col">
+          <div class="humo-form-title">Parámetros de simulación</div>
+          <div class="humo-fields">
+            <div class="humo-field">
+              <label>Latitud</label>
+              <input type="number" id="humoLat" placeholder="-37.7128" step="0.000001" readonly/>
+            </div>
+            <div class="humo-field">
+              <label>Longitud</label>
+              <input type="number" id="humoLon" placeholder="-73.0957" step="0.000001" readonly/>
+            </div>
+            <div class="humo-field">
+              <label>Altura de emisión (m)</label>
+              <input type="number" id="humoAltura" value="500" min="50" max="3000" step="50"/>
+            </div>
+          </div>
+
+          <!-- Banner servidor offline -->
+          <div class="humo-server-banner" id="humoServerBanner" style="display:none;">
+            <div class="humo-server-icon">⚠️</div>
+            <div class="humo-server-text">
+              <strong>Iniciando servidor...</strong>
+              Puede tardar hasta 30 segundos en estar listo.
+            </div>
+            <div class="humo-server-dot"></div>
+          </div>
+
+          <button class="humo-simular-btn" id="btnSimular" onclick="ejecutarSimulacion()" disabled>
+            🌫️ Iniciar simulación
+          </button>
+
+          <button class="humo-pdf-btn" id="btnAbrirPdfHumo" onclick="abrirModalPdfHumo()" disabled>
+            📄 Generar informe PDF (en proceso de elaboración)
+          </button>
+
+          <div class="humo-status" id="humoStatus" style="display:none;"></div>
+
+          <div class="humo-hcfm-panel" id="humoHCFMPanel" style="display:none;"></div>
+
+          <div class="humo-result" id="humoResult" style="display:none;">
+            <a id="humoDownloadLink" href="#" target="_blank" class="humo-download-btn">
+              📥 Descargar trayectoria (.kmz)
+            </a>
+            <div class="humo-result-hint">Abrir con Google Earth para visualizar la dispersión</div>
+          </div>
+
+          <div class="humo-info">
+            <div class="humo-info-title">¿Cómo funciona?</div>
+            <div class="humo-info-body">
+              Usa el modelo <strong>HYSPLIT Ensemble</strong> de la NOAA para calcular las trayectorias
+              de dispersión de humo desde el punto seleccionado. El proceso tarda entre 1 y 3 minutos.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+</div>
+</div>
+
+<!--
+  ══════════════════════════════════════════
+  Scripts — respetar este orden
+  ══════════════════════════════════════════
+  1. paisajes.js  → define PAISAJES[]
+  2. weather.js   → define fetchWeather(), parseHourly(), regla RDCFT
+  3. ui.js        → define renderSidebar(), renderDetail(), etc.
+  4. app.js       → arranca la app, maneja eventos
+-->
+<!-- PDF: html2canvas + jsPDF (local) -->
+<script src="js/vendor/html2canvas.min.js"></script>
+<script src="js/vendor/jspdf.umd.min.js"></script>
+<script src="js/paisajes.js"></script>
+<script src="js/weather.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+
+<script src="js/vendor/leaflet.js"></script>
+<script src="js/map-picker.js"></script>
+<script src="js/humo.js"></script>
+<script src="js/login.js"></script>
+
+<script>
+  function toggleSidebar() {
+    if (window.innerWidth > 768) return;
+    document.querySelector(".sidebar").classList.toggle("open");
+    document.getElementById("sidebarOverlay").classList.toggle("open");
+  }
+  function cerrarSidebar() {
+    document.querySelector(".sidebar").classList.remove("open");
+    document.getElementById("sidebarOverlay").classList.remove("open");
+  }
+  // Cerrar al seleccionar paisaje
+  document.querySelector("#sidebarList").addEventListener("click", function() {
+    if (window.innerWidth <= 768) cerrarSidebar();
+  });
+  // Ocultar botón menú en desktop
+  function actualizarMenuBtn() {
+    var btn = document.getElementById("menuBtn");
+    if (btn) btn.style.display = window.innerWidth <= 768 ? "flex" : "none";
+  }
+  window.addEventListener("resize", actualizarMenuBtn);
+  window.addEventListener("DOMContentLoaded", actualizarMenuBtn);
+
+  // ── User menu dropdown ──────────────────────────────────────────────────
+  function posicionarUserMenu() {
+    var dd   = document.getElementById("userMenuDropdown");
+    var btn  = document.getElementById("userMenuTrigger");
+    var rect = btn.getBoundingClientRect();
+    dd.style.top   = (rect.bottom + 6) + "px";
+    dd.style.right = (window.innerWidth - rect.right) + "px";
+  }
+  function toggleUserMenu() {
+    var dd   = document.getElementById("userMenuDropdown");
+    var btn  = document.getElementById("userMenuTrigger");
+    var open = dd.classList.toggle("open");
+    btn.setAttribute("aria-expanded", open);
+    if (open) posicionarUserMenu();
+  }
+  function cerrarUserMenu() {
+    var dd  = document.getElementById("userMenuDropdown");
+    var btn = document.getElementById("userMenuTrigger");
+    dd.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+  }
+  document.addEventListener("click", function(e) {
+    var menu = document.getElementById("userMenu");
+    if (menu && !menu.contains(e.target)) cerrarUserMenu();
+  });
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") cerrarUserMenu();
+  });
+  window.addEventListener("resize", function() {
+    if (document.getElementById("userMenuDropdown").classList.contains("open")) posicionarUserMenu();
+  });
+</script>
+
+
+<!-- ══════════════════════════════════════
+     PANEL SUGERENCIAS / CONSULTAS
+     ══════════════════════════════════════ -->
+<div class="modal-overlay" id="feedbackOverlay" onclick="cerrarFeedback()"></div>
+<div class="modal" id="feedbackModal">
+  <div class="modal-header">
+    <span class="modal-title">💬 Recomendaciones, consultas y mejoras</span>
+    <button class="modal-close" onclick="cerrarFeedback()">✕</button>
+  </div>
+  <div class="modal-body">
+    <p class="modal-desc">Comparte una recomendación, consulta o sugerencia de mejora para el dashboard.</p>
+
+    <div class="feedback-tipo-row">
+      <label class="feedback-tipo-opt">
+        <input type="radio" name="feedbackTipo" value="recomendacion" checked/>
+        💡 Recomendación
+      </label>
+      <label class="feedback-tipo-opt">
+        <input type="radio" name="feedbackTipo" value="consulta"/>
+        ❓ Consulta
+      </label>
+      <label class="feedback-tipo-opt">
+        <input type="radio" name="feedbackTipo" value="mejora"/>
+        🔧 Mejora
+      </label>
+    </div>
+
+    <textarea
+      id="feedbackMensaje"
+      class="feedback-textarea"
+      placeholder="Escribe tu mensaje aquí...">
+    </textarea>
+
+    <div id="feedbackError" class="modal-error" style="display:none;"></div>
+    <div id="feedbackOk" class="feedback-ok" style="display:none;">✅ Mensaje enviado. ¡Gracias por tu aporte!</div>
+
+    <button class="modal-submit" id="btnFeedback" onclick="enviarFeedback()">Enviar →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANEL ADMINISTRACIÓN
+     ══════════════════════════════════════ -->
+<div id="adminPanel" class="admin-overlay" style="display:none;">
+  <div class="admin-modal">
+    <div class="admin-header">
+      <span class="admin-title">⚙️ Gestión de Usuarios</span>
+      <button class="modal-close" onclick="cerrarAdmin()">✕</button>
+    </div>
+    <div class="admin-body">
+
+      <!-- Agregar usuario -->
+      <div class="admin-form">
+        <div class="admin-form-title">Agregar nuevo usuario</div>
+        <div class="admin-form-row">
+          <input type="email" id="adminNuevoEmail" placeholder="correo@arauco.com" class="admin-input"/>
+          <select id="adminNuevoRol" class="admin-select">
+            <option value="usuario">👤 Usuario</option>
+            <option value="admin">⭐ Admin</option>
+          </select>
+          <input type="text" id="adminNuevoCargo" placeholder="Cargo (opcional)" class="admin-input"/>
+          <button class="admin-add-btn" onclick="agregarUsuario()">+ Agregar</button>
+        </div>
+        <div id="adminError" class="admin-error" style="display:none;"></div>
+      </div>
+
+      <div id="adminMensaje" style="display:none;"></div>
+
+      <!-- Buscador -->
+      <div class="admin-search-wrap">
+        <input
+          type="text"
+          class="admin-input admin-search"
+          placeholder="🔍 Buscar por correo o cargo..."
+          oninput="buscarUsuario(this.value)"
+        />
+        <span id="adminCounter" class="admin-counter"></span>
+      </div>
+
+      <!-- Tabla de usuarios -->
+      <div class="admin-tabla-wrap">
+        <table class="admin-tabla">
+          <thead>
+            <tr>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Cargo</th>
+              <th>Último acceso</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="adminTablaBody"></tbody>
+        </table>
+      </div>
+
+      <div class="admin-footer">
+        <button class="admin-export-btn" onclick="exportarCSV()">📥 Exportar CSV</button>
+        <button id="btnGuardarUsuarios" class="admin-save-btn" onclick="guardarUsuarios()">💾 Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     MODAL PDF SIMULACIÓN DE HUMO
+     ══════════════════════════════════════ -->
+<div id="humoPdfModal" class="humo-pdf-overlay" style="display:none;" onclick="if(event.target===this)cerrarModalPdfHumo()">
+  <div class="humo-pdf-modal">
+    <div class="humo-pdf-modal-header">
+      <span>Generar informe PDF</span>
+      <button class="modal-close" onclick="cerrarModalPdfHumo()">✕</button>
+    </div>
+    <div class="humo-pdf-modal-body">
+      <div class="humo-field">
+        <label>Nombre del punto</label>
+        <input type="text" id="pdfNombre" class="humo-input"
+          placeholder="Ej: Cerro Caracol, Rodal 14-A…">
+      </div>
+      <div class="humo-field">
+        <label>Condiciones de viento</label>
+        <textarea id="pdfComentViento" class="humo-textarea"
+          placeholder="Describe la velocidad, dirección y rachas de viento esperadas para la operación..."></textarea>
+      </div>
+      <div class="humo-field">
+        <label>Condiciones para la quema</label>
+        <textarea id="pdfComentQuema" class="humo-textarea"
+          placeholder="Estado operacional, restricciones activas o recomendaciones para el uso del fuego técnico..."></textarea>
+      </div>
+      <button id="btnGenerarPdf" class="humo-simular-btn" onclick="generarPdfHumo()">
+        📄 Generar PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA RESTABLECER PIN (enlace por correo)
+     ══════════════════════════════════════ -->
+<div id="resetPinScreen" style="display:none;">
+  <div class="login-bg">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="lg3" cx="50%" cy="88%" r="52%">
+          <stop offset="0%" stop-color="#2DB87A" stop-opacity=".45"/>
+          <stop offset="100%" stop-color="#181714" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="1200" height="800" fill="#0d0c09"/>
+      <g fill="#1a1812" opacity=".97">
+        <rect x="0" y="510" width="19" height="290"/><polygon points="9,350 -10,528 29,528"/>
+        <rect x="200" y="517" width="18" height="283"/><polygon points="209,357 188,535 230,535"/>
+        <rect x="855" y="506" width="15" height="294"/><polygon points="862,346 842,524 882,524"/>
+        <rect x="965" y="517" width="15" height="283"/><polygon points="972,357 953,535 991,535"/>
+      </g>
+      <rect width="1200" height="800" fill="url(#lg3)"/>
+    </svg>
+  </div>
+  <div class="login-card">
+    <div class="login-brand">arauco</div>
+    <div class="login-brand-sub">Restablecer PIN &middot; Administrador</div>
+    <div class="pin-icon-wrap">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+    <div class="login-title" id="resetPinTitle">Verificando enlace...</div>
+    <div class="login-desc" id="resetPinDesc"></div>
+    <div id="resetPinEmailShow" class="pin-email-display"></div>
+    <div id="resetPinForm" style="display:none; width:100%;">
+      <input type="password" id="inputNewPin" class="login-input" placeholder="Nuevo PIN"
+        onkeydown="handleNewPinKeyDown(event)" autocomplete="new-password" maxlength="64"/>
+      <div style="margin-top:10px;">
+        <input type="password" id="inputNewPinConfirm" class="login-input" placeholder="Confirmar nuevo PIN"
+          onkeydown="handleNewPinKeyDown(event)" autocomplete="new-password" maxlength="64"/>
+      </div>
+      <div class="pin-hint">M&iacute;nimo 4 caracteres. Letras, n&uacute;meros o s&iacute;mbolos.</div>
+    </div>
+    <div id="resetPinScreenError" class="login-error" style="display:none;"></div>
+    <button class="login-btn" id="btnGuardarNuevoPin" onclick="ejecutarResetPin()" style="display:none;">Guardar PIN &rarr;</button>
+    <button class="solicitud-link-btn" onclick="cancelarResetPin()">&larr; Volver al inicio</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL RESTABLECER PIN (desde la app)
+     ══════════════════════════════════════ -->
+<div class="modal-overlay" id="resetPinOverlay" onclick="cerrarResetPin()" style="display:none;"></div>
+<div class="modal" id="resetPinModal" style="display:none;">
+  <div class="modal-header">
+    <span class="modal-title">🔑 Restablecer PIN de seguridad</span>
+    <button class="modal-close" onclick="cerrarResetPin()">✕</button>
+  </div>
+  <div class="modal-body">
+    <p class="modal-desc">Se enviar&aacute; un enlace de restablecimiento a tu correo corporativo. V&aacute;lido por 15 minutos.</p>
+    <div id="resetPinModalEmail" class="pin-email-display" style="margin-bottom:16px;"></div>
+    <div id="resetPinModalError" class="modal-error" style="display:none;"></div>
+    <div id="resetPinModalOk" class="feedback-ok" style="display:none;"></div>
+    <button class="modal-submit" id="btnEnviarResetPin" onclick="solicitarResetPin()">Enviar enlace &rarr;</button>
+  </div>
+</div>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    // Auto-reload cuando un nuevo SW toma el control (garantiza JS siempre fresco)
+    let swRefreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!swRefreshing) { swRefreshing = true; window.location.reload(); }
+    });
+
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => {
+          console.log('[RDCFT] Service Worker registrado:', reg.scope);
+          // Verificar actualizaciones cada vez que el usuario vuelve a la pestaña
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') reg.update();
+          });
+        })
+        .catch(err => console.warn('[RDCFT] Service Worker error:', err));
+    });
+  }
+</script>
+
+<!-- Dropdown menú usuario — fuera de cualquier contenedor con overflow/transform -->
+<div class="user-menu-dropdown" id="userMenuDropdown" role="menu">
+  <button id="btnAdmin" class="umenu-item umenu-item--admin" onclick="abrirAdmin(); cerrarUserMenu()" style="display:none;" role="menuitem">
+    ⚙️ Gestionar usuarios<span id="adminBadge" class="admin-badge" style="display:none;"></span>
+  </button>
+  <button id="btnResetPin" class="umenu-item umenu-item--admin" onclick="abrirResetPin(); cerrarUserMenu()" style="display:none;" role="menuitem">
+    🔑 Restablecer PIN
+  </button>
+  <div class="umenu-sep" id="umenuAdminSep" style="display:none;"></div>
+  <button class="umenu-item umenu-item--consulta" onclick="abrirConsulta(); cerrarUserMenu()" role="menuitem">
+    📍 Consultar coordenadas
+  </button>
+  <button class="umenu-item umenu-item--feedback" onclick="abrirFeedback(); cerrarUserMenu()" role="menuitem">
+    💬 Sugerencias
+  </button>
+  <div class="umenu-sep"></div>
+  <button class="umenu-item umenu-item--logout" onclick="cerrarSesion()" role="menuitem">
+    ⎋ Salir
+  </button>
+</div>
+</body>
+</html>
