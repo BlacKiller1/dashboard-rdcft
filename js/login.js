@@ -588,7 +588,7 @@ function abrirAdmin() {
   const u = verificarSesion();
   if (!u || u.rol !== 'admin') return;
   mostrarBadgeAdmin(0);
-  window.location.href = '/admin.html';
+  window.location.href = '/pages/admin.html';
 }
 
 function cerrarAdmin() {

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alertas Comunales Preventivas — Portal Meteorológico ARAUCO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+  <style>
+    :root {
+      --naranja: #EA7600;
+      --calipso: #5DBAA9;
+      --corteza: #696158;
+      --dark:    #1A1713;
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%; width: 100%;
+      overflow: hidden;
+      background: var(--dark);
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      height: 64px;
+      background: rgba(26,23,19,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(105,97,88,0.22);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 64px;
+    }
+    .top-bar-left { display: flex; align-items: center; gap: 20px; }
+    .top-bar-brand {
+      font-family: 'Manrope', sans-serif;
+      font-size: 1.05rem; font-weight: 800; font-style: italic;
+      color: var(--naranja);
+    }
+    .top-bar-sep {
+      width: 1px; height: 20px;
+      background: rgba(105,97,88,0.45);
+    }
+    .top-bar-section {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .top-bar-section .material-symbols-outlined {
+      font-size: 18px; color: var(--calipso);
+    }
+    .top-bar-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .7rem; font-weight: 500; letter-spacing: .06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+    }
+    .top-bar-back {
+      display: flex; align-items: center; gap: 6px;
+      background: none;
+      border: 1px solid rgba(93,186,169,0.35);
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; font-weight: 600; letter-spacing: .04em;
+      color: var(--calipso);
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .top-bar-back:hover { background: rgba(93,186,169,0.10); }
+    .top-bar-back .material-symbols-outlined { font-size: 16px; }
+
+    /* ── Iframe ── */
+    #mapa {
+      position: fixed;
+      top: 64px; left: 0; right: 0; bottom: 0;
+      width: 100%; height: calc(100% - 64px);
+      border: none;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .top-bar { padding: 0 20px; }
+      .top-bar-sep, .top-bar-section { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <span class="top-bar-brand">Portal Meteorológico ARAUCO</span>
+      <div class="top-bar-sep"></div>
+      <div class="top-bar-section">
+        <span class="material-symbols-outlined">warning</span>
+        <span class="top-bar-title">Alertas Comunales Preventivas</span>
+      </div>
+    </div>
+    <a class="top-bar-back" href="/">
+      <span class="material-symbols-outlined">arrow_back</span>
+      Volver
+    </a>
+  </header>
+
+  <iframe
+    id="mapa"
+    src="https://www.arcgis.com/apps/dashboards/f2588dc1601f424cab7c4c8eb7c8d502"
+    allowfullscreen
+    loading="lazy"
+    title="Alertas Comunales Preventivas"
+  ></iframe>
+
+</body>
+</html>

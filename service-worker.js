@@ -52,7 +52,7 @@ self.addEventListener('fetch', event => {
   // Documentos HTML → Network First (los headers CSP deben venir de Vercel)
   if (event.request.destination === 'document') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/dashboard.html'))
+      fetch(event.request).catch(() => caches.match('/pages/dashboard.html'))
     );
     return;
   }
