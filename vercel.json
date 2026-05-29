@@ -1,6 +1,11 @@
 {
   "outputDirectory": ".",
   "cleanUrls": false,
+  "redirects": [
+    { "source": "/dashboard.html", "destination": "/pages/dashboard.html", "permanent": true },
+    { "source": "/alertas.html",   "destination": "/pages/alertas.html",   "permanent": true },
+    { "source": "/admin.html",     "destination": "/pages/admin.html",     "permanent": true }
+  ],
   "headers": [
     {
       "source": "/service-worker.js",
