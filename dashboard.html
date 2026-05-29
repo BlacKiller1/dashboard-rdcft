@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="RDCFT Arauco"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="css/leaflet.css"/>
@@ -190,17 +190,10 @@
        SIDEBAR
        ══════════════════════════════════════ -->
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="brand">arauco</div>
-      <div class="brand-sub">RDCFT · 7 días</div>
-    </div>
-    <div class="sidebar-tabs">
-      <button class="stab active" id="stabPaisajes" onclick="switchSidebarTab('paisajes')">Paisajes</button>
-      <button class="stab" id="stabHumo" onclick="switchSidebarTab('humo')">Simul. Humo</button>
-    </div>
+    <div class="sidebar-zones-label">Zonas Operacionales</div>
     <div class="sidebar-list" id="sidebarList"></div>
     <div class="sidebar-legend">
-      <div class="leg-title">Estado operacional</div>
+      <div class="leg-title">Estado Operacional</div>
       <div class="leg-row"><span class="leg-d" style="background:var(--c-green)"></span>Favorable</div>
       <div class="leg-row"><span class="leg-d" style="background:var(--c-yellow)"></span>Con restricciones</div>
       <div class="leg-row"><span class="leg-d" style="background:var(--c-red)"></span>No favorable</div>
@@ -215,15 +208,19 @@
 
     <header class="topbar">
       <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()">☰</button>
-      <div class="topbar-title">
-        <h1 id="mainTitle">Selecciona un paisaje</h1>
-      </div>
-      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema"></button>
-      <div class="user-menu" id="userMenu">
-        <button class="user-menu-trigger" id="userMenuTrigger" onclick="toggleUserMenu()" aria-haspopup="true" aria-expanded="false">
-          <span id="userBadge" class="user-badge"></span>
-          <span class="umenu-chevron">▾</span>
-        </button>
+      <div class="topbar-brand">ARAUCO Meteorológico</div>
+      <nav class="topbar-tabs">
+        <button class="stab active" id="stabPaisajes" onclick="switchSidebarTab('paisajes')">Dashboard</button>
+        <button class="stab" id="stabHumo" onclick="switchSidebarTab('humo')">Simul. Humo</button>
+      </nav>
+      <div class="topbar-right">
+        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema"></button>
+        <div class="user-menu" id="userMenu">
+          <button class="user-menu-trigger" id="userMenuTrigger" onclick="toggleUserMenu()" aria-haspopup="true" aria-expanded="false">
+            <span id="userBadge" class="user-badge"></span>
+            <span class="umenu-chevron">▾</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -367,6 +364,18 @@
   </main>
 
 </div>
+
+<!-- ── Footer ── -->
+<footer class="app-footer">
+  <span class="footer-copy">© 2024 ARAUCO. Todos los derechos reservados.</span>
+  <nav class="footer-links">
+    <a href="#">Privacidad</a>
+    <a href="#">Soporte Técnico</a>
+    <a href="#">Manual de Usuario</a>
+    <a href="#">TERRAMETRIC SYSTEM</a>
+  </nav>
+</footer>
+
 </div>
 
 <!--
