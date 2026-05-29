@@ -41,47 +41,12 @@
       z-index: 1; pointer-events: none;
     }
 
-    /* ── Top bar ── */
-    .top-bar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-      height: 64px;
-      background: rgba(26,23,19,0.88);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(105,97,88,0.22);
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 64px;
-    }
-    .top-bar-left  { display: flex; align-items: center; gap: 32px; }
-    .top-bar-brand {
-      font-family: 'Manrope', sans-serif;
-      font-size: 1.05rem; font-weight: 800; font-style: italic;
-      color: var(--naranja); white-space: nowrap;
-    }
-    .top-bar-nav { display: flex; gap: 24px; }
-    .top-bar-nav a {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: .68rem; font-weight: 500; letter-spacing: .06em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.50); text-decoration: none;
-      transition: color .15s;
-    }
-    .top-bar-nav a:hover { color: #fff; }
-    .top-bar-right { display: flex; align-items: center; gap: 6px; }
-    .icon-btn {
-      background: none; border: none; cursor: pointer;
-      color: rgba(255,255,255,0.55);
-      width: 36px; height: 36px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      transition: background .15s, color .15s;
-    }
-    .icon-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
 
     /* ── Screens ── */
     .screen {
       position: fixed; inset: 0; z-index: 5;
       display: none; flex-direction: column;
-      padding-top: 64px;
       overflow-y: auto; overflow-x: hidden;
     }
     .screen.active { display: flex; }
@@ -325,25 +290,6 @@
 
 <div id="map"></div>
 
-<!-- ── Top bar ── -->
-<header class="top-bar">
-  <div class="top-bar-left">
-    <span class="top-bar-brand">Portal Meteorológico ARAUCO</span>
-    <nav class="top-bar-nav">
-      <a href="#">Silvícola</a>
-      <a href="/dashboard.html">Protección</a>
-      <a href="/alertas.html">Alertas</a>
-    </nav>
-  </div>
-  <div class="top-bar-right">
-    <button class="icon-btn" title="Notificaciones">
-      <span class="material-symbols-outlined" style="font-size:22px;">notifications</span>
-    </button>
-    <button class="icon-btn" title="Cuenta">
-      <span class="material-symbols-outlined" style="font-size:22px;">account_circle</span>
-    </button>
-  </div>
-</header>
 
 <!-- ── Badge usuario ── -->
 <div id="userBadge">
