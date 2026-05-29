@@ -1382,95 +1382,103 @@ html, body {
   text-align: center;
   backdrop-filter: blur(12px);
 }
-.login-brand     { font-size: 28px; font-weight: 700; letter-spacing: .14em; color: var(--c-orange); text-transform: lowercase; }
-.login-brand-sub { font-size: 10px; color: var(--c-text-dim); letter-spacing: .1em; text-transform: uppercase; margin-top: -10px; }
-.login-title     { font-size: 15px; font-weight: 500; color: var(--c-text); margin-top: 4px; }
-.login-desc      { font-size: 12px; color: var(--c-text-muted); line-height: 1.6; max-width: 280px; }
-.login-desc strong { color: var(--c-orange); }
+.login-brand {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.45rem; font-weight: 800; font-style: italic;
+  color: var(--c-orange); text-align: center; line-height: 1.2;
+  letter-spacing: -.01em;
+}
+.login-brand-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .6rem; font-weight: 500; letter-spacing: .10em;
+  text-transform: uppercase;
+  color: var(--c-text-dim); opacity: .7;
+  text-align: center; line-height: 1.7;
+  margin-top: -8px;
+}
+.login-title {
+  font-family: 'Inter', sans-serif;
+  font-size: .95rem; font-weight: 600;
+  color: var(--c-text); margin-top: 4px;
+}
+.login-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: .78rem; color: var(--c-text-muted);
+  line-height: 1.6; max-width: 280px;
+}
+.login-desc strong { color: var(--c-orange); font-weight: 600; }
 .login-error {
-  font-size: 11px; color: var(--c-red);
+  font-family: 'Inter', sans-serif;
+  font-size: .72rem; color: var(--c-red);
   background: var(--c-red-dim);
-  border: 0.5px solid rgba(201,64,64,0.3);
-  border-radius: 8px; padding: 10px 14px;
-  line-height: 1.5; width: 100%; text-align: left;
+  border: 1px solid rgba(201,64,64,0.3);
+  border-radius: 6px; padding: 10px 14px;
+  line-height: 1.5; width: 100%; text-align: center;
 }
 .login-input {
   width: 100%;
-  background: rgba(255,255,255,0.06);
-  border: 0.5px solid var(--c-border-md);
-  border-radius: 9px; padding: 12px 16px;
-  font-size: 14px; color: var(--c-text);
-  outline: none; transition: border-color .15s; text-align: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--c-border-md);
+  border-radius: 8px; padding: 12px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: .875rem; color: var(--c-text);
+  outline: none; transition: border-color .2s; text-align: center;
 }
-.login-input:focus { border-color: var(--c-orange); }
-.login-input::placeholder { color: var(--c-text-dim); }
+.login-input:focus { border-color: #5DBAA9; box-shadow: 0 0 0 2px rgba(93,186,169,0.15); }
+.login-input::placeholder { color: var(--c-text-dim); opacity: .6; }
 .login-btn {
-  width: 100%; padding: 12px; border-radius: 9px;
-  border: 0.5px solid rgba(232,130,10,0.4);
+  width: 100%; padding: 12px; border-radius: 8px;
+  border: 1px solid rgba(232,130,10,0.38);
   background: rgba(232,130,10,0.12);
-  color: var(--c-orange); font-size: 13px; font-weight: 700;
-  cursor: pointer; letter-spacing: .04em; transition: all .15s;
+  color: var(--c-orange);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .76rem; font-weight: 600; letter-spacing: .06em;
+  cursor: pointer; transition: background .15s;
 }
 .login-btn:hover { background: rgba(232,130,10,0.22); border-color: var(--c-orange); }
 
 .solicitud-link-btn {
-  background: none;
-  border: none;
+  background: none; border: none;
   color: var(--c-text-dim);
-  font-size: 11px;
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  letter-spacing: .03em;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .68rem; font-weight: 500; letter-spacing: .04em;
+  cursor: pointer; padding: 0;
+  text-decoration: underline; text-underline-offset: 3px;
   transition: color .15s;
 }
 .solicitud-link-btn:hover { color: var(--c-orange); }
 
 /* Solicitud de acceso */
 .solicitud-panel {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  width: 100%; display: flex; flex-direction: column; gap: 10px;
 }
 .solicitud-sep {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 10px;
-  color: var(--c-text-dim);
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .62rem; font-weight: 500;
+  color: var(--c-text-dim); letter-spacing: .08em; text-transform: uppercase;
 }
 .solicitud-sep::before,
 .solicitud-sep::after {
-  content: '';
-  flex: 1;
-  height: 0.5px;
-  background: var(--c-border-md);
+  content: ''; flex: 1; height: 1px; background: var(--c-border-md);
 }
-.solicitud-input { font-size: 13px; padding: 10px 14px; }
+.solicitud-input { font-size: .82rem; padding: 10px 14px; }
 .solicitud-email-preview {
-  font-size: 11px;
-  color: var(--c-orange);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem; color: var(--c-orange);
   background: rgba(232,130,10,0.08);
-  border: 0.5px solid rgba(232,130,10,0.25);
-  border-radius: 7px;
-  padding: 8px 12px;
-  text-align: center;
-  word-break: break-all;
+  border: 1px solid rgba(232,130,10,0.25);
+  border-radius: 6px; padding: 8px 12px;
+  text-align: center; word-break: break-all;
 }
-.solicitud-btn { font-size: 12px; padding: 10px; }
+.solicitud-btn { font-size: .76rem; padding: 10px; }
 .solicitud-msg {
-  font-size: 11px;
-  border-radius: 8px;
-  padding: 10px 14px;
-  line-height: 1.5;
-  text-align: left;
+  font-family: 'Inter', sans-serif;
+  font-size: .72rem; border-radius: 6px;
+  padding: 10px 14px; line-height: 1.5; text-align: left;
 }
-.solicitud-msg.ok    { color: #5cb85c; background: rgba(92,184,92,0.1);  border: 0.5px solid rgba(92,184,92,0.3); }
-.solicitud-msg.error { color: var(--c-red); background: var(--c-red-dim); border: 0.5px solid rgba(201,64,64,0.3); }
+.solicitud-msg.ok    { color: #5cb85c; background: rgba(92,184,92,0.1);  border: 1px solid rgba(92,184,92,0.3); }
+.solicitud-msg.error { color: var(--c-red); background: var(--c-red-dim); border: 1px solid rgba(201,64,64,0.3); }
 
 /* Badge usuario + botón salir */
 .user-badge {
