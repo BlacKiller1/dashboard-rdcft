@@ -322,7 +322,18 @@ function _mostrarErrorConFuerza(mensaje) {
   errorMsg.style.display = 'block';
 }
 
-function cerrarSesion() {
+function abrirConfirmLogout() {
+  document.getElementById('logoutOverlay').style.display = 'block';
+  document.getElementById('logoutModal').style.display   = 'flex';
+}
+
+function cerrarConfirmLogout() {
+  document.getElementById('logoutOverlay').style.display = 'none';
+  document.getElementById('logoutModal').style.display   = 'none';
+}
+
+function confirmarCerrarSesion() {
+  cerrarConfirmLogout();
   detenerPollSesion();
   detenerPollAdmin();
   const sesion = verificarSesion();
@@ -335,7 +346,11 @@ function cerrarSesion() {
   if (sesion) liberarSession(sesion.email);
   sessionStorage.removeItem(SESSION_KEY);
   usuariosDB = null;
-  mostrarLogin();
+  window.location.href = '/';
+}
+
+function cerrarSesion() {
+  abrirConfirmLogout();
 }
 
 function handleKeyDown(e) { if (e.key === 'Enter') verificarCorreo(); }
