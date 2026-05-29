@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Selector de Plataforma — Arauco</title>
+  <title>Portal Meteorológico ARAUCO</title>
   <link rel="stylesheet" href="css/leaflet.css"/>
   <style>
     /* ── Paleta Arauco ── */
@@ -52,7 +52,7 @@
       display: flex; flex-direction: column; align-items: center; gap: 22px;
       backdrop-filter: blur(16px);
     }
-    .sel-brand { font-size: 2.6rem; font-weight: 900; letter-spacing: .14em; color: var(--naranja); font-style: italic; text-transform: lowercase; line-height: 1; }
+    .sel-brand { font-size: 2.6rem; font-weight: 900; letter-spacing: .14em; color: var(--naranja); font-style: italic; text-transform: uppercase; line-height: 1; }
     .sel-subtitle { color: rgba(223,209,167,0.72); font-size: 1rem; text-align: center; margin-top: -10px; }
 
     /* ════════════════════════════════
@@ -176,7 +176,7 @@
 <!-- ══ PANTALLA LOGIN ══ -->
 <div id="loginScreen" class="screen">
   <div class="main-card">
-    <div class="sel-brand">arauco</div>
+    <div class="sel-brand">Portal Meteorológico Arauco</div>
     <div style="font-size:10px; color:rgba(223,209,167,0.35); letter-spacing:.12em; text-transform:uppercase; text-align:center; margin-top:-14px; line-height:1.7;">Optimización de Reducción de Combustible<br>mediante Fuego Técnico · Dashboard Meteorológico</div>
     <div style="font-size:15px; font-weight:500; color:rgba(223,209,167,0.9);">Acceso restringido</div>
     <div style="font-size:12px; color:rgba(223,209,167,0.45); text-align:center; line-height:1.6; margin-top:-10px;">Ingresa tu correo corporativo <strong style="color:var(--naranja);">@arauco.com</strong> para acceder.</div>
@@ -190,7 +190,7 @@
 <!-- ══ PANTALLA SELECTOR ══ -->
 <div id="selectorScreen" class="screen active">
   <div class="main-card">
-    <div class="sel-brand">arauco</div>
+    <div class="sel-brand">Portal Meteorológico Arauco</div>
     <p class="sel-subtitle">¡Bienvenido/a! Selecciona la plataforma para continuar.</p>
     <div class="platforms">
       <div class="plat-card silvicola" onclick="this.querySelector('.plat-btn').click()">
