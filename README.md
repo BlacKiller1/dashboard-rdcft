@@ -1,92 +1,58 @@
-# Dashboard Meteorológico RDCFT — Arauco
+# Portal Meteorológico ARAUCO — RDCFT
 
-Dashboard web interactivo para la toma de decisiones operacionales en **Optimización de Reducción de Combustible mediante Fuego Técnico (RDCFT)** en los Paisajes Productivos Protegidos de Arauco.
+Portal web operacional para la toma de decisiones en **Optimización de Reducción de Combustible mediante Fuego Técnico (RDCFT)** en los Paisajes Productivos Protegidos de Arauco.
 
-Desplegado en Vercel: [arauco-rdcft.vercel.app](https://arauco-rdcft.vercel.app)
+**Producción:** [arauco-rdcft.vercel.app](https://arauco-rdcft.vercel.app)
+
+---
+
+## Plataformas
+
+| Plataforma | Descripción | Ruta |
+|---|---|---|
+| **Portal** | Selector de plataformas (entrada principal) | `/` |
+| **Plataforma de Protección** | Dashboard meteorológico RDCFT | `/pages/dashboard.html` |
+| **Alertas Comunales Preventivas** | Mapa ArcGIS embebido | `/pages/alertas.html` |
+| **Panel de Administración** | Gestión de usuarios y auditoría | `/pages/admin.html` |
 
 ---
 
 ## Funcionalidades
 
 ### Pronóstico meteorológico
-- **22 paisajes productivos** con coordenadas georeferenciadas
+- **22 paisajes productivos** con coordenadas georeferenciadas agrupados en 4 zonas operacionales
 - **Pronóstico de 7 días** con datos horarios (10:00 / 15:00 / 18:00)
 - **Regla RDCFT automática** — viento > 10 km/h bloquea la operación
 - **Semáforo operacional** por día (Favorable / Con restricciones / No favorable)
 - **Comentario operacional** generado automáticamente desde los datos meteorológicos
 - **Consulta por coordenadas libres** — pronóstico horario para cualquier punto del mapa
 - **Precipitaciones históricas** por estación vinculadas a cada paisaje
-- **Exportación a PDF** por paisaje (layout portrait estilo Arauco, colores corporativos)
+- **Exportación a PDF** por paisaje (layout portrait, colores corporativos Arauco)
 
 ### Mapa interactivo
-- **Mapa interactivo** con capas de mapa oscuro, satélite y predios GeoJSON
+- Capas de mapa oscuro, satélite y predios GeoJSON
 - **Capa de predios Arauco** — polígonos GeoJSON convertidos desde Esri JSON UTM-18S a WGS84
 - **Long press sobre predios** — captura automática de coordenadas para simulación de humo
 
 ### Simulación de dispersión de humo (HYSPLIT)
-- **Simulación HYSPLIT Ensemble** (NOAA) ejecutada en servidor propio autoalojado con Docker
-- **Trayectorias visualizadas directamente en el mapa** — capas de polilíneas por ensemble
-- **Botón Limpiar** para resetear el mapa tras la simulación
-- **Health check automático** con indicador de estado del servidor (oculto hasta primer check)
-- **Streaming SSE** para resultados en tiempo real durante simulaciones largas
-- **Informe PDF de simulación** (en proceso de elaboración) — layout portrait con mapa, coordenadas, rosa de vientos y comentarios operacionales
-- **Auto-generación de comentarios** de viento y condiciones de quema en el informe PDF
+- **Modelo HYSPLIT Ensemble** (NOAA) ejecutado en servidor autoalojado con Docker
+- **Trayectorias visualizadas en el mapa** como polilíneas coloreadas por ensemble
+- **Streaming SSE** para resultados en tiempo real durante simulaciones largas (~1-4 min)
+- **Health check automático** con indicador de estado del servidor
+- **Informe PDF** de simulación con mapa, coordenadas, rosa de vientos y comentarios
 
 ### Autenticación y sesión
-- **Login restringido** a correos `@arauco.com` registrados en la base de datos
-- **Cierre de sesión automático** cuando la cuenta es iniciada en otro dispositivo (sesión única activa)
-- **Formulario de solicitud de acceso** visible desde la pantalla de login
-- **Botón "Solicitar acceso"** siempre visible para usuarios sin cuenta
+- Login restringido a correos `@arauco.com` registrados
+- **Sesión única activa** — cierre automático si la cuenta se abre en otro dispositivo
+- **Confirmación antes de cerrar sesión** con redirección al portal
+- **Formulario de solicitud de acceso** desde la pantalla de login
+- PIN de seguridad para administradores
 
 ### General
-- **Modo oscuro / modo claro** con persistencia en `localStorage`
-- **PWA** — instalable en dispositivos móviles con actualización automática de caché
-- **Descarga automática de precipitaciones** vía script Python + Selenium cada lunes
-- **Librerías vendor locales** (html2canvas, jsPDF, Leaflet) — sin dependencia de CDNs externos
-
----
-
-## Autenticación y acceso
-
-El acceso está restringido a correos `@arauco.com` registrados en la base de datos de usuarios.
-
-### Flujo de login
-
-1. El usuario ingresa su correo corporativo
-2. El cliente envía el correo al endpoint `/api/verificar`
-3. El servidor valida el correo contra `USUARIOS_DB` y emite un **token HMAC-SHA256 firmado** con `ADMIN_SECRET` + la fecha del día
-4. El token expira automáticamente al cambiar el día (gracia de 48h para tokens en torno a medianoche)
-5. Si el mismo correo inicia sesión en otro dispositivo, la sesión anterior se cierra automáticamente
-6. Las operaciones de administración exigen el token en el header `Authorization`
-
-### Roles
-
-| Rol | Permisos |
-|-----|----------|
-| `usuario` | Ver dashboard, consultar coordenadas, descargar PDF |
-| `admin` | Todo lo anterior + panel de gestión de usuarios |
-
-### Panel de administración
-
-Los administradores pueden agregar, eliminar y cambiar el rol de usuarios directamente desde el dashboard. Los cambios se persisten en la variable de entorno `USUARIOS_DB` de Vercel y activan un redeploy automático.
-
----
-
-## Variables de entorno
-
-### Vercel (frontend + API)
-
-| Variable | Descripción |
-|----------|-------------|
-| `USUARIOS_DB` | JSON con la lista de usuarios `{ "usuarios": [...] }` |
-| `ADMIN_SECRET` | Clave secreta para firmar tokens HMAC (mínimo 32 caracteres aleatorios) |
-| `VERCEL_TOKEN` | Token de API de Vercel para actualizar `USUARIOS_DB` vía panel admin |
-| `VERCEL_PROJECT_ID` | ID del proyecto en Vercel |
-
-Para generar un `ADMIN_SECRET` seguro:
-```bash
-openssl rand -hex 32
-```
+- **PWA** — instalable en móvil, actualización automática de caché
+- **Modo oscuro / claro** con persistencia en `localStorage`
+- **Diseño responsive** para escritorio y móvil
+- Librerías vendor locales (html2canvas, jsPDF, Leaflet) sin dependencia de CDNs
 
 ---
 
@@ -94,142 +60,159 @@ openssl rand -hex 32
 
 ```
 dashboard-rdcft/
-├── index.html                          — Estructura principal + login + modal PDF humo
+├── pages/
+│   ├── dashboard.html          — Dashboard meteorológico RDCFT
+│   ├── alertas.html            — Alertas Comunales Preventivas (ArcGIS embebido)
+│   └── admin.html              — Panel de administración de usuarios
 ├── css/
-│   └── styles.css                      — Estilos, paleta visual, modo claro/oscuro
+│   └── styles.css              — Estilos, paleta visual, modo claro/oscuro
 ├── js/
-│   ├── paisajes.js                     — Coordenadas y datos de los 22 paisajes
-│   ├── weather.js                      — Integración Open-Meteo API + regla RDCFT
-│   ├── ui.js                           — Renderizado, interacción y exportación PDF
-│   ├── app.js                          — Controlador principal + toggle de tema
-│   ├── login.js                        — Autenticación, sesión única y panel de usuarios
-│   ├── map-picker.js                   — Mapa interactivo Leaflet + selector de coordenadas
-│   └── humo.js                         — Simulación HYSPLIT, mapa de trayectorias y PDF
+│   ├── paisajes.js             — Coordenadas y datos de los 22 paisajes
+│   ├── weather.js              — Integración Open-Meteo API + regla RDCFT
+│   ├── ui.js                   — Renderizado, interacción y exportación PDF
+│   ├── app.js                  — Controlador principal + toggle de tema
+│   ├── login.js                — Autenticación, sesión única y panel de usuarios
+│   ├── map-picker.js           — Mapa interactivo Leaflet + selector de coordenadas
+│   ├── humo.js                 — Simulación HYSPLIT, mapa de trayectorias y PDF
+│   └── admin.js                — Lógica del panel de administración
 ├── api/
-│   ├── verificar.js                    — POST: verifica correo y emite token firmado
-│   ├── token.js                        — GET: retorna lista de usuarios (requiere auth admin)
-│   └── usuarios.js                     — POST: actualiza usuarios y redespliega (requiere auth admin)
-├── data/
-│   ├── precipitaciones.json            — Precipitaciones históricas (actualización automática)
-│   └── predios.geojson                 — Polígonos GeoJSON de predios Arauco (WGS84)
+│   ├── verificar.js            — POST: verifica correo y emite token firmado
+│   ├── token.js                — GET: lista de usuarios (requiere auth admin)
+│   └── usuarios.js             — POST: actualiza usuarios y redespliega
 ├── scripts/
-│   └── descargar_precipitaciones.py    — Script Python para descarga automática
-├── vendor/                             — Librerías locales (html2canvas, jsPDF, Leaflet)
-├── service-worker.js                   — PWA: caché de recursos estáticos (nunca cachea index.html)
-├── vercel.json                         — Configuración de despliegue + headers de seguridad + CSP
-├── Dockerfile                          — Imagen Docker para servidor HYSPLIT autoalojado
-├── server.py                           — Servidor Flask con SSE para simulación HYSPLIT
-└── .github/
-    └── workflows/
-        ├── precipitaciones.yml         — Descarga automática cada lunes a las 00:30
-        └── update-pwa-cache.yml        — Actualiza versión de caché PWA en cada push
+│   ├── server.py               — Servidor Flask con SSE para simulación HYSPLIT
+│   ├── robot_noaa.py           — Automatización Selenium para NOAA HYSPLIT
+│   ├── descargar_precipitaciones.py — Descarga automática de precipitaciones
+│   ├── generar_pdf_humo.py     — Generación de informe PDF de simulación
+│   └── requirements.txt        — Dependencias Python del servidor
+├── data/
+│   ├── precipitaciones.json    — Precipitaciones históricas (actualización automática)
+│   └── predios.geojson         — Polígonos GeoJSON de predios Arauco (WGS84)
+├── icons/                      — Iconos PWA
+├── .github/
+│   └── workflows/
+│       ├── precipitaciones.yml         — Descarga automática cada lunes 00:30
+│       └── update-pwa-cache.yml        — Actualiza versión de caché PWA en cada push
+├── index.html                  — Portal selector de plataformas (entrada principal)
+├── service-worker.js           — PWA: caché de recursos estáticos
+├── manifest.json               — Manifiesto PWA
+├── Dockerfile                  — Imagen Docker para servidor HYSPLIT
+├── vercel.json                 — Configuración Vercel + headers de seguridad + CSP
+└── package.json
 ```
 
-> `data/usuarios.json` está en `.gitignore`. Solo se usa en desarrollo local como fuente de usuarios. En producción la fuente es la variable de entorno `USUARIOS_DB`.
+> `data/usuarios.json` está en `.gitignore`. En producción los usuarios se almacenan en la variable de entorno `USUARIOS_DB`.
 
 ---
 
-## Simulación de dispersión de humo (HYSPLIT)
+## Autenticación
 
-El módulo de simulación usa el modelo **NOAA HYSPLIT Ensemble** para predecir la dispersión de humo desde un punto de ignición.
+### Flujo de login
+1. El usuario ingresa su correo corporativo `@arauco.com`
+2. El cliente envía el correo al endpoint `/api/verificar`
+3. El servidor valida contra `USUARIOS_DB` y emite un **token HMAC-SHA256** firmado con `ADMIN_SECRET` + fecha del día
+4. El token expira al cambiar el día (gracia de 48h en torno a medianoche)
+5. Si el mismo correo abre sesión en otro dispositivo, la sesión anterior se cierra automáticamente
+
+### Roles
+
+| Rol | Permisos |
+|---|---|
+| `usuario` | Ver dashboard, consultar coordenadas, descargar PDF |
+| `admin` | Todo lo anterior + panel de gestión de usuarios + auditoría |
+
+---
+
+## Variables de entorno
+
+| Variable | Descripción |
+|---|---|
+| `USUARIOS_DB` | JSON con la lista de usuarios `{ "usuarios": [...] }` |
+| `ADMIN_SECRET` | Clave secreta para tokens HMAC (mínimo 32 caracteres) |
+| `VERCEL_TOKEN` | Token API de Vercel para actualizar `USUARIOS_DB` desde el panel admin |
+| `VERCEL_PROJECT_ID` | ID del proyecto en Vercel |
+
+```bash
+# Generar ADMIN_SECRET seguro
+openssl rand -hex 32
+```
+
+---
+
+## Servidor HYSPLIT (autoalojado)
+
+El módulo de simulación usa **NOAA HYSPLIT Ensemble** para predecir dispersión de humo desde un punto de ignición.
 
 ### Arquitectura
+- **Frontend** (`js/humo.js`): interfaz, mapa de trayectorias y PDF
+- **Backend** (`scripts/server.py`): Flask autoalojado con Docker, ejecuta HYSPLIT vía Selenium y transmite resultados por **SSE**
 
-- **Frontend** (`js/humo.js`): interfaz de usuario, mapa de trayectorias y generación de PDF
-- **Backend** (`server.py`): servidor Flask autoalojado con Docker, ejecuta HYSPLIT y transmite resultados vía **Server-Sent Events (SSE)**
-- **CSP**: `vercel.json` incluye la URL del servidor en `connect-src`
+### Flujo
+1. Usuario ingresa coordenadas (manual o long press sobre predio)
+2. Cliente conecta al servidor vía SSE
+3. Servidor ejecuta HYSPLIT Ensemble (~1-4 min) transmitiendo progreso
+4. Trayectorias se renderizan como polilíneas coloreadas en el mapa
 
-### Flujo de simulación
-
-1. El usuario ingresa coordenadas (manualmente o por long press sobre un predio)
-2. El cliente envía la solicitud al servidor vía SSE
-3. El servidor ejecuta HYSPLIT Ensemble y transmite el progreso en tiempo real
-4. Al finalizar, las trayectorias se renderizan como polilíneas coloreadas en el mapa
-5. El mapa ajusta la vista a las trayectorias (zoom regional máximo)
-
-### Informe PDF (en proceso de elaboración)
-
-El botón de generación de informe PDF está habilitado solo tras una simulación exitosa. El informe incluye: mapa de trayectorias, coordenadas, fecha, comentarios de viento y condiciones de quema auto-generados.
-
----
-
-## Desarrollo local
-
-1. Clona el repositorio:
-   ```bash
-   git clone https://github.com/BlacKiller1/dashboard-rdcft.git
-   ```
-2. Crea `data/usuarios.json` con al menos un usuario admin:
-   ```json
-   {
-     "usuarios": [
-       { "email": "tucorreo@arauco.com", "rol": "admin", "cargo": "Tu cargo" }
-     ]
-   }
-   ```
-3. Abre con **Live Server** en VS Code (clic derecho sobre `index.html` → *Open with Live Server*), o ábrelo directamente con doble clic — el sistema detecta `file://` y usa los archivos locales automáticamente.
-
-Para el servidor HYSPLIT en local, instala las dependencias de Python y ejecuta `server.py` directamente.
-
----
-
-## Despliegue
-
-### Vercel (frontend)
-
-1. Conecta el repositorio en [vercel.com](https://vercel.com)
-2. Configura las variables de entorno (`USUARIOS_DB`, `ADMIN_SECRET`, `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`)
-3. Cada push a `main` despliega automáticamente y actualiza la versión del caché PWA
-
-### Servidor HYSPLIT (autoalojado)
-
-1. Requiere un servidor con Docker accesible públicamente vía HTTPS
-2. Construir y ejecutar la imagen:
-   ```bash
-   docker build -t rdcft-backend .
-   docker run -d --name rdcft-backend --restart unless-stopped -p 8080:8080 rdcft-backend
-   ```
-3. Configurar nginx como proxy inverso con certificado SSL (Let's Encrypt)
-4. Actualizar la URL en `js/humo.js` y el `connect-src` en `vercel.json`
+### Despliegue
+```bash
+docker build -t rdcft-backend .
+docker run -d --name rdcft-backend --restart unless-stopped -p 8080:8080 rdcft-backend
+```
+Requiere nginx como proxy inverso con SSL (Let's Encrypt) y DuckDNS para IP dinámica.
 
 ---
 
 ## Automatización de precipitaciones
 
-El script `scripts/descargar_precipitaciones.py` usa **Selenium + Chrome headless** para descargar los datos de precipitaciones acumuladas de la semana anterior desde [agrometeorologia.cl](https://www.agrometeorologia.cl) y actualiza `data/precipitaciones.json`.
+El script `scripts/descargar_precipitaciones.py` usa Selenium para descargar precipitaciones acumuladas desde [agrometeorologia.cl](https://www.agrometeorologia.cl) y actualiza `data/precipitaciones.json`.
 
-### Ejecución manual
+El workflow `.github/workflows/precipitaciones.yml` lo ejecuta automáticamente cada **lunes a las 00:30 hora Chile**.
+
+---
+
+## Desarrollo local
 
 ```bash
-pip install selenium webdriver-manager pandas openpyxl requests
-python scripts/descargar_precipitaciones.py
+git clone https://github.com/BlacKiller1/dashboard-rdcft.git
 ```
 
-### Ejecución automática
+Crea `data/usuarios.json`:
+```json
+{
+  "usuarios": [
+    { "email": "tucorreo@arauco.com", "rol": "admin", "cargo": "Tu cargo" }
+  ]
+}
+```
 
-El workflow `.github/workflows/precipitaciones.yml` ejecuta el script cada **lunes a las 00:30 hora Chile** y valida que el JSON generado sea correcto antes de hacer commit.
+Abre `index.html` con **Live Server** en VS Code. El sistema detecta `file://` y usa archivos locales automáticamente.
+
+Para el servidor HYSPLIT local:
+```bash
+pip install -r scripts/requirements.txt
+python scripts/server.py
+```
 
 ---
 
 ## Seguridad
 
 | Capa | Medida |
-|------|--------|
-| Autenticación | Verificación server-side en `/api/verificar`; tokens HMAC con expiración diaria |
-| Sesión única | Cierre automático si otra sesión activa es detectada en un dispositivo diferente |
-| Autorización | Rol admin verificado en servidor antes de cualquier operación de escritura |
-| XSS | `escapeHtml()` en toda salida de datos de usuario en el panel admin |
-| Transporte | HTTPS forzado por Vercel; `Strict-Transport-Security` en CDN |
-| Headers | CSP (incluye servidor HYSPLIT en `connect-src`), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`, `Permissions-Policy` |
-| Service Worker | Nunca cachea `index.html` — garantiza que el CSP y la lógica de autenticación sean siempre frescos |
-| Datos | `data/usuarios.json` en `.gitignore`; usuarios en producción solo en variables de entorno cifradas |
+|---|---|
+| Autenticación | Verificación server-side; tokens HMAC con expiración diaria |
+| Sesión única | Cierre automático si otra sesión activa es detectada |
+| Autorización | Rol admin verificado en servidor antes de operaciones de escritura |
+| XSS | `escapeHtml()` en toda salida de datos de usuario |
+| Headers | CSP, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` |
+| Service Worker | Nunca cachea `index.html` — CSP y autenticación siempre frescos |
+| Datos | `data/usuarios.json` en `.gitignore`; producción solo en variables de entorno cifradas |
 
 ---
 
 ## Variables meteorológicas
 
 | Variable | Fuente | Unidad |
-|----------|--------|--------|
+|---|---|---|
 | Temperatura | Open-Meteo (2 m) | °C |
 | Humedad relativa | Open-Meteo (2 m) | % |
 | Precipitación pronosticada | Open-Meteo | mm |
@@ -243,33 +226,31 @@ El workflow `.github/workflows/precipitaciones.yml` ejecuta el script cada **lun
 
 ## Configuración operacional
 
-Para ajustar el **límite de viento**, edita `js/weather.js`:
-
 ```javascript
+// js/weather.js — límite de viento para regla RDCFT
 const VIENTO_LIMITE_RDCFT = 10; // km/h
 ```
 
-Para actualizar coordenadas o agregar paisajes, edita `js/paisajes.js`.
-
-Para cambiar la URL del servidor HYSPLIT, edita `HUMO_BASE` en `js/humo.js` y actualiza el `connect-src` en `vercel.json`.
+- Agregar o editar paisajes → `js/paisajes.js`
+- Cambiar URL del servidor HYSPLIT → `HUMO_BASE` en `js/humo.js` + `connect-src` en `vercel.json`
 
 ---
 
 ## Tecnologías
 
-- HTML / CSS / JavaScript vanilla — sin frameworks
-- [Open-Meteo API](https://open-meteo.com) — pronóstico meteorológico sin API key
-- [Leaflet](https://leafletjs.com) — mapas interactivos (servido localmente)
-- [html2canvas](https://html2canvas.hertzen.com) + [jsPDF](https://github.com/parallax/jsPDF) — exportación PDF (servido localmente)
-- [NOAA HYSPLIT](https://www.ready.noaa.gov/HYSPLIT.php) — modelo de dispersión de trayectorias
-- Python + Flask + SSE — servidor de simulación HYSPLIT
-- Docker + nginx + Let's Encrypt — servidor HYSPLIT autoalojado con HTTPS
+- HTML / CSS / JavaScript vanilla — sin frameworks frontend
+- [Open-Meteo](https://open-meteo.com) — pronóstico meteorológico sin API key
+- [Leaflet](https://leafletjs.com) — mapas interactivos (local)
+- [html2canvas](https://html2canvas.hertzen.com) + [jsPDF](https://github.com/parallax/jsPDF) — exportación PDF (local)
+- [NOAA HYSPLIT](https://www.ready.noaa.gov/HYSPLIT.php) — modelo de dispersión
+- Python + Flask + SSE — servidor de simulación
+- Docker + nginx + Let's Encrypt + DuckDNS — servidor autoalojado con HTTPS
 - Python + Selenium + pandas — descarga automática de precipitaciones
-- Vercel Serverless Functions — API de autenticación y gestión de usuarios
-- GitHub Actions — automatización semanal + PWA cache
+- Vercel Serverless Functions — API de autenticación
+- GitHub Actions — automatización semanal + caché PWA
 
 ---
 
-*Datos meteorológicos provistos por [Open-Meteo](https://open-meteo.com) bajo licencia CC BY 4.0*
-*Datos de precipitaciones provistos por [agrometeorologia.cl](https://www.agrometeorologia.cl)*
-*Modelo de dispersión: [NOAA HYSPLIT](https://www.ready.noaa.gov/HYSPLIT.php)*
+*Datos meteorológicos: [Open-Meteo](https://open-meteo.com) — CC BY 4.0*
+*Precipitaciones: [agrometeorologia.cl](https://www.agrometeorologia.cl)*
+*Dispersión de humo: [NOAA HYSPLIT](https://www.ready.noaa.gov/HYSPLIT.php)*
