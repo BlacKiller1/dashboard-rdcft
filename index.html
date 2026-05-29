@@ -4,159 +4,320 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Portal Meteorológico ARAUCO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
   <link rel="stylesheet" href="css/leaflet.css"/>
   <style>
-    /* ── Paleta Arauco ── */
     :root {
-      --corteza:  #696158;
-      --verde:    #BFB800;
-      --naranja:  #EA7600;
-      --madera:   #DFD1A7;
-      --calipso:  #5DBAA9;
-      --rojo:     #B46A5F;
+      --naranja: #EA7600;
+      --verde:   #BFB800;
+      --calipso: #5DBAA9;
+      --madera:  #DFD1A7;
+      --corteza: #696158;
+      --dark:    #1A1713;
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; width: 100%; overflow: hidden; background: #1a1713; font-family: 'Segoe UI', system-ui, sans-serif; color: var(--madera); }
 
-    /* ── Mapa de fondo ── */
+    html, body {
+      height: 100%;
+      background: var(--dark);
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    /* ── Mapa ── */
     #map { position: fixed; inset: 0; z-index: 0; }
-    #map::after { content: ''; position: absolute; inset: 0; background: rgba(30,24,16,0.60); z-index: 1; pointer-events: none; }
+    #map::after {
+      content: ''; position: absolute; inset: 0;
+      background: rgba(26,23,19,0.52);
+      z-index: 1; pointer-events: none;
+    }
 
-    /* ── Pantallas ── */
-    .screen { position: fixed; inset: 0; z-index: 5; display: none; align-items: center; justify-content: center; padding: 20px; }
+    /* ── Top bar ── */
+    .top-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      height: 64px;
+      background: rgba(26,23,19,0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(105,97,88,0.22);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 64px;
+    }
+    .top-bar-left  { display: flex; align-items: center; gap: 32px; }
+    .top-bar-brand {
+      font-family: 'Manrope', sans-serif;
+      font-size: 1.05rem; font-weight: 800; font-style: italic;
+      color: var(--naranja); white-space: nowrap;
+    }
+    .top-bar-nav { display: flex; gap: 24px; }
+    .top-bar-nav a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; font-weight: 500; letter-spacing: .06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.50); text-decoration: none;
+      transition: color .15s;
+    }
+    .top-bar-nav a:hover { color: #fff; }
+    .top-bar-right { display: flex; align-items: center; gap: 6px; }
+    .icon-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.55);
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+    /* ── Screens ── */
+    .screen {
+      position: fixed; inset: 0; z-index: 5;
+      display: none; flex-direction: column;
+      padding-top: 64px;
+      overflow-y: auto; overflow-x: hidden;
+    }
     .screen.active { display: flex; }
 
-    /* ════════════════════════════════
-       BADGE USUARIO
-    ════════════════════════════════ */
+    /* ─────────────────────────────────────────
+       LOGIN SCREEN
+    ───────────────────────────────────────── */
+    .login-wrap {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 32px 16px;
+    }
+    .login-card {
+      background: rgba(26,23,19,0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(105,97,88,0.28);
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: min(460px, 100%);
+      display: flex; flex-direction: column; align-items: center; gap: 18px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+    }
+    .login-brand {
+      font-family: 'Manrope', sans-serif;
+      font-size: 1.55rem; font-weight: 800; font-style: italic;
+      color: var(--naranja); text-align: center; line-height: 1.2;
+    }
+    .login-brand-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .62rem; font-weight: 500; letter-spacing: .10em;
+      text-transform: uppercase;
+      color: rgba(223,209,167,0.32);
+      text-align: center; line-height: 1.7;
+      margin-top: -8px;
+    }
+    .login-title {
+      font-family: 'Inter', sans-serif;
+      font-size: .95rem; font-weight: 600;
+      color: rgba(255,255,255,0.90);
+    }
+    .login-desc {
+      font-size: .8rem; color: rgba(223,209,167,0.48);
+      text-align: center; line-height: 1.6; margin-top: -8px;
+    }
+    .login-desc strong { color: var(--naranja); font-weight: 600; }
+    .login-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(105,97,88,0.45);
+      border-radius: 8px;
+      padding: 13px 16px;
+      font-family: 'Inter', sans-serif; font-size: .88rem;
+      color: var(--madera); outline: none; text-align: center;
+      transition: border-color .2s;
+    }
+    .login-input:focus { border-color: var(--calipso); }
+    .login-input::placeholder { color: rgba(223,209,167,0.28); }
+    .login-btn {
+      width: 100%; padding: 13px;
+      border-radius: 8px;
+      border: 1px solid rgba(234,118,0,0.38);
+      background: rgba(234,118,0,0.13);
+      color: var(--naranja);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; font-weight: 600; letter-spacing: .06em;
+      cursor: pointer; transition: background .15s;
+    }
+    .login-btn:hover { background: rgba(234,118,0,0.22); }
+    .login-error {
+      font-size: .75rem; color: #e07070;
+      background: rgba(180,106,95,0.12);
+      border: 1px solid rgba(180,106,95,0.35);
+      border-radius: 6px; padding: 8px 12px;
+      width: 100%; text-align: center;
+    }
+    .login-solicitar {
+      font-size: .72rem; color: rgba(223,209,167,0.28);
+      background: none; border: none; cursor: pointer; text-decoration: underline;
+    }
+
+    /* ─────────────────────────────────────────
+       SELECTOR SCREEN
+    ───────────────────────────────────────── */
+    .selector-main {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 36px 64px;
+    }
+    .central-card {
+      background: rgba(26,23,19,0.86);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(105,97,88,0.2);
+      border-radius: 16px;
+      padding: 56px 48px;
+      width: 100%; max-width: 1040px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    }
+    .central-header { text-align: center; margin-bottom: 48px; }
+    .central-title {
+      font-family: 'Manrope', sans-serif;
+      font-size: 2.5rem; font-weight: 800; font-style: italic;
+      color: var(--naranja); line-height: 1.1; margin-bottom: 12px;
+    }
+    .central-subtitle {
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem; color: rgba(255,255,255,0.72);
+    }
+
+    /* ── Platform cards ── */
+    .platforms {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    .plat-card {
+      display: flex; flex-direction: column; justify-content: space-between;
+      background: rgba(105,97,88,0.17);
+      border: 1px solid rgba(105,97,88,0.28);
+      border-radius: 10px; padding: 24px;
+      cursor: pointer;
+      transition: background .25s, transform .25s, border-color .25s;
+    }
+    .plat-card:hover { background: rgba(105,97,88,0.30); transform: translateY(-4px); }
+
+    .plat-card-top { margin-bottom: 24px; }
+    .plat-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .62rem; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase;
+      border-radius: 999px; padding: 4px 10px; margin-bottom: 14px;
+    }
+    .plat-title {
+      font-family: 'Manrope', sans-serif;
+      font-size: .95rem; font-weight: 700;
+      color: #fff; text-transform: uppercase; letter-spacing: .03em;
+      line-height: 1.35; margin-bottom: 8px;
+    }
+    .plat-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: .78rem; color: rgba(255,255,255,0.5); line-height: 1.55;
+    }
+    .plat-card-bottom {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .plat-icon {
+      font-size: 2.2rem !important;
+      line-height: 1;
+    }
+    .plat-btn {
+      border: none; border-radius: 6px; padding: 9px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .72rem; font-weight: 600; letter-spacing: .04em;
+      cursor: pointer; transition: filter .15s;
+    }
+    .plat-btn:hover { filter: brightness(1.12); }
+
+    /* Silvícola */
+    .plat-card.silvicola:hover { border-color: var(--verde); }
+    .silvicola .plat-badge { background: rgba(191,184,0,0.12); color: var(--verde); border: 1px solid rgba(191,184,0,0.3); }
+    .silvicola .plat-icon  { color: var(--verde); }
+    .silvicola .plat-btn   { background: var(--verde); color: var(--dark); }
+
+    /* Protección */
+    .plat-card.proteccion:hover { border-color: var(--naranja); }
+    .proteccion .plat-badge { background: rgba(234,118,0,0.12); color: var(--naranja); border: 1px solid rgba(234,118,0,0.3); }
+    .proteccion .plat-icon  { color: var(--naranja); }
+    .proteccion .plat-btn   { background: var(--naranja); color: #fff; }
+
+    /* Alertas */
+    .plat-card.alertas:hover { border-color: var(--calipso); }
+    .alertas .plat-badge { background: rgba(93,186,169,0.12); color: var(--calipso); border: 1px solid rgba(93,186,169,0.3); }
+    .alertas .plat-icon  { color: var(--calipso); }
+    .alertas .plat-btn   { background: var(--calipso); color: var(--dark); }
+
+    /* ── Footer ── */
+    .portal-footer {
+      background: rgba(26,23,19,0.92);
+      border-top: 1px solid rgba(105,97,88,0.2);
+      padding: 18px 64px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0; gap: 16px; flex-wrap: wrap;
+    }
+    .footer-copy {
+      font-family: 'Inter', sans-serif;
+      font-size: .72rem; color: rgba(255,255,255,0.38);
+    }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .62rem; font-weight: 500; letter-spacing: .05em; text-transform: uppercase;
+      color: rgba(255,255,255,0.32); text-decoration: none; transition: color .15s;
+    }
+    .footer-links a:hover { color: var(--naranja); }
+    .footer-brand {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--naranja);
+    }
+
+    /* ── User badge ── */
     #userBadge {
-      position: fixed; top: 14px; right: 16px; z-index: 10;
+      position: fixed; top: 14px; right: 16px; z-index: 60;
       display: none; align-items: center; gap: 8px;
-      background: rgba(26,21,14,0.90); border: 0.5px solid var(--corteza);
+      background: rgba(26,21,14,0.92); border: 1px solid rgba(105,97,88,0.3);
       border-radius: 999px; padding: 7px 16px 7px 10px;
-      font-size: 13px; color: rgba(223,209,167,0.7);
+      font-size: .78rem; color: rgba(223,209,167,0.7);
       backdrop-filter: blur(10px);
     }
     #userBadge strong { color: var(--madera); }
-    #userBadge button { background: none; border: none; color: var(--calipso); cursor: pointer; font-size: 13px; text-decoration: underline; }
-
-    /* ════════════════════════════════
-       CARD PRINCIPAL
-    ════════════════════════════════ */
-    .main-card {
-      background: rgba(26,21,14,0.90);
-      border: 1px solid var(--corteza);
-      border-radius: 20px; padding: 36px 36px 32px;
-      width: min(840px, 95vw);
-      display: flex; flex-direction: column; align-items: center; gap: 22px;
-      backdrop-filter: blur(16px);
-    }
-    .sel-brand { font-size: 2.6rem; font-weight: 900; letter-spacing: .14em; color: var(--naranja); font-style: italic; line-height: 1; }
-    .sel-subtitle { color: rgba(223,209,167,0.72); font-size: 1rem; text-align: center; margin-top: -10px; }
-
-    /* ════════════════════════════════
-       TARJETAS PLATAFORMA
-    ════════════════════════════════ */
-    .platforms { display: flex; gap: 16px; width: 100%; }
-    .plat-card {
-      flex: 1; background: rgba(36,30,20,0.88);
-      border: 1px solid var(--corteza); border-radius: 14px;
-      padding: 22px 18px 18px; display: flex; flex-direction: column; gap: 10px;
-      cursor: pointer; transition: border-color .2s, transform .2s, box-shadow .2s;
+    #userBadge button {
+      background: none; border: none; color: var(--calipso);
+      cursor: pointer; font-size: .78rem; text-decoration: underline;
     }
 
-    /* Silvícola → Verde */
-    .plat-card.silvicola:hover {
-      border-color: var(--verde);
-      box-shadow: 0 6px 28px rgba(191,184,0,0.16);
-      transform: translateY(-3px);
-    }
-    .plat-card.silvicola .plat-tag {
-      background: rgba(191,184,0,0.12); color: var(--verde);
-      border: 0.5px solid rgba(191,184,0,0.35);
-    }
-    .plat-card.silvicola .plat-btn { background: var(--verde); color: #1a1713; }
-    .plat-card.silvicola .plat-btn:hover { background: #a8a200; }
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .top-bar { padding: 0 20px; }
+      .top-bar-nav { display: none; }
 
-    /* Protección → Naranja / Rojo */
-    .plat-card.proteccion:hover {
-      border-color: var(--rojo);
-      box-shadow: 0 6px 28px rgba(180,106,95,0.20);
-      transform: translateY(-3px);
-    }
-    .plat-card.proteccion .plat-tag {
-      background: rgba(234,118,0,0.12); color: var(--naranja);
-      border: 0.5px solid rgba(234,118,0,0.35);
-    }
-    .plat-card.proteccion .plat-btn { background: var(--naranja); color: #fff; }
-    .plat-card.proteccion .plat-btn:hover { background: #cc6600; }
+      .selector-main { padding: 20px 16px; align-items: flex-start; }
 
-    /* Alertas → Calipso */
-    .plat-card.alertas:hover {
-      border-color: var(--calipso);
-      box-shadow: 0 6px 28px rgba(93,186,169,0.18);
-      transform: translateY(-3px);
-    }
-    .plat-card.alertas .plat-tag {
-      background: rgba(93,186,169,0.12); color: var(--calipso);
-      border: 0.5px solid rgba(93,186,169,0.35);
-    }
-    .plat-card.alertas .plat-btn { background: var(--calipso); color: #1a1713; }
-    .plat-card.alertas .plat-btn:hover { background: #4aa597; }
+      .central-card { padding: 28px 20px; border-radius: 12px; }
+      .central-title { font-size: 1.6rem; }
+      .central-header { margin-bottom: 28px; }
 
-    .plat-tag {
-      font-size: .65rem; font-weight: 700; letter-spacing: .08em;
-      text-transform: uppercase; border-radius: 4px; padding: 3px 7px;
-      align-self: flex-start;
-    }
-    .plat-title { font-size: .9rem; font-weight: 800; color: var(--madera); text-transform: uppercase; letter-spacing: .05em; line-height: 1.3; }
-    .plat-desc  { color: rgba(223,209,167,0.5); font-size: .8rem; line-height: 1.5; flex: 1; }
-    .plat-icon  { align-self: flex-end; font-size: 2.6rem; line-height: 1; }
-    .plat-btn {
-      border: none; border-radius: 8px; padding: 11px 16px;
-      font-size: .9rem; font-weight: 700;
-      cursor: pointer; width: 100%; margin-top: 4px; transition: background .15s;
-    }
+      .platforms { grid-template-columns: 1fr; gap: 12px; }
+      .plat-card { padding: 18px 16px; }
+      .plat-card-top { margin-bottom: 14px; }
+      .plat-card:hover { transform: none; }
 
-    @media (max-width: 700px) {
-      /* Permitir scroll vertical cuando las tarjetas superan la pantalla */
-      html, body { overflow: hidden; }
-
-      .screen {
-        overflow-y: auto;
-        overflow-x: hidden;
-        align-items: flex-start;
-        padding: 12px;
+      .portal-footer {
+        padding: 16px 20px;
+        flex-direction: column; align-items: flex-start; gap: 10px;
       }
+      .footer-links { flex-wrap: wrap; gap: 14px; }
 
-      .main-card {
-        padding: 22px 16px 20px;
-        gap: 14px;
-        margin: auto; /* centrar si entra, sino queda top-aligned */
-        width: 100%;
-      }
-
-      .sel-brand { font-size: 2rem; }
-
-      .platforms {
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .plat-card {
-        padding: 14px 14px 12px;
-        gap: 6px;
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-      }
-
-      .plat-tag   { order: 0; }
-      .plat-title { order: 1; flex: 1 1 100%; font-size: .85rem; }
-      .plat-desc  { order: 2; flex: 1 1 70%; font-size: .75rem; }
-      .plat-icon  { order: 3; flex: 0 0 auto; font-size: 2rem; align-self: center; margin-left: auto; }
-      .plat-btn   { order: 4; flex: 1 1 100%; padding: 9px 14px; margin-top: 2px; }
+      .login-card { padding: 36px 22px; }
     }
   </style>
 </head>
@@ -164,63 +325,121 @@
 
 <div id="map"></div>
 
-<!-- ══ Badge usuario (visible solo en selector) ══ -->
+<!-- ── Top bar ── -->
+<header class="top-bar">
+  <div class="top-bar-left">
+    <span class="top-bar-brand">Portal Meteorológico ARAUCO</span>
+    <nav class="top-bar-nav">
+      <a href="#">Silvícola</a>
+      <a href="/dashboard.html">Protección</a>
+      <a href="/alertas.html">Alertas</a>
+    </nav>
+  </div>
+  <div class="top-bar-right">
+    <button class="icon-btn" title="Notificaciones">
+      <span class="material-symbols-outlined" style="font-size:22px;">notifications</span>
+    </button>
+    <button class="icon-btn" title="Cuenta">
+      <span class="material-symbols-outlined" style="font-size:22px;">account_circle</span>
+    </button>
+  </div>
+</header>
+
+<!-- ── Badge usuario ── -->
 <div id="userBadge">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="opacity:.65"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="opacity:.65"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
   <strong id="uNombre"></strong>
   (<span id="uEmail"></span>)
-  <span style="opacity:.35;">|</span>
+  <span style="opacity:.3;">|</span>
   <button onclick="mostrarLogin()">Cerrar Sesión</button>
 </div>
 
-<!-- ══ PANTALLA LOGIN ══ -->
+<!-- ══ LOGIN SCREEN ══ -->
 <div id="loginScreen" class="screen">
-  <div class="main-card">
-    <div class="sel-brand">Portal Meteorológico ARAUCO</div>
-    <div style="font-size:10px; color:rgba(223,209,167,0.35); letter-spacing:.12em; text-transform:uppercase; text-align:center; margin-top:-14px; line-height:1.7;">Optimización de Reducción de Combustible<br>mediante Fuego Técnico · Dashboard Meteorológico</div>
-    <div style="font-size:15px; font-weight:500; color:rgba(223,209,167,0.9);">Acceso restringido</div>
-    <div style="font-size:12px; color:rgba(223,209,167,0.45); text-align:center; line-height:1.6; margin-top:-10px;">Ingresa tu correo corporativo <strong style="color:var(--naranja);">@arauco.com</strong> para acceder.</div>
-    <input type="email" id="inputEmail" style="width:100%; background:rgba(105,97,88,0.15); border:0.5px solid var(--corteza); border-radius:10px; padding:13px 16px; font-size:14px; color:var(--madera); outline:none; text-align:center;" placeholder="tucorreo@arauco.com" onkeydown="if(event.key==='Enter') simularLogin()" autocomplete="email"/>
-    <button onclick="simularLogin()" style="width:100%; padding:13px; border-radius:10px; border:0.5px solid rgba(234,118,0,0.4); background:rgba(234,118,0,0.12); color:var(--naranja); font-size:13px; font-weight:700; cursor:pointer; letter-spacing:.04em;">Acceder →</button>
-    <div id="loginError" style="display:none; font-size:11px; color:#e07070; background:rgba(180,106,95,0.12); border:0.5px solid rgba(180,106,95,0.35); border-radius:8px; padding:9px 12px; width:100%;">Solo se permiten correos @arauco.com</div>
-    <button style="font-size:11px; color:rgba(223,209,167,0.3); background:none; border:none; cursor:pointer; text-decoration:underline;">¿No tienes acceso? Solicitar →</button>
-  </div>
-</div>
-
-<!-- ══ PANTALLA SELECTOR ══ -->
-<div id="selectorScreen" class="screen active">
-  <div class="main-card">
-    <div class="sel-brand">Portal Meteorológico ARAUCO</div>
-    <p class="sel-subtitle">¡Bienvenido/a! Selecciona la plataforma para continuar.</p>
-    <div class="platforms">
-      <div class="plat-card silvicola" onclick="this.querySelector('.plat-btn').click()">
-        <span class="plat-tag">Silvícola</span>
-        <div class="plat-title">Plataforma<br>Silvícola</div>
-        <div class="plat-desc">Gestión y Optimización de Masas Forestales.</div>
-        <div class="plat-icon">🌲</div>
-        <button class="plat-btn" onclick="alert('Plataforma Silvícola — próximamente')">Entrar →</button>
-      </div>
-      <div class="plat-card proteccion" onclick="this.querySelector('.plat-btn').click()">
-        <span class="plat-tag">Protección</span>
-        <div class="plat-title">Plataforma de<br>Protección</div>
-        <div class="plat-desc">Prevención y Combate de Incendios Forestales.</div>
-        <div class="plat-icon">🔥</div>
-        <button class="plat-btn" onclick="window.location.href='/dashboard.html'">Entrar →</button>
-      </div>
-      <div class="plat-card alertas" onclick="this.querySelector('.plat-btn').click()">
-        <span class="plat-tag">Alertas</span>
-        <div class="plat-title">Alertas Comunales<br>Preventivas</div>
-        <div class="plat-desc">Monitoreo de alertas por comuna en tiempo real.</div>
-        <div class="plat-icon">🗺️</div>
-        <button class="plat-btn" onclick="window.location.href='/alertas.html'">Ver mapa →</button>
-      </div>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand">Portal Meteorológico ARAUCO</div>
+      <div class="login-brand-sub">Optimización de Reducción de Combustible<br>mediante Fuego Técnico · Dashboard Meteorológico</div>
+      <div class="login-title">Acceso restringido</div>
+      <div class="login-desc">Ingresa tu correo corporativo <strong>@arauco.com</strong> para acceder.</div>
+      <input type="email" id="inputEmail" class="login-input" placeholder="tucorreo@arauco.com"
+        onkeydown="if(event.key==='Enter') simularLogin()" autocomplete="email"/>
+      <button onclick="simularLogin()" class="login-btn">Acceder →</button>
+      <div id="loginError" class="login-error" style="display:none;">Solo se permiten correos @arauco.com</div>
+      <button class="login-solicitar">¿No tienes acceso? Solicitar →</button>
     </div>
   </div>
 </div>
 
+<!-- ══ SELECTOR SCREEN ══ -->
+<div id="selectorScreen" class="screen active">
+
+  <div class="selector-main">
+    <div class="central-card">
+      <div class="central-header">
+        <h1 class="central-title">Portal Meteorológico ARAUCO</h1>
+        <p class="central-subtitle">¡Bienvenido/a! Selecciona la plataforma para continuar.</p>
+      </div>
+
+      <div class="platforms">
+
+        <!-- Silvícola -->
+        <div class="plat-card silvicola" onclick="this.querySelector('.plat-btn').click()">
+          <div class="plat-card-top">
+            <span class="plat-badge">Silvícola</span>
+            <div class="plat-title">Plataforma Silvícola</div>
+            <div class="plat-desc">Gestión y Optimización de Masas Forestales.</div>
+          </div>
+          <div class="plat-card-bottom">
+            <span class="material-symbols-outlined plat-icon">forest</span>
+            <button class="plat-btn" onclick="alert('Plataforma Silvícola — próximamente')">Ver más →</button>
+          </div>
+        </div>
+
+        <!-- Protección -->
+        <div class="plat-card proteccion" onclick="this.querySelector('.plat-btn').click()">
+          <div class="plat-card-top">
+            <span class="plat-badge">Protección</span>
+            <div class="plat-title">Plataforma de Protección</div>
+            <div class="plat-desc">Prevención y Combate de Incendios Forestales.</div>
+          </div>
+          <div class="plat-card-bottom">
+            <span class="material-symbols-outlined plat-icon">local_fire_department</span>
+            <button class="plat-btn" onclick="window.location.href='/dashboard.html'">Entrar →</button>
+          </div>
+        </div>
+
+        <!-- Alertas -->
+        <div class="plat-card alertas" onclick="this.querySelector('.plat-btn').click()">
+          <div class="plat-card-top">
+            <span class="plat-badge">Alertas</span>
+            <div class="plat-title">Alertas Comunales Preventivas</div>
+            <div class="plat-desc">Monitoreo de alertas por comuna en tiempo real.</div>
+          </div>
+          <div class="plat-card-bottom">
+            <span class="material-symbols-outlined plat-icon">warning</span>
+            <button class="plat-btn" onclick="window.location.href='/alertas.html'">Ver mapa →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="portal-footer">
+    <span class="footer-copy">© 2024 ARAUCO. Todos los derechos reservados.</span>
+    <div class="footer-links">
+      <a href="#">Privacidad</a>
+      <a href="#">Soporte Técnico</a>
+      <a href="#">Manual de Usuario</a>
+    </div>
+    <span class="footer-brand">TERRAMETRIC SYSTEM</span>
+  </footer>
+
+</div>
+
 <script src="js/vendor/leaflet.js"></script>
 <script>
-  // Mapa satelital de fondo
   const map = L.map('map', {
     center: [-37.75, -72.9], zoom: 11,
     zoomControl: false, dragging: false,
