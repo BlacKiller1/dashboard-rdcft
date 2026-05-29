@@ -115,7 +115,7 @@ function initHumoMap() {
     }).addTo(humoMap);
   };
 
-  fetch('data/predios.geojson')
+  fetch('/data/predios.geojson')
     .then(r => r.json())
     .then(data => renderHumoPredios(data))
     .catch(() => {

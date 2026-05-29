@@ -169,7 +169,7 @@ function crearCredenciales(sesion) {
 async function cargarUsuarios() {
   if (!ES_LOCAL) return;
   try {
-    const resp = await fetch('data/usuarios.json');
+    const resp = await fetch('/data/usuarios.json');
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     usuariosDB = data.usuarios || [];

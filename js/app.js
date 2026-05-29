@@ -93,7 +93,7 @@ async function cargarEstadosTodos() {
 // ── Cargar JSON de precipitaciones ──────────────────────────────────────
 async function cargarPrecipitaciones() {
   try {
-    const resp = await fetch('data/precipitaciones.json');
+    const resp = await fetch('/data/precipitaciones.json');
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     window.precipData = await resp.json();
     console.log(`[RDCFT] Precipitaciones cargadas — período: ${window.precipData.periodo.inicio} → ${window.precipData.periodo.fin}`);

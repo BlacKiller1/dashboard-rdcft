@@ -20,7 +20,7 @@ let prediosCache   = null;
 /* ── Precarga GeoJSON en background (se llama al mostrar dashboard) ─── */
 function precargarPredios() {
   if (prediosCache) return;
-  fetch('data/predios.geojson')
+  fetch('/data/predios.geojson')
     .then(r => r.json())
     .then(data => { prediosCache = data; })
     .catch(() => {});
@@ -124,7 +124,7 @@ function iniciarMapa() {
     renderPredios(prediosCache);
   } else {
     if (btnPredios) btnPredios.textContent = '⏳ Predios';
-    fetch('data/predios.geojson')
+    fetch('/data/predios.geojson')
       .then(r => r.json())
       .then(data => { prediosCache = data; renderPredios(data); })
       .catch(err => {
