@@ -20,12 +20,42 @@
       --surface: #fdf8f6;
       --surface-dim: #ded9d7;
       --surface-container-low: #f8f3f1;
+      --dark: #1A1713;
     }
     body {
       font-family: 'Hanken Grotesk', sans-serif;
       background-color: var(--surface);
       color: var(--color-corteza);
     }
+
+    /* ── PIN Gate ── */
+    #pin-gate {
+      position: fixed; inset: 0; z-index: 100;
+      background: var(--dark);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pin-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(191,184,0,0.18);
+      border-radius: 16px; padding: 40px 48px;
+      display: flex; flex-direction: column; align-items: center; gap: 28px;
+      width: 340px;
+    }
+    .pin-icon { font-size: 40px; color: var(--color-verde); }
+    .pin-heading { font-family: 'Manrope', sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff; text-align: center; }
+    .pin-sub { font-size: .8rem; color: rgba(255,255,255,0.4); text-align: center; margin-top: -16px; }
+    .pin-dots { display: flex; gap: 14px; }
+    .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(191,184,0,0.45); background: transparent; transition: background .15s, border-color .15s; }
+    .pin-dot.filled { background: var(--color-verde); border-color: var(--color-verde); }
+    .pin-dot.error { background: #e05252; border-color: #e05252; }
+    .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+    .pin-key { background: rgba(255,255,255,0.06); border: 1px solid rgba(105,97,88,0.3); border-radius: 10px; padding: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 600; color: rgba(255,255,255,0.85); cursor: pointer; transition: background .12s, border-color .12s; text-align: center; }
+    .pin-key:hover { background: rgba(191,184,0,0.12); border-color: rgba(191,184,0,0.4); }
+    .pin-key:active { background: rgba(191,184,0,0.22); }
+    .pin-key.del { color: rgba(255,255,255,0.45); font-size: .9rem; }
+    .pin-key.empty { visibility: hidden; pointer-events: none; }
+    .pin-error-msg { font-family: 'JetBrains Mono', monospace; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: #e05252; height: 18px; text-align: center; }
+    @media (max-width: 768px) { .pin-card { width: 90%; padding: 32px 24px; } }
     .text-corteza { color: var(--color-corteza); }
     .bg-corteza { background-color: var(--color-corteza); }
     .border-corteza { border-color: var(--color-corteza); }
@@ -70,6 +100,38 @@
   </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden text-sm" style="padding-top:64px;">
+<!-- PIN Gate -->
+<div id="pin-gate">
+  <div class="pin-card">
+    <span class="material-symbols-outlined pin-icon">lock</span>
+    <div>
+      <div class="pin-heading">Acceso restringido</div>
+      <div class="pin-sub">Ingresa el PIN para continuar</div>
+    </div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-error-msg" id="pinError"></div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="presionarTecla('1')">1</button>
+      <button class="pin-key" onclick="presionarTecla('2')">2</button>
+      <button class="pin-key" onclick="presionarTecla('3')">3</button>
+      <button class="pin-key" onclick="presionarTecla('4')">4</button>
+      <button class="pin-key" onclick="presionarTecla('5')">5</button>
+      <button class="pin-key" onclick="presionarTecla('6')">6</button>
+      <button class="pin-key" onclick="presionarTecla('7')">7</button>
+      <button class="pin-key" onclick="presionarTecla('8')">8</button>
+      <button class="pin-key" onclick="presionarTecla('9')">9</button>
+      <button class="pin-key empty"></button>
+      <button class="pin-key" onclick="presionarTecla('0')">0</button>
+      <button class="pin-key del" onclick="borrarUltimo()">⌫</button>
+    </div>
+  </div>
+</div>
+
 <!-- BEGIN: Top Navigation Bar -->
 <header style="position:fixed;top:0;left:0;right:0;z-index:50;height:64px;background:rgba(26,23,19,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(105,97,88,0.22);display:flex;align-items:center;justify-content:space-between;padding:0 64px;">
   <div style="display:flex;align-items:center;gap:20px;">
@@ -308,8 +370,53 @@
     });
   </script>
 <script>
-  if (sessionStorage.getItem('silv_access') !== '1') {
-    window.location.replace('/pages/silvicola.html');
-  }
-</script>
+    const PIN_CORRECTO = '1234';
+    const SESSION_KEY  = 'silv_access';
+    let pinActual = '';
+
+    function actualizarDots() {
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById('d' + i);
+        dot.classList.toggle('filled', i < pinActual.length);
+        dot.classList.remove('error');
+      }
+    }
+
+    function presionarTecla(digit) {
+      if (pinActual.length >= 4) return;
+      pinActual += digit;
+      actualizarDots();
+      document.getElementById('pinError').textContent = '';
+      if (pinActual.length === 4) validarPin();
+    }
+
+    function borrarUltimo() {
+      pinActual = pinActual.slice(0, -1);
+      actualizarDots();
+      document.getElementById('pinError').textContent = '';
+    }
+
+    function validarPin() {
+      if (pinActual === PIN_CORRECTO) {
+        sessionStorage.setItem(SESSION_KEY, '1');
+        const gate = document.getElementById('pin-gate');
+        gate.style.transition = 'opacity .3s';
+        gate.style.opacity = '0';
+        setTimeout(() => { gate.style.display = 'none'; }, 300);
+      } else {
+        for (let i = 0; i < 4; i++) document.getElementById('d' + i).classList.add('error');
+        document.getElementById('pinError').textContent = 'PIN incorrecto';
+        setTimeout(() => { pinActual = ''; actualizarDots(); }, 800);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key >= '0' && e.key <= '9') presionarTecla(e.key);
+      if (e.key === 'Backspace') borrarUltimo();
+    });
+
+    if (sessionStorage.getItem(SESSION_KEY) === '1') {
+      document.getElementById('pin-gate').style.display = 'none';
+    }
+  </script>
 </body></html>
