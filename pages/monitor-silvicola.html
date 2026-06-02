@@ -1,0 +1,319 @@
+<!DOCTYPE html><html lang="es" style="width: 1280px; height: 1024px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Monitor climático silvícola</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style data-purpose="custom-styles">
+    :root {
+      --color-corteza: #696158;
+      --color-verde: #BFB800;
+      --color-naranja: #EA7600;
+      --color-madera: #DFD1A7;
+      --color-calipso: #00A3A1;
+      --color-amarillo: #FFD100;
+      --color-rojo: #E3000F;
+      --surface: #fdf8f6;
+      --surface-dim: #ded9d7;
+      --surface-container-low: #f8f3f1;
+    }
+    body {
+      font-family: 'Hanken Grotesk', sans-serif;
+      background-color: var(--surface);
+      color: var(--color-corteza);
+    }
+    .text-corteza { color: var(--color-corteza); }
+    .bg-corteza { background-color: var(--color-corteza); }
+    .border-corteza { border-color: var(--color-corteza); }
+
+    .text-verde { color: var(--color-verde); }
+    .bg-verde { background-color: var(--color-verde); }
+
+    .text-naranja { color: var(--color-naranja); }
+
+    .bg-madera { background-color: var(--color-madera); }
+    .border-madera { border-color: var(--color-madera); }
+
+    .tab-active {
+      border-bottom: 2px solid var(--color-verde);
+      color: var(--color-corteza);
+      font-weight: 600;
+    }
+    .tab-inactive {
+      color: #888;
+    }
+
+    .table-container::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .table-container::-webkit-scrollbar-thumb {
+      background-color: var(--surface-dim);
+      border-radius: 4px;
+    }
+    .table-container::-webkit-scrollbar-track {
+      background-color: var(--surface-container-low);
+    }
+
+    /* Custom Filter Select */
+    .filter-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23696158%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat, repeat;
+      background-position: right .7em top 50%, 0 0;
+      background-size: .65em auto, 100%;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-sm">
+<!-- BEGIN: Top Navigation Bar -->
+<header class="bg-white border-b border-gray-200 flex items-center justify-between px-4 py-2 shrink-0">
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-2 text-corteza font-semibold text-lg">
+<svg class="w-6 h-6 text-verde" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="">Aplicación de análisis</span>
+</div>
+<div class="relative">
+<select class="block w-48 pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-verde focus:border-verde sm:text-sm rounded-md bg-gray-50 filter-select">
+<option>Hoja</option>
+</select>
+</div>
+</div>
+<div class="flex items-center space-x-2 bg-surface-container-low px-4 py-1.5 rounded-full text-corteza text-xs">
+<svg class="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="">Plan Trimestral Silvícola</span>
+<span class="mx-2 text-gray-400">...</span>
+</div>
+<div class="flex items-center w-64">
+<div class="relative w-full shadow-sm rounded-md">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<svg aria-hidden="true" class="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" fill-rule="evenodd"></path></svg>
+</div>
+<input class="focus:ring-verde focus:border-verde block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-1.5" id="search" name="search" placeholder="Ask Insight Advisor" type="text">
+</div>
+</div>
+</header>
+<!-- END: Top Navigation Bar -->
+<!-- BEGIN: Toolbar -->
+<div class="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between shrink-0 text-xs">
+<div class="flex items-center space-x-4 text-corteza">
+<button class="flex items-center space-x-1 hover:text-naranja"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg><span class="">Activos</span></button>
+<button class="flex items-center space-x-1 hover:text-naranja"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg><span class="">Hojas</span></button>
+<button class="flex items-center space-x-1 hover:text-naranja"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg><span class="">Marcadores</span></button>
+<div class="h-4 border-l border-gray-300 mx-2"></div>
+<button class="flex items-center space-x-1 text-blue-600 border border-blue-600 px-2 py-1 rounded bg-blue-50"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg><span class="">Insight Advisor</span></button>
+</div>
+<!-- Active Filters -->
+<div class="flex items-center space-x-2">
+<div class="flex items-center bg-green-600 text-white rounded overflow-hidden">
+<div class="px-2 py-0.5 text-[10px] leading-tight flex flex-col justify-center">
+<span class="font-semibold">id_predio</span>
+<span class="">10094</span>
+</div>
+<button class="px-2 py-1 bg-green-700 hover:bg-green-800 focus:outline-none">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+</div>
+<!-- END: Toolbar -->
+<!-- BEGIN: Main Content Area -->
+<main class="flex-1 overflow-auto p-4 flex flex-col space-y-4">
+<!-- Header Title & Filters Row -->
+<div class="flex flex-col space-y-4">
+<div class="flex justify-between items-end">
+<h1 class="text-2xl text-[#8E4331] font-normal">Monitor climático silvícola</h1>
+<div class="flex items-center space-x-2 text-corteza">
+<!-- Fake logo -->
+<div class="font-bold text-2xl tracking-tighter">arauco</div>
+<button class="p-1 hover:bg-gray-200 rounded"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
+<button class="p-1 hover:bg-gray-200 rounded"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
+</div>
+</div>
+<!-- Filters -->
+<div class="flex flex-wrap gap-2 text-xs">
+<select class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-6 bg-white focus:border-verde focus:ring-1 focus:ring-verde"><option>Zona</option></select>
+<select class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-6 bg-white focus:border-verde focus:ring-1 focus:ring-verde"><option>Predio</option></select>
+<select class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-6 bg-white focus:border-verde focus:ring-1 focus:ring-verde"><option>Paisaje</option></select>
+<select class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-6 bg-white focus:border-verde focus:ring-1 focus:ring-verde"><option>Fecha</option></select>
+<select class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-6 bg-white focus:border-verde focus:ring-1 focus:ring-verde"><option>Hora</option></select>
+</div>
+</div>
+<!-- Chart Section -->
+<section class="bg-white border border-gray-200 rounded shadow-sm p-4 flex flex-col relative">
+<!-- Tabs -->
+<div class="flex space-x-6 border-b border-gray-200 mb-4 text-xs">
+<button class="pb-2 tab-active flex items-center space-x-1">
+<span class="text-blue-500 font-bold">///</span>
+<span class="">Probabilidad precipitaciones</span>
+</button>
+<button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1">
+<span class="text-red-500 font-bold">\</span>
+<span class="">Temperatura por hora [°C]</span>
+</button>
+<button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1">
+<span class="text-green-500 font-bold">~</span>
+<span class="">Velocidad y ráfagas de viento [km]</span>
+</button>
+<button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1">
+<span class="text-gray-400 font-bold">O</span>
+<span class="">Nubosidad baja [%]</span>
+</button>
+<button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1">
+<span class="text-blue-400 font-bold">o</span>
+<span class="">Punto rocío [°C]</span>
+</button>
+</div>
+<!-- Chart Area -->
+<div class="w-full h-64 relative">
+<canvas id="precipChart"></canvas>
+</div>
+<div class="text-center text-xs text-gray-500 mt-2 flex items-center justify-center space-x-1">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="">dia_formatted</span>
+</div>
+</section>
+<!-- Bottom Section: Table & Map -->
+<div class="flex flex-1 space-x-4 min-h-[300px]">
+<!-- Table Section -->
+<section class="flex-1 bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden relative">
+<div class="table-container overflow-auto flex-1 relative">
+<table class="w-full text-left text-xs whitespace-nowrap">
+<thead class="sticky top-0 bg-white shadow-[0_1px_0_rgba(0,0,0,0.1)] z-10">
+<tr>
+<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-40">
+<div class="flex justify-between items-center">Id. Predio <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
+</th>
+<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-48">
+<div class="flex justify-between items-center">Faena <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
+</th>
+<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-20">Tipo Uso</th>
+<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-16">
+<div class="flex justify-between items-center">APL <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
+</th>
+<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-24">Sup. Plan [ha]</th>
+<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-32">
+<div class="flex justify-between items-center">Fecha <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div>
+</th>
+<!-- Dates columns -->
+<th class="p-2 border-b text-center font-semibold text-corteza">02/06/2026</th>
+<th class="p-2 border-b text-center font-semibold text-corteza">03/06/2026</th>
+<th class="p-2 border-b text-center font-semibold text-corteza">04/06/2026</th>
+<th class="p-2 border-b text-center font-semibold text-corteza">05/06/2026</th>
+<th class="p-2 border-b text-center font-semibold text-corteza">06/06/2026</th>
+<th class="p-2 border-b text-center font-semibold text-corteza">07/06/2026</th>
+<th class="p-2 border-b text-center font-semibold text-corteza">08/06/2026</th>
+</tr>
+</thead>
+<tbody>
+<!-- Row Group 1 -->
+<tr class="align-top">
+<td class="p-2 border-b border-r border-gray-200" rowspan="6">10094 - CONUCO</td>
+<td class="p-2 border-b border-r border-gray-200 whitespace-normal" rowspan="6">Control de Malezas Químico</td>
+<td class="p-2 border-b border-r border-gray-200" rowspan="6">PIRA</td>
+<td class="p-2 border-b border-r border-gray-200" rowspan="6">2025</td>
+<td class="p-2 border-b border-r border-gray-200 text-right" rowspan="6">4,0</td>
+<td class="p-2 border-b border-r border-gray-200 text-gray-600">T° Máxima</td>
+<td class="p-2 border-b text-right">15</td><td class="p-2 border-b text-right">16</td><td class="p-2 border-b text-right">15</td><td class="p-2 border-b text-right">11</td><td class="p-2 border-b text-right">13</td><td class="p-2 border-b text-right">16</td><td class="p-2 border-b text-right"></td>
+</tr>
+<tr>
+<td class="p-2 border-b border-r border-gray-200 text-gray-600">T° Promedio</td>
+<td class="p-2 border-b text-right">12</td><td class="p-2 border-b text-right">13</td><td class="p-2 border-b text-right">11</td><td class="p-2 border-b text-right">9</td><td class="p-2 border-b text-right">8</td><td class="p-2 border-b text-right">9</td><td class="p-2 border-b text-right"></td>
+</tr>
+<tr>
+<td class="p-2 border-b border-r border-gray-200 text-gray-600">T° Mínima</td>
+<td class="p-2 border-b text-right">9</td><td class="p-2 border-b text-right">11</td><td class="p-2 border-b text-right">9</td><td class="p-2 border-b text-right">7</td><td class="p-2 border-b text-right">5</td><td class="p-2 border-b text-right">5</td><td class="p-2 border-b text-right"></td>
+</tr>
+<tr>
+<td class="p-2 border-b border-r border-gray-200 text-gray-600">Prob. Precipitaciones</td>
+<td class="p-2 border-b text-right">32%</td><td class="p-2 border-b text-right">37%</td><td class="p-2 border-b text-right">2%</td><td class="p-2 border-b text-right">2%</td><td class="p-2 border-b text-right">8%</td><td class="p-2 border-b text-right">3%</td><td class="p-2 border-b text-right"></td>
+</tr>
+<tr>
+<td class="p-2 border-b border-r border-gray-200 text-gray-600">Vel. viento [km/h]</td>
+<td class="p-2 border-b text-right">10</td><td class="p-2 border-b text-right">10</td><td class="p-2 border-b text-right">10</td><td class="p-2 border-b text-right">4</td><td class="p-2 border-b text-right">2</td><td class="p-2 border-b text-right">6</td><td class="p-2 border-b text-right"></td>
+</tr>
+<tr>
+<td class="p-2 border-b border-r border-gray-200 text-gray-600">Precipitaciones [mm]</td>
+<td class="p-2 border-b text-right">2,70</td><td class="p-2 border-b text-right">14,60</td><td class="p-2 border-b text-right">0,00</td><td class="p-2 border-b text-right">3,30</td><td class="p-2 border-b text-right">0,00</td><td class="p-2 border-b text-right">0,00</td><td class="p-2 border-b text-right">0</td>
+</tr>
+<!-- Row Group 2 -->
+<tr class="align-top bg-surface-container-low">
+<td class="p-2 border-b border-r border-gray-200 bg-white" rowspan="6"></td>
+<td class="p-2 border-b border-r border-gray-200 whitespace-normal bg-white" rowspan="6">Fertilización Boro Mantención</td>
+<td class="p-2 border-b border-r border-gray-200 bg-white" rowspan="6">PIRA</td>
+<td class="p-2 border-b border-r border-gray-200 bg-white" rowspan="6">2025</td>
+<td class="p-2 border-b border-r border-gray-200 text-right bg-white" rowspan="6">4,5</td>
+<td class="p-2 border-b border-r border-gray-200 text-gray-600 bg-white">T° Máxima</td>
+<td class="p-2 border-b text-right bg-white">15</td><td class="p-2 border-b text-right bg-white">16</td><td class="p-2 border-b text-right bg-white">15</td><td class="p-2 border-b text-right bg-white">11</td><td class="p-2 border-b text-right bg-white">13</td><td class="p-2 border-b text-right bg-white">16</td><td class="p-2 border-b text-right bg-white"></td>
+</tr>
+<tr>
+<td class="p-2 border-b border-r border-gray-200 text-gray-600 bg-white">T° Promedio</td>
+<td class="p-2 border-b text-right bg-white">12</td><td class="p-2 border-b text-right bg-white">13</td><td class="p-2 border-b text-right bg-white">11</td><td class="p-2 border-b text-right bg-white">9</td><td class="p-2 border-b text-right bg-white">8</td><td class="p-2 border-b text-right bg-white">9</td><td class="p-2 border-b text-right bg-white"></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-3 py-1.5 text-[10px] text-gray-400 border-t border-gray-100">
+  * Mostrando actualmente un conjunto limitado de datos.
+</div>
+</section>
+<!-- Map Section (placeholder) -->
+</div>
+</main>
+<!-- END: Main Content Area -->
+<script data-purpose="chart-setup">
+    const ctx = document.getElementById('precipChart').getContext('2d');
+    const labels = ['02-06-2026', '03-06-2026', '04-06-2026', '05-06-2026', '06-06-2026', '07-06-2026', '08-06-2026', '09-06-2026', '10-06-2026', '11-06-2026', '12-06-2026', '13-06-2026', '14-06-2026', '15-06-2026', '16-06-2026', '18-06-2026'];
+    const dataPoints = [32, 37, 2, 2, 8, 3, 1, 10, 61, 60, 59, 51, 41, 33, 28, null];
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Probabilidad precipitaciones',
+          data: dataPoints,
+          borderColor: '#4A81B1',
+          backgroundColor: 'rgba(74, 129, 177, 0.2)',
+          borderWidth: 2,
+          pointBackgroundColor: '#4A81B1',
+          pointRadius: 4,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.parsed.y + '%';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            min: 0,
+            max: 100,
+            ticks: {
+              stepSize: 50,
+              callback: function(value) { return value + '%'; },
+              color: '#888'
+            },
+            grid: { color: '#e0e0e0', drawBorder: false }
+          },
+          x: {
+            grid: { color: '#e0e0e0', drawBorder: true },
+            ticks: { color: '#888', maxRotation: 0, autoSkip: false }
+          }
+        },
+        animation: { duration: 0 }
+      }
+    });
+  </script>
+</body></html>
