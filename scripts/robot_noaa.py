@@ -1,7 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import StaleElementReferenceException
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 
 def iniciar_robot_moderno():
@@ -12,9 +14,10 @@ def iniciar_robot_moderno():
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-software-rasterizer')
     options.add_argument('--window-size=1280,900')
-    
+
     try:
-        driver = webdriver.Chrome(options=options)
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
         return driver
     except Exception as e:
         print(f"❌ Error al iniciar Chrome: {e}")
