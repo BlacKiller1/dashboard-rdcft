@@ -1,116 +1,63 @@
 <!DOCTYPE html>
-<html lang="es" style="width: 1280px; height: 1024px; overflow: hidden; position: relative;">
+<html lang="es" style="width:1280px;height:1024px;overflow:hidden;position:relative;">
 <head>
 <meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta content="width=device-width,initial-scale=1.0" name="viewport">
 <title>Monitor climático silvícola</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="/css/leaflet.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<style data-purpose="custom-styles">
-    :root {
-      --color-corteza: #696158;
-      --color-verde: #BFB800;
-      --color-naranja: #EA7600;
-      --color-madera: #DFD1A7;
-      --color-calipso: #00A3A1;
-      --color-amarillo: #FFD100;
-      --color-rojo: #E3000F;
-      --surface: #fdf8f6;
-      --surface-dim: #ded9d7;
-      --surface-container-low: #f8f3f1;
-    }
-    body {
-      font-family: 'Hanken Grotesk', sans-serif;
-      background-color: var(--surface);
-      color: var(--color-corteza);
-    }
-    .text-corteza { color: var(--color-corteza); }
-    .bg-corteza { background-color: var(--color-corteza); }
-    .border-corteza { border-color: var(--color-corteza); }
-    .text-verde { color: var(--color-verde); }
-    .bg-verde { background-color: var(--color-verde); }
-    .text-naranja { color: var(--color-naranja); }
-    .bg-madera { background-color: var(--color-madera); }
-    .border-madera { border-color: var(--color-madera); }
-    .tab-active {
-      border-bottom: 2px solid var(--color-verde);
-      color: var(--color-corteza);
-      font-weight: 600;
-    }
-    .tab-inactive { color: #888; }
-    .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
-    .table-container::-webkit-scrollbar-thumb { background-color: var(--surface-dim); border-radius: 4px; }
-    .table-container::-webkit-scrollbar-track { background-color: var(--surface-container-low); }
-    .filter-select {
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23696158%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-      background-repeat: no-repeat, repeat;
-      background-position: right .7em top 50%, 0 0;
-      background-size: .65em auto, 100%;
-    }
+<style>
+:root {
+  --color-corteza:#696158; --color-verde:#BFB800; --color-naranja:#EA7600;
+  --color-madera:#DFD1A7; --color-calipso:#5DBAA9; --color-amarillo:#F3D01C;
+  --color-rojo:#B46A5F; --surface:#fdf8f6; --surface-dim:#ded9d7;
+  --surface-low:#f8f3f1;
+}
+body { font-family:'Hanken Grotesk',sans-serif; background:var(--surface); color:var(--color-corteza); }
+.text-corteza{color:var(--color-corteza);} .text-verde{color:var(--color-verde);} .text-naranja{color:var(--color-naranja);}
+.bg-verde{background:var(--color-verde);} .bg-madera{background:var(--color-madera);}
+.tab-active{border-bottom:2px solid var(--color-verde);color:var(--color-corteza);font-weight:600;}
+.tab-inactive{color:#888;}
+.table-container::-webkit-scrollbar{width:8px;height:8px;}
+.table-container::-webkit-scrollbar-thumb{background:var(--surface-dim);border-radius:4px;}
+.table-container::-webkit-scrollbar-track{background:var(--surface-low);}
+.filter-select{
+  appearance:none;
+  background-image:url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'292.4' height%3D'292.4'%3E%3Cpath fill%3D'%23696158' d%3D'M287 69.4a17.6 17.6 0 0 0-13-5.4H18.4c-5 0-9.3 1.8-12.9 5.4A17.6 17.6 0 0 0 0 82.2c0 5 1.8 9.3 5.4 12.9l128 127.9c3.6 3.6 7.8 5.4 12.8 5.4s9.2-1.8 12.8-5.4L287 95c3.5-3.5 5.4-7.8 5.4-12.8 0-5-1.9-9.2-5.5-12.8z'%2F%3E%3C%2Fsvg%3E");
+  background-repeat:no-repeat; background-position:right .7em top 50%; background-size:.65em auto;
+}
+/* Estado badges */
+.badge-favorable{background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:600;}
+.badge-restriccion{background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:600;}
+.badge-sin{background:#f3f4f6;color:#6b7280;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:600;}
+/* Loading */
+.loading-row td{text-align:center;color:#aaa;padding:24px;}
+/* Map */
+#mapa-silv{width:100%;height:100%;min-height:300px;}
 
-    /* ── Login Gate ── */
-    #login-gate {
-      position: fixed; inset: 0; z-index: 9999;
-      background: rgba(0,0,0,0.55);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Hanken Grotesk', sans-serif;
-    }
-    .login-card {
-      background: #2b2d3a;
-      border-radius: 10px;
-      padding: 28px 28px 24px;
-      width: 360px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.45);
-    }
-    .login-title {
-      font-size: 1.1rem; font-weight: 600; color: #fff;
-      margin-bottom: 6px;
-    }
-    .login-url {
-      font-size: .78rem; color: #6ea8d8;
-      margin-bottom: 20px;
-      word-break: break-all;
-    }
-    .login-label {
-      font-size: .82rem; color: #c8ccd6;
-      margin-bottom: 5px; display: block;
-    }
-    .login-input {
-      width: 100%; padding: 7px 10px;
-      background: transparent;
-      border: 1.5px solid #4a7fa5;
-      border-radius: 5px;
-      color: #fff; font-size: .88rem;
-      outline: none; margin-bottom: 14px;
-      box-sizing: border-box;
-    }
-    .login-input:focus { border-color: #6ea8d8; }
-    .login-error {
-      font-size: .75rem; color: #e05252;
-      min-height: 16px; margin-bottom: 10px;
-    }
-    .login-actions {
-      display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px;
-    }
-    .btn-cancelar {
-      padding: 7px 20px; border-radius: 5px;
-      background: #3d4b6b; border: none;
-      color: #c8ccd6; font-size: .85rem; cursor: pointer;
-      transition: background .15s;
-    }
-    .btn-cancelar:hover { background: #4a5a80; }
-    .btn-acceder {
-      padding: 7px 20px; border-radius: 5px;
-      background: #1a3a5c; border: 1.5px solid #4a7fa5;
-      color: #6ea8d8; font-size: .85rem; cursor: pointer;
-      transition: background .15s, border-color .15s;
-    }
-    .btn-acceder:hover { background: #1e4a72; border-color: #6ea8d8; }
-  </style>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+/* ── Login Gate ── */
+#login-gate{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,0.55);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Hanken Grotesk',sans-serif;
+}
+.login-card{background:#2b2d3a;border-radius:10px;padding:28px 28px 24px;width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.45);}
+.login-title{font-size:1.1rem;font-weight:600;color:#fff;margin-bottom:6px;}
+.login-url{font-size:.78rem;color:#6ea8d8;margin-bottom:20px;word-break:break-all;}
+.login-label{font-size:.82rem;color:#c8ccd6;margin-bottom:5px;display:block;}
+.login-input{width:100%;padding:7px 10px;background:transparent;border:1.5px solid #4a7fa5;border-radius:5px;color:#fff;font-size:.88rem;outline:none;margin-bottom:14px;box-sizing:border-box;}
+.login-input:focus{border-color:#6ea8d8;}
+.login-error{font-size:.75rem;color:#e05252;min-height:16px;margin-bottom:10px;}
+.login-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:4px;}
+.btn-cancelar{padding:7px 20px;border-radius:5px;background:#3d4b6b;border:none;color:#c8ccd6;font-size:.85rem;cursor:pointer;transition:background .15s;}
+.btn-cancelar:hover{background:#4a5a80;}
+.btn-acceder{padding:7px 20px;border-radius:5px;background:#1a3a5c;border:1.5px solid #4a7fa5;color:#6ea8d8;font-size:.85rem;cursor:pointer;transition:background .15s,border-color .15s;}
+.btn-acceder:hover{background:#1e4a72;border-color:#6ea8d8;}
+</style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden text-sm">
 
@@ -131,231 +78,437 @@
   </div>
 </div>
 
-<!-- BEGIN: Top Navigation Bar -->
+<!-- Top Navigation Bar -->
 <header class="bg-white border-b border-gray-200 flex items-center justify-between px-4 py-2 shrink-0">
-<div class="flex items-center space-x-4">
-<div class="flex items-center space-x-2 text-corteza font-semibold text-lg">
-<svg class="w-6 h-6 text-verde" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-<span>Aplicación de análisis</span>
-</div>
-<div class="relative">
-<select class="block w-48 pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-verde focus:border-verde sm:text-sm rounded-md bg-gray-50 filter-select">
-<option>Hoja</option>
-</select>
-</div>
-</div>
-<div class="flex items-center space-x-2 bg-surface-container-low px-4 py-1.5 rounded-full text-corteza text-xs">
-<svg class="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-<span>Plan Trimestral Silvícola</span>
-<span class="mx-2 text-gray-400">...</span>
-</div>
-<div class="flex items-center w-64">
-<div class="relative w-full shadow-sm rounded-md">
-<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-<svg aria-hidden="true" class="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" fill-rule="evenodd"></path></svg>
-</div>
-<input class="focus:ring-verde focus:border-verde block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-1.5" placeholder="Ask Insight Advisor" type="text">
-</div>
-</div>
+  <div class="flex items-center space-x-4">
+    <div class="flex items-center space-x-2 text-corteza font-semibold text-lg">
+      <svg class="w-5 h-5 text-verde" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+      <span>Aplicación de análisis</span>
+    </div>
+    <select class="block w-40 pl-3 pr-8 py-1.5 text-xs border border-gray-300 focus:outline-none rounded-md bg-gray-50 filter-select">
+      <option>Hoja</option>
+    </select>
+  </div>
+  <div class="flex items-center space-x-2 bg-gray-50 px-4 py-1.5 rounded-full text-corteza text-xs border border-gray-200">
+    <svg class="w-3.5 h-3.5 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+    <span>Plan Trimestral Silvícola</span>
+    <span class="text-gray-400 ml-1">...</span>
+  </div>
+  <div class="relative w-56">
+    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg class="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" fill-rule="evenodd"/></svg>
+    </div>
+    <input class="block w-full pl-9 sm:text-sm border border-gray-300 rounded-md py-1.5 bg-white focus:outline-none focus:border-gray-400" placeholder="Ask Insight Advisor" type="text">
+  </div>
 </header>
-<!-- END: Top Navigation Bar -->
 
-<!-- BEGIN: Toolbar -->
+<!-- Toolbar -->
 <div class="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between shrink-0 text-xs">
-<div class="flex items-center space-x-4 text-corteza">
-<button class="flex items-center space-x-1 hover:text-naranja"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg><span>Activos</span></button>
-<button class="flex items-center space-x-1 hover:text-naranja"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg><span>Hojas</span></button>
-<button class="flex items-center space-x-1 hover:text-naranja"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg><span>Marcadores</span></button>
-<div class="h-4 border-l border-gray-300 mx-2"></div>
-<button class="flex items-center space-x-1 text-blue-600 border border-blue-600 px-2 py-1 rounded bg-blue-50"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg><span>Insight Advisor</span></button>
-</div>
-<div class="flex items-center space-x-2">
-<div class="flex items-center bg-green-600 text-white rounded overflow-hidden">
-<div class="px-2 py-0.5 text-[10px] leading-tight flex flex-col justify-center">
-<span class="font-semibold">id_predio</span>
-<span>10094</span>
-</div>
-<button class="px-2 py-1 bg-green-700 hover:bg-green-800 focus:outline-none">
-<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-</div>
-</div>
-<!-- END: Toolbar -->
-
-<!-- BEGIN: Main Content Area -->
-<main class="flex-1 overflow-auto p-4 flex flex-col space-y-4">
-<div class="flex flex-col space-y-4">
-<div class="flex justify-between items-end">
-<h1 class="text-2xl text-[#8E4331] font-normal">Monitor climático silvícola</h1>
-<div class="flex items-center space-x-2 text-corteza">
-<div class="font-bold text-2xl tracking-tighter">arauco</div>
-<button class="p-1 hover:bg-gray-200 rounded"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="p-1 hover:bg-gray-200 rounded"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-</div>
-</div>
-<div class="flex flex-wrap gap-2 text-xs">
-<select class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-6 bg-white focus:border-verde focus:ring-1 focus:ring-verde"><option>Zona</option></select>
-<select class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-6 bg-white focus:border-verde focus:ring-1 focus:ring-verde"><option>Predio</option></select>
-<select class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-6 bg-white focus:border-verde focus:ring-1 focus:ring-verde"><option>Paisaje</option></select>
-<select class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-6 bg-white focus:border-verde focus:ring-1 focus:ring-verde"><option>Fecha</option></select>
-<select class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-6 bg-white focus:border-verde focus:ring-1 focus:ring-verde"><option>Hora</option></select>
-</div>
+  <div class="flex items-center space-x-4 text-corteza">
+    <button class="flex items-center space-x-1 hover:text-naranja"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg><span>Activos</span></button>
+    <button class="flex items-center space-x-1 hover:text-naranja"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg><span>Hojas</span></button>
+    <button class="flex items-center space-x-1 hover:text-naranja"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg><span>Marcadores</span></button>
+    <div class="h-4 border-l border-gray-300 mx-1"></div>
+    <button class="flex items-center space-x-1 text-blue-600 border border-blue-600 px-2 py-1 rounded bg-blue-50"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg><span>Insight Advisor</span></button>
+  </div>
+  <div id="filtros-activos" class="flex items-center space-x-2"></div>
 </div>
 
-<!-- Chart Section -->
-<section class="bg-white border border-gray-200 rounded shadow-sm p-4 flex flex-col relative">
-<div class="flex space-x-6 border-b border-gray-200 mb-4 text-xs">
-<button class="pb-2 tab-active flex items-center space-x-1"><span class="text-blue-500 font-bold">///</span><span>Probabilidad precipitaciones</span></button>
-<button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1"><span class="text-red-500 font-bold">\</span><span>Temperatura por hora [°C]</span></button>
-<button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1"><span class="text-green-500 font-bold">~</span><span>Velocidad y ráfagas de viento [km]</span></button>
-<button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1"><span class="text-gray-400 font-bold">O</span><span>Nubosidad baja [%]</span></button>
-<button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1"><span class="text-blue-400 font-bold">o</span><span>Punto rocío [°C]</span></button>
-</div>
-<div class="w-full h-64 relative">
-<canvas id="precipChart" width="1214" height="256" style="display: block; box-sizing: border-box; height: 256px; width: 1214px;"></canvas>
-</div>
-<div class="text-center text-xs text-gray-500 mt-2 flex items-center justify-center space-x-1">
-<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-<span>dia_formatted</span>
-</div>
-</section>
+<!-- Main Content -->
+<main class="flex-1 overflow-auto p-4 flex flex-col space-y-3">
 
-<!-- Bottom Section: Table & Map -->
-<div class="flex flex-1 space-x-4 min-h-[300px]">
-<section class="flex-1 bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden relative">
-<div class="table-container overflow-auto flex-1 relative">
-<table class="w-full text-left text-xs whitespace-nowrap">
-<thead class="sticky top-0 bg-white shadow-[0_1px_0_rgba(0,0,0,0.1)] z-10">
-<tr>
-<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-40"><div class="flex justify-between items-center">Id. Predio <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div></th>
-<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-48"><div class="flex justify-between items-center">Faena <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div></th>
-<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-20">Tipo Uso</th>
-<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-16"><div class="flex justify-between items-center">APL <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div></th>
-<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-24">Sup. Plan [ha]</th>
-<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-32"><div class="flex justify-between items-center">Fecha <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></div></th>
-<th class="p-2 border-b text-center font-semibold text-corteza">02/06/2026</th>
-<th class="p-2 border-b text-center font-semibold text-corteza">03/06/2026</th>
-<th class="p-2 border-b text-center font-semibold text-corteza">04/06/2026</th>
-<th class="p-2 border-b text-center font-semibold text-corteza">05/06/2026</th>
-<th class="p-2 border-b text-center font-semibold text-corteza">06/06/2026</th>
-<th class="p-2 border-b text-center font-semibold text-corteza">07/06/2026</th>
-<th class="p-2 border-b text-center font-semibold text-corteza">08/06/2026</th>
-</tr>
-</thead>
-<tbody>
-<tr class="align-top">
-<td class="p-2 border-b border-r border-gray-200" rowspan="6">10094 - CONUCO</td>
-<td class="p-2 border-b border-r border-gray-200 whitespace-normal" rowspan="6">Control de Malezas Químico</td>
-<td class="p-2 border-b border-r border-gray-200" rowspan="6">PIRA</td>
-<td class="p-2 border-b border-r border-gray-200" rowspan="6">2025</td>
-<td class="p-2 border-b border-r border-gray-200 text-right" rowspan="6">4,0</td>
-<td class="p-2 border-b border-r border-gray-200 text-gray-600">T° Máxima</td>
-<td class="p-2 border-b text-right">15</td><td class="p-2 border-b text-right">16</td><td class="p-2 border-b text-right">15</td><td class="p-2 border-b text-right">11</td><td class="p-2 border-b text-right">13</td><td class="p-2 border-b text-right">16</td><td class="p-2 border-b text-right"></td>
-</tr>
-<tr>
-<td class="p-2 border-b border-r border-gray-200 text-gray-600">T° Promedio</td>
-<td class="p-2 border-b text-right">12</td><td class="p-2 border-b text-right">13</td><td class="p-2 border-b text-right">11</td><td class="p-2 border-b text-right">9</td><td class="p-2 border-b text-right">8</td><td class="p-2 border-b text-right">9</td><td class="p-2 border-b text-right"></td>
-</tr>
-<tr>
-<td class="p-2 border-b border-r border-gray-200 text-gray-600">T° Mínima</td>
-<td class="p-2 border-b text-right">9</td><td class="p-2 border-b text-right">11</td><td class="p-2 border-b text-right">9</td><td class="p-2 border-b text-right">7</td><td class="p-2 border-b text-right">5</td><td class="p-2 border-b text-right">5</td><td class="p-2 border-b text-right"></td>
-</tr>
-<tr>
-<td class="p-2 border-b border-r border-gray-200 text-gray-600">Prob. Precipitaciones</td>
-<td class="p-2 border-b text-right">32%</td><td class="p-2 border-b text-right">37%</td><td class="p-2 border-b text-right">2%</td><td class="p-2 border-b text-right">2%</td><td class="p-2 border-b text-right">8%</td><td class="p-2 border-b text-right">3%</td><td class="p-2 border-b text-right"></td>
-</tr>
-<tr>
-<td class="p-2 border-b border-r border-gray-200 text-gray-600">Vel. viento [km/h]</td>
-<td class="p-2 border-b text-right">10</td><td class="p-2 border-b text-right">10</td><td class="p-2 border-b text-right">10</td><td class="p-2 border-b text-right">4</td><td class="p-2 border-b text-right">2</td><td class="p-2 border-b text-right">6</td><td class="p-2 border-b text-right"></td>
-</tr>
-<tr>
-<td class="p-2 border-b border-r border-gray-200 text-gray-600">Precipitaciones [mm]</td>
-<td class="p-2 border-b text-right">2,70</td><td class="p-2 border-b text-right">14,60</td><td class="p-2 border-b text-right">0,00</td><td class="p-2 border-b text-right">3,30</td><td class="p-2 border-b text-right">0,00</td><td class="p-2 border-b text-right">0,00</td><td class="p-2 border-b text-right">0</td>
-</tr>
-<tr class="align-top">
-<td class="p-2 border-b border-r border-gray-200 bg-white" rowspan="6"></td>
-<td class="p-2 border-b border-r border-gray-200 whitespace-normal bg-white" rowspan="6">Fertilización Boro Mantención</td>
-<td class="p-2 border-b border-r border-gray-200 bg-white" rowspan="6">PIRA</td>
-<td class="p-2 border-b border-r border-gray-200 bg-white" rowspan="6">2025</td>
-<td class="p-2 border-b border-r border-gray-200 text-right bg-white" rowspan="6">4,5</td>
-<td class="p-2 border-b border-r border-gray-200 text-gray-600 bg-white">T° Máxima</td>
-<td class="p-2 border-b text-right bg-white">15</td><td class="p-2 border-b text-right bg-white">16</td><td class="p-2 border-b text-right bg-white">15</td><td class="p-2 border-b text-right bg-white">11</td><td class="p-2 border-b text-right bg-white">13</td><td class="p-2 border-b text-right bg-white">16</td><td class="p-2 border-b text-right bg-white"></td>
-</tr>
-<tr>
-<td class="p-2 border-b border-r border-gray-200 text-gray-600 bg-white">T° Promedio</td>
-<td class="p-2 border-b text-right bg-white">12</td><td class="p-2 border-b text-right bg-white">13</td><td class="p-2 border-b text-right bg-white">11</td><td class="p-2 border-b text-right bg-white">9</td><td class="p-2 border-b text-right bg-white">8</td><td class="p-2 border-b text-right bg-white">9</td><td class="p-2 border-b text-right bg-white"></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="px-3 py-1.5 text-[10px] text-gray-400 border-t border-gray-100">* Mostrando actualmente un conjunto limitado de datos.</div>
-</section>
-</div>
+  <!-- Title + Filters -->
+  <div class="flex flex-col space-y-3">
+    <div class="flex justify-between items-end">
+      <h1 class="text-2xl text-[#8E4331] font-normal">Monitor climático silvícola</h1>
+      <div class="flex items-center space-x-2 text-corteza">
+        <div class="font-bold text-2xl tracking-tighter">arauco</div>
+        <button class="p-1 hover:bg-gray-100 rounded"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></button>
+        <button class="p-1 hover:bg-gray-100 rounded"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></button>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2 text-xs">
+      <select id="f-zona" class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-7 bg-white focus:border-verde focus:ring-1 focus:ring-verde" onchange="onFiltroChange()">
+        <option value="">Zona</option>
+      </select>
+      <select id="f-paisaje" class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-7 bg-white focus:border-verde focus:ring-1 focus:ring-verde" onchange="onFiltroChange()">
+        <option value="">Paisaje</option>
+      </select>
+      <select id="f-fecha" class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-7 bg-white focus:border-verde focus:ring-1 focus:ring-verde" onchange="onFiltroChange()">
+        <option value="7">Fecha — 7 días</option>
+        <option value="14">Fecha — 14 días</option>
+      </select>
+      <select id="f-hora" class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-7 bg-white focus:border-verde focus:ring-1 focus:ring-verde">
+        <option value="">Hora</option>
+        <option value="10">10:00</option>
+        <option value="15">15:00</option>
+        <option value="18">18:00</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <section class="bg-white border border-gray-200 rounded shadow-sm p-4 flex flex-col">
+    <div class="flex space-x-5 border-b border-gray-200 mb-3 text-xs" id="tabs">
+      <button class="pb-2 tab-active flex items-center space-x-1" data-tab="precip" onclick="switchTab(this)"><span class="text-blue-500 font-bold">///</span><span>Probabilidad precipitaciones</span></button>
+      <button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1" data-tab="temp" onclick="switchTab(this)"><span class="text-red-500 font-bold">\</span><span>Temperatura por hora [°C]</span></button>
+      <button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1" data-tab="viento" onclick="switchTab(this)"><span class="text-green-500 font-bold">~</span><span>Velocidad y ráfagas de viento [km]</span></button>
+      <button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1" data-tab="nube" onclick="switchTab(this)"><span class="text-gray-400 font-bold">O</span><span>Nubosidad baja [%]</span></button>
+      <button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1" data-tab="rocio" onclick="switchTab(this)"><span class="text-blue-400 font-bold">o</span><span>Punto rocío [°C]</span></button>
+    </div>
+    <div class="w-full h-52 relative">
+      <canvas id="mainChart"></canvas>
+      <div id="chart-loading" class="absolute inset-0 flex items-center justify-center text-xs text-gray-400">Cargando datos...</div>
+    </div>
+    <div class="text-center text-xs text-gray-500 mt-1 flex items-center justify-center space-x-1">
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+      <span>dia_formatted</span>
+    </div>
+  </section>
+
+  <!-- Table + Map -->
+  <div class="flex flex-1 gap-3 min-h-[280px]">
+
+    <!-- Table -->
+    <section class="flex-1 bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden">
+      <div class="table-container overflow-auto flex-1">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+          <thead class="sticky top-0 bg-white shadow-[0_1px_0_rgba(0,0,0,0.1)] z-10">
+            <tr id="thead-dates">
+              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-44">Paisaje</th>
+              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-36">Zona</th>
+              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-24">Estado</th>
+              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-28">Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-data">
+            <tr class="loading-row"><td colspan="12">Cargando datos climáticos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="px-3 py-1 text-[10px] text-gray-400 border-t border-gray-100">* Mostrando actualmente un conjunto limitado de datos.</div>
+    </section>
+
+    <!-- Map -->
+    <section class="w-80 bg-white border border-gray-200 rounded shadow-sm overflow-hidden flex-shrink-0">
+      <div id="mapa-silv"></div>
+    </section>
+
+  </div>
 </main>
-<!-- END: Main Content Area -->
 
-<script data-purpose="chart-setup">
-    const ctx = document.getElementById('precipChart').getContext('2d');
-    const labels = ['02-06-2026','03-06-2026','04-06-2026','05-06-2026','06-06-2026','07-06-2026','08-06-2026','09-06-2026','10-06-2026','11-06-2026','12-06-2026','13-06-2026','14-06-2026','15-06-2026','16-06-2026','18-06-2026'];
-    const dataPoints = [32, 37, 2, 2, 8, 3, 1, 10, 61, 60, 59, 51, 41, 33, 28, null];
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Probabilidad precipitaciones',
-          data: dataPoints,
-          borderColor: '#4A81B1',
-          backgroundColor: 'rgba(74, 129, 177, 0.2)',
-          borderWidth: 2,
-          pointBackgroundColor: '#4A81B1',
-          pointRadius: 4,
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + '%' } } },
-        scales: {
-          y: { min: 0, max: 100, ticks: { stepSize: 50, callback: v => v + '%', color: '#888' }, grid: { color: '#e0e0e0', drawBorder: false } },
-          x: { grid: { color: '#e0e0e0', drawBorder: true }, ticks: { color: '#888', maxRotation: 0, autoSkip: false } }
-        },
-        animation: { duration: 0 }
-      }
-    });
-  </script>
-
+<script src="/js/vendor/leaflet.js"></script>
+<script src="/js/paisajes.js"></script>
 <script>
-    const SESSION_KEY = 'silv_access';
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+const SESSION_KEY = 'silv_access';
+function validarLogin() {
+  const user = document.getElementById('lg-user').value.trim();
+  const pass = document.getElementById('lg-pass').value;
+  if (user === 'silvicola' && pass === '12345') {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    const gate = document.getElementById('login-gate');
+    gate.style.transition = 'opacity .25s'; gate.style.opacity = '0';
+    setTimeout(() => { gate.style.display = 'none'; iniciarApp(); }, 250);
+  } else {
+    document.getElementById('loginError').textContent = 'Usuario o contraseña incorrectos.';
+    document.getElementById('lg-pass').value = '';
+    document.getElementById('lg-pass').focus();
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Enter') validarLogin(); });
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('login-gate').style.display = 'none';
+}
 
-    function validarLogin() {
-      const user = document.getElementById('lg-user').value.trim();
-      const pass = document.getElementById('lg-pass').value;
-      if (user === 'silvicola' && pass === '12345') {
-        sessionStorage.setItem(SESSION_KEY, '1');
-        const gate = document.getElementById('login-gate');
-        gate.style.transition = 'opacity .25s';
-        gate.style.opacity = '0';
-        setTimeout(() => { gate.style.display = 'none'; }, 250);
-      } else {
-        const err = document.getElementById('loginError');
-        err.textContent = 'Usuario o contraseña incorrectos.';
-        document.getElementById('lg-pass').value = '';
-        document.getElementById('lg-pass').focus();
-      }
+// ── ESTADO GLOBAL ─────────────────────────────────────────────────────────────
+let tabActual = 'precip';
+let chartInst = null;
+let mapaInst  = null;
+let marcadores = [];
+let datosCache = {};  // lat_lon → weather API response
+
+// ── FILTROS ───────────────────────────────────────────────────────────────────
+function poblarFiltros() {
+  const selZona = document.getElementById('f-zona');
+  const selPaisaje = document.getElementById('f-paisaje');
+  ZONAS.forEach(z => {
+    const o = document.createElement('option');
+    o.value = z.nombre; o.textContent = z.nombre;
+    selZona.appendChild(o);
+  });
+  poblarPaisajes('');
+}
+
+function poblarPaisajes(zonaNombre) {
+  const sel = document.getElementById('f-paisaje');
+  sel.innerHTML = '<option value="">Paisaje</option>';
+  const lista = zonaNombre
+    ? ZONAS.find(z => z.nombre === zonaNombre)?.paisajes || []
+    : PAISAJES.map(p => p.n);
+  lista.forEach(nombre => {
+    const o = document.createElement('option');
+    o.value = nombre; o.textContent = nombre;
+    sel.appendChild(o);
+  });
+}
+
+function onFiltroChange() {
+  const zona = document.getElementById('f-zona').value;
+  poblarPaisajes(zona);
+  actualizarFiltrosBadge();
+  cargarDatos();
+}
+
+function actualizarFiltrosBadge() {
+  const zona = document.getElementById('f-zona').value;
+  const paisaje = document.getElementById('f-paisaje').value;
+  const cont = document.getElementById('filtros-activos');
+  cont.innerHTML = '';
+  if (zona) cont.innerHTML += badge('Zona', zona);
+  if (paisaje) cont.innerHTML += badge('Paisaje', paisaje);
+}
+
+function badge(key, val) {
+  return `<div class="flex items-center bg-green-600 text-white rounded overflow-hidden text-[10px]">
+    <div class="px-2 py-0.5 leading-tight"><span class="font-semibold block">${key}</span><span>${val}</span></div>
+    <button onclick="limpiarFiltro('${key}')" class="px-2 py-1 bg-green-700 hover:bg-green-800">
+      <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+    </button></div>`;
+}
+
+function limpiarFiltro(key) {
+  if (key === 'Zona') { document.getElementById('f-zona').value = ''; poblarPaisajes(''); }
+  if (key === 'Paisaje') document.getElementById('f-paisaje').value = '';
+  actualizarFiltrosBadge();
+  cargarDatos();
+}
+
+// ── PAISAJES FILTRADOS ────────────────────────────────────────────────────────
+function getPaisajesFiltrados() {
+  const zona = document.getElementById('f-zona').value;
+  const paisaje = document.getElementById('f-paisaje').value;
+  let lista = [...PAISAJES];
+  if (zona) {
+    const nombres = ZONAS.find(z => z.nombre === zona)?.paisajes || [];
+    lista = lista.filter(p => nombres.includes(p.n));
+  }
+  if (paisaje) lista = lista.filter(p => p.n === paisaje);
+  return lista.slice(0, 6); // máx 6 para no saturar la API
+}
+
+function getZonaDePaisaje(nombrePaisaje) {
+  return ZONAS.find(z => z.paisajes.includes(nombrePaisaje))?.nombre || '—';
+}
+
+// ── API OPEN-METEO ────────────────────────────────────────────────────────────
+async function fetchWeatherDiario(lat, lon) {
+  const key = `${lat},${lon}`;
+  if (datosCache[key]) return datosCache[key];
+  const dias = document.getElementById('f-fecha').value || 7;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+    + `&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,`
+    + `precipitation_probability_max,windspeed_10m_max,precipitation_sum,cloudcover_mean,dewpoint_2m_mean`
+    + `&timezone=America%2FSantiago&forecast_days=${dias}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  datosCache[key] = data;
+  return data;
+}
+
+// ── CARGAR DATOS PRINCIPAL ────────────────────────────────────────────────────
+async function cargarDatos() {
+  datosCache = {}; // limpiar cache al cambiar filtros
+  const paisajes = getPaisajesFiltrados();
+  if (!paisajes.length) return;
+
+  document.getElementById('chart-loading').style.display = 'flex';
+  document.getElementById('tbody-data').innerHTML =
+    '<tr class="loading-row"><td colspan="12">Cargando datos climáticos...</td></tr>';
+
+  const resultados = await Promise.all(
+    paisajes.map(p => fetchWeatherDiario(p.lat, p.lon).then(d => ({ paisaje: p, data: d })))
+  );
+
+  document.getElementById('chart-loading').style.display = 'none';
+  renderChart(resultados);
+  renderTabla(resultados);
+  actualizarMapa(paisajes);
+}
+
+// ── GRÁFICO ───────────────────────────────────────────────────────────────────
+const COLORES_SERIES = ['#4A81B1','#EA7600','#BFB800','#5DBAA9','#B46A5F','#696158'];
+
+function getDatosPorTab(weatherData) {
+  const d = weatherData.daily;
+  switch (tabActual) {
+    case 'precip': return { vals: d.precipitation_probability_max, label: 'Prob. Precipitaciones (%)', max: 100, suf: '%' };
+    case 'temp':   return { vals: d.temperature_2m_mean, label: 'Temperatura promedio (°C)', max: null, suf: '°C' };
+    case 'viento': return { vals: d.windspeed_10m_max, label: 'Vel. viento máx (km/h)', max: null, suf: ' km/h' };
+    case 'nube':   return { vals: d.cloudcover_mean, label: 'Nubosidad media (%)', max: 100, suf: '%' };
+    case 'rocio':  return { vals: d.dewpoint_2m_mean, label: 'Punto de rocío (°C)', max: null, suf: '°C' };
+  }
+}
+
+function renderChart(resultados) {
+  const labels = resultados[0].data.daily.time.map(t => {
+    const [y, m, d] = t.split('-');
+    return `${d}-${m}-${y}`;
+  });
+  const datasets = resultados.map((r, i) => {
+    const info = getDatosPorTab(r.data);
+    return {
+      label: r.paisaje.n,
+      data: info.vals,
+      borderColor: COLORES_SERIES[i % COLORES_SERIES.length],
+      backgroundColor: hexA(COLORES_SERIES[i % COLORES_SERIES.length], 0.15),
+      borderWidth: 2,
+      pointRadius: 4,
+      pointBackgroundColor: COLORES_SERIES[i % COLORES_SERIES.length],
+      fill: resultados.length === 1,
+      tension: 0.4
+    };
+  });
+
+  const suf = getDatosPorTab(resultados[0].data).suf;
+  const yMax = getDatosPorTab(resultados[0].data).max;
+
+  if (chartInst) chartInst.destroy();
+  chartInst = new Chart(document.getElementById('mainChart'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: resultados.length > 1, position: 'top', labels: { boxWidth: 10, font: { size: 10 } } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}${suf}` } }
+      },
+      scales: {
+        y: {
+          min: 0, ...(yMax ? { max: yMax } : {}),
+          ticks: { callback: v => v + suf, color: '#888', font: { size: 10 } },
+          grid: { color: '#e0e0e0' }
+        },
+        x: {
+          ticks: { color: '#888', maxRotation: 0, autoSkip: true, maxTicksLimit: 16, font: { size: 9 } },
+          grid: { color: '#e0e0e0' }
+        }
+      },
+      animation: { duration: 300 }
     }
+  });
+}
 
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Enter') validarLogin();
+function hexA(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ── TABLA ─────────────────────────────────────────────────────────────────────
+function renderTabla(resultados) {
+  const thead = document.getElementById('thead-dates');
+  const tbody = document.getElementById('tbody-data');
+  if (!resultados.length) return;
+
+  const fechas = resultados[0].data.daily.time;
+  // Cabecera dinámica de fechas
+  thead.innerHTML = `
+    <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-44">Paisaje</th>
+    <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-32">Zona</th>
+    <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-20">Estado</th>
+    <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-28">Métrica</th>
+    ${fechas.map(f => {
+      const [y, m, d] = f.split('-');
+      return `<th class="p-2 border-b text-center font-semibold text-corteza">${d}/${m}</th>`;
+    }).join('')}`;
+
+  const METRICAS = [
+    { key: 'temperature_2m_max',          label: 'T° Máxima',           fmt: v => v != null ? Math.round(v) : '—' },
+    { key: 'temperature_2m_mean',         label: 'T° Promedio',         fmt: v => v != null ? Math.round(v) : '—' },
+    { key: 'temperature_2m_min',          label: 'T° Mínima',           fmt: v => v != null ? Math.round(v) : '—' },
+    { key: 'precipitation_probability_max', label: 'Prob. Precipitaciones', fmt: v => v != null ? v + '%' : '—' },
+    { key: 'windspeed_10m_max',           label: 'Vel. viento [km/h]',  fmt: v => v != null ? Math.round(v) : '—' },
+    { key: 'precipitation_sum',           label: 'Precipitaciones [mm]', fmt: v => v != null ? v.toFixed(2).replace('.', ',') : '—' },
+  ];
+
+  tbody.innerHTML = resultados.map(({ paisaje, data }, pi) => {
+    const d = data.daily;
+    const zona = getZonaDePaisaje(paisaje.n);
+    const badgeClass = paisaje.e === 'favorable' ? 'badge-favorable' : paisaje.e === 'restriccion' ? 'badge-restriccion' : 'badge-sin';
+    const badgeLabel = paisaje.e === 'favorable' ? 'Favorable' : paisaje.e === 'restriccion' ? 'Restricción' : 'Sin RDCFT';
+    const bg = pi % 2 === 0 ? '' : 'bg-gray-50';
+
+    return METRICAS.map((m, mi) => `
+      <tr class="align-middle ${bg}">
+        ${mi === 0 ? `<td class="p-2 border-b border-r border-gray-200 font-medium" rowspan="${METRICAS.length}">${paisaje.n}</td>
+        <td class="p-2 border-b border-r border-gray-200 text-gray-500" rowspan="${METRICAS.length}">${zona}</td>
+        <td class="p-2 border-b border-r border-gray-200" rowspan="${METRICAS.length}"><span class="${badgeClass}">${badgeLabel}</span></td>` : ''}
+        <td class="p-2 border-b border-r border-gray-200 text-gray-500">${m.label}</td>
+        ${d.time.map((_, di) => `<td class="p-2 border-b text-right">${m.fmt(d[m.key]?.[di])}</td>`).join('')}
+      </tr>`).join('');
+  }).join('');
+}
+
+// ── MAPA ──────────────────────────────────────────────────────────────────────
+function iniciarMapa() {
+  mapaInst = L.map('mapa-silv', { zoomControl: true, scrollWheelZoom: true });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO', maxZoom: 18
+  }).addTo(mapaInst);
+}
+
+function actualizarMapa(paisajes) {
+  marcadores.forEach(m => m.remove());
+  marcadores = [];
+  if (!mapaInst || !paisajes.length) return;
+
+  const bounds = [];
+  paisajes.forEach(p => {
+    const color = p.e === 'favorable' ? '#065f46' : p.e === 'restriccion' ? '#92400e' : '#6b7280';
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="background:${color};color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.3)">${p.n}</div>`,
+      iconAnchor: [0, 0]
     });
+    const m = L.marker([p.lat, p.lon], { icon })
+      .addTo(mapaInst)
+      .bindPopup(`<b>${p.n}</b><br>Lat: ${p.lat.toFixed(3)}<br>Lon: ${p.lon.toFixed(3)}`);
+    marcadores.push(m);
+    bounds.push([p.lat, p.lon]);
+  });
 
-    if (sessionStorage.getItem(SESSION_KEY) === '1') {
-      document.getElementById('login-gate').style.display = 'none';
-    }
-  </script>
+  if (bounds.length) mapaInst.fitBounds(bounds, { padding: [20, 20] });
+}
 
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(btn) {
+  document.querySelectorAll('#tabs button').forEach(b => {
+    b.classList.remove('tab-active'); b.classList.add('tab-inactive');
+  });
+  btn.classList.remove('tab-inactive'); btn.classList.add('tab-active');
+  tabActual = btn.dataset.tab;
+  datosCache = {};
+  cargarDatos();
+}
+
+// ── INICIO ────────────────────────────────────────────────────────────────────
+function iniciarApp() {
+  poblarFiltros();
+  iniciarMapa();
+  // Seleccionar primera zona por defecto
+  const selZona = document.getElementById('f-zona');
+  selZona.value = ZONAS[0].nombre;
+  poblarPaisajes(ZONAS[0].nombre);
+  actualizarFiltrosBadge();
+  cargarDatos();
+}
+
+// Arrancar si ya hay sesión
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.addEventListener('DOMContentLoaded', iniciarApp);
+}
+</script>
 </body>
 </html>
