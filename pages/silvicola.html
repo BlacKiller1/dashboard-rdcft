@@ -160,15 +160,6 @@
       text-align: center;
     }
 
-    /* ── Iframe (oculto hasta autenticarse) ── */
-    #dashboard-silvicola {
-      position: fixed;
-      top: 64px; left: 0; right: 0; bottom: 0;
-      width: 100%; height: calc(100% - 64px);
-      border: none;
-      display: none;
-    }
-
     /* ── Mobile ── */
     @media (max-width: 768px) {
       .top-bar { padding: 0 20px; }
@@ -226,13 +217,6 @@
     </div>
   </div>
 
-  <iframe
-    id="dashboard-silvicola"
-    src="about:blank"
-    allowfullscreen
-    title="Plataforma Silvícola — Gestión y Optimización de Masas Forestales"
-  ></iframe>
-
   <script>
     const PIN_CORRECTO = '1234';
     const SESSION_KEY  = 'silv_access';
@@ -275,12 +259,7 @@
       const gate = document.getElementById('pin-gate');
       gate.style.opacity = '0';
       gate.style.transition = 'opacity .3s';
-      setTimeout(() => {
-        gate.style.display = 'none';
-        const iframe = document.getElementById('dashboard-silvicola');
-        iframe.src = '/pages/monitor-silvicola.html';
-        iframe.style.display = 'block';
-      }, 300);
+      setTimeout(() => { window.location.href = '/pages/monitor-silvicola.html'; }, 300);
     }
 
     // Teclado físico
