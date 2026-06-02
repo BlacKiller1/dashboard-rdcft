@@ -51,66 +51,82 @@
       background-size: .65em auto, 100%;
     }
 
-    /* ── PIN Gate ── */
-    #pin-gate {
+    /* ── Login Gate ── */
+    #login-gate {
       position: fixed; inset: 0; z-index: 9999;
-      background: #1A1713;
+      background: rgba(0,0,0,0.55);
       display: flex; align-items: center; justify-content: center;
+      font-family: 'Hanken Grotesk', sans-serif;
     }
-    .pin-card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(191,184,0,0.18);
-      border-radius: 16px; padding: 40px 48px;
-      display: flex; flex-direction: column; align-items: center; gap: 28px;
-      width: 340px;
+    .login-card {
+      background: #2b2d3a;
+      border-radius: 10px;
+      padding: 28px 28px 24px;
+      width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.45);
     }
-    .pin-icon { font-size: 40px; color: #BFB800; font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
-    .pin-heading { font-family: 'Manrope', sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff; text-align: center; }
-    .pin-sub { font-size: .8rem; color: rgba(255,255,255,0.4); text-align: center; margin-top: -16px; }
-    .pin-dots { display: flex; gap: 14px; }
-    .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(191,184,0,0.45); background: transparent; transition: background .15s, border-color .15s; }
-    .pin-dot.filled { background: #BFB800; border-color: #BFB800; }
-    .pin-dot.error { background: #e05252; border-color: #e05252; }
-    .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
-    .pin-key { background: rgba(255,255,255,0.06); border: 1px solid rgba(105,97,88,0.3); border-radius: 10px; padding: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 600; color: rgba(255,255,255,0.85); cursor: pointer; transition: background .12s, border-color .12s; text-align: center; }
-    .pin-key:hover { background: rgba(191,184,0,0.12); border-color: rgba(191,184,0,0.4); }
-    .pin-key:active { background: rgba(191,184,0,0.22); }
-    .pin-key.del { color: rgba(255,255,255,0.45); font-size: .9rem; }
-    .pin-key.empty { visibility: hidden; pointer-events: none; }
-    .pin-error-msg { font-family: 'JetBrains Mono', monospace; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: #e05252; height: 18px; text-align: center; }
+    .login-title {
+      font-size: 1.1rem; font-weight: 600; color: #fff;
+      margin-bottom: 6px;
+    }
+    .login-url {
+      font-size: .78rem; color: #6ea8d8;
+      margin-bottom: 20px;
+      word-break: break-all;
+    }
+    .login-label {
+      font-size: .82rem; color: #c8ccd6;
+      margin-bottom: 5px; display: block;
+    }
+    .login-input {
+      width: 100%; padding: 7px 10px;
+      background: transparent;
+      border: 1.5px solid #4a7fa5;
+      border-radius: 5px;
+      color: #fff; font-size: .88rem;
+      outline: none; margin-bottom: 14px;
+      box-sizing: border-box;
+    }
+    .login-input:focus { border-color: #6ea8d8; }
+    .login-error {
+      font-size: .75rem; color: #e05252;
+      min-height: 16px; margin-bottom: 10px;
+    }
+    .login-actions {
+      display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px;
+    }
+    .btn-cancelar {
+      padding: 7px 20px; border-radius: 5px;
+      background: #3d4b6b; border: none;
+      color: #c8ccd6; font-size: .85rem; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-cancelar:hover { background: #4a5a80; }
+    .btn-acceder {
+      padding: 7px 20px; border-radius: 5px;
+      background: #1a3a5c; border: 1.5px solid #4a7fa5;
+      color: #6ea8d8; font-size: .85rem; cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .btn-acceder:hover { background: #1e4a72; border-color: #6ea8d8; }
   </style>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
 </head>
 <body class="h-screen flex flex-col overflow-hidden text-sm">
 
-<!-- PIN Gate -->
-<div id="pin-gate">
-  <div class="pin-card">
-    <span class="pin-icon">lock</span>
-    <div>
-      <div class="pin-heading">Acceso restringido</div>
-      <div class="pin-sub">Ingresa el PIN para continuar</div>
-    </div>
-    <div class="pin-dots">
-      <div class="pin-dot" id="d0"></div>
-      <div class="pin-dot" id="d1"></div>
-      <div class="pin-dot" id="d2"></div>
-      <div class="pin-dot" id="d3"></div>
-    </div>
-    <div class="pin-error-msg" id="pinError"></div>
-    <div class="pin-keypad">
-      <button class="pin-key" onclick="presionarTecla('1')">1</button>
-      <button class="pin-key" onclick="presionarTecla('2')">2</button>
-      <button class="pin-key" onclick="presionarTecla('3')">3</button>
-      <button class="pin-key" onclick="presionarTecla('4')">4</button>
-      <button class="pin-key" onclick="presionarTecla('5')">5</button>
-      <button class="pin-key" onclick="presionarTecla('6')">6</button>
-      <button class="pin-key" onclick="presionarTecla('7')">7</button>
-      <button class="pin-key" onclick="presionarTecla('8')">8</button>
-      <button class="pin-key" onclick="presionarTecla('9')">9</button>
-      <button class="pin-key empty"></button>
-      <button class="pin-key" onclick="presionarTecla('0')">0</button>
-      <button class="pin-key del" onclick="borrarUltimo()">⌫</button>
+<!-- Login Gate -->
+<div id="login-gate">
+  <div class="login-card">
+    <div class="login-title">Acceder</div>
+    <div class="login-url">https://alertas-incendios.vercel.app</div>
+    <label class="login-label" for="lg-user">Nombre de usuario</label>
+    <input class="login-input" id="lg-user" type="text" autocomplete="username" spellcheck="false">
+    <label class="login-label" for="lg-pass">Contraseña</label>
+    <input class="login-input" id="lg-pass" type="password" autocomplete="current-password">
+    <div class="login-error" id="loginError"></div>
+    <div class="login-actions">
+      <button class="btn-cancelar" onclick="window.location.href='/'">Cancelar</button>
+      <button class="btn-acceder" onclick="validarLogin()">Acceder</button>
     </div>
   </div>
 </div>
@@ -313,48 +329,31 @@
   </script>
 
 <script>
-    const PIN_CORRECTO = '1234';
-    const SESSION_KEY  = 'silv_access';
-    let pinActual = '';
+    const SESSION_KEY = 'silv_access';
 
-    function actualizarDots() {
-      for (let i = 0; i < 4; i++) {
-        const dot = document.getElementById('d' + i);
-        dot.classList.toggle('filled', i < pinActual.length);
-        dot.classList.remove('error');
-      }
-    }
-    function presionarTecla(digit) {
-      if (pinActual.length >= 4) return;
-      pinActual += digit;
-      actualizarDots();
-      document.getElementById('pinError').textContent = '';
-      if (pinActual.length === 4) validarPin();
-    }
-    function borrarUltimo() {
-      pinActual = pinActual.slice(0, -1);
-      actualizarDots();
-      document.getElementById('pinError').textContent = '';
-    }
-    function validarPin() {
-      if (pinActual === PIN_CORRECTO) {
+    function validarLogin() {
+      const user = document.getElementById('lg-user').value.trim();
+      const pass = document.getElementById('lg-pass').value;
+      if (user === 'silvicola' && pass === '12345') {
         sessionStorage.setItem(SESSION_KEY, '1');
-        const gate = document.getElementById('pin-gate');
-        gate.style.transition = 'opacity .3s';
+        const gate = document.getElementById('login-gate');
+        gate.style.transition = 'opacity .25s';
         gate.style.opacity = '0';
-        setTimeout(() => { gate.style.display = 'none'; }, 300);
+        setTimeout(() => { gate.style.display = 'none'; }, 250);
       } else {
-        for (let i = 0; i < 4; i++) document.getElementById('d' + i).classList.add('error');
-        document.getElementById('pinError').textContent = 'PIN incorrecto';
-        setTimeout(() => { pinActual = ''; actualizarDots(); }, 800);
+        const err = document.getElementById('loginError');
+        err.textContent = 'Usuario o contraseña incorrectos.';
+        document.getElementById('lg-pass').value = '';
+        document.getElementById('lg-pass').focus();
       }
     }
+
     document.addEventListener('keydown', e => {
-      if (e.key >= '0' && e.key <= '9') presionarTecla(e.key);
-      if (e.key === 'Backspace') borrarUltimo();
+      if (e.key === 'Enter') validarLogin();
     });
+
     if (sessionStorage.getItem(SESSION_KEY) === '1') {
-      document.getElementById('pin-gate').style.display = 'none';
+      document.getElementById('login-gate').style.display = 'none';
     }
   </script>
 
