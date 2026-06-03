@@ -99,8 +99,14 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--surface);color:var
 .login-title{font-size:1.1rem;font-weight:600;color:#fff;margin-bottom:6px;}
 .login-url{font-size:.78rem;color:#6ea8d8;margin-bottom:20px;word-break:break-all;}
 .login-label{font-size:.82rem;color:#c8ccd6;margin-bottom:5px;display:block;}
-.login-input{width:100%;padding:7px 10px;background:transparent;border:1.5px solid #4a7fa5;border-radius:5px;color:#fff;font-size:.88rem;outline:none;margin-bottom:14px;}
-.login-input:focus{border-color:#6ea8d8;}
+.login-input{width:100%;padding:7px 10px;background:#1e2130;border:1.5px solid #4a7fa5;border-radius:5px;color:#fff;font-size:.88rem;outline:none;margin-bottom:14px;caret-color:#6ea8d8;}
+.login-input:focus{border-color:#6ea8d8;background:#1e2130;}
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:focus{
+  -webkit-box-shadow:0 0 0 100px #1e2130 inset;
+  -webkit-text-fill-color:#fff;
+  caret-color:#fff;
+}
 .pass-wrapper{position:relative;margin-bottom:14px;}
 .pass-wrapper .login-input{margin-bottom:0;padding-right:36px;width:100%;}
 .btn-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#6ea8d8;padding:2px;display:flex;align-items:center;}
