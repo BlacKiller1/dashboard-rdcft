@@ -108,10 +108,13 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--surface);color:var
 .login-input{width:100%;padding:7px 10px;background:#1e2130;border:1.5px solid #4a7fa5;border-radius:5px;color:#fff;font-size:.88rem;outline:none;margin-bottom:14px;caret-color:#6ea8d8;}
 .login-input:focus{border-color:#6ea8d8;background:#1e2130;}
 .login-input:-webkit-autofill,
-.login-input:-webkit-autofill:focus{
-  -webkit-box-shadow:0 0 0 100px #1e2130 inset;
-  -webkit-text-fill-color:#fff;
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:focus,
+.login-input:-webkit-autofill:active{
+  -webkit-box-shadow:0 0 0 9999px #1e2130 inset !important;
+  -webkit-text-fill-color:#fff !important;
   caret-color:#fff;
+  transition:background-color 9999s ease-in-out 0s;
 }
 .pass-wrapper{position:relative;margin-bottom:14px;}
 .pass-wrapper .login-input{margin-bottom:0;padding-right:36px;width:100%;}
