@@ -1358,14 +1358,16 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--c-bg);
+  background: #1A1713 url('/img/bg-dashboard.png') center/cover no-repeat;
 }
 .login-bg {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  background: rgba(10,12,8,0.52);
+  backdrop-filter: blur(1px);
 }
-.login-bg svg { width: 100%; height: 100%; opacity: .2; }
+.login-bg svg { display: none; }
 
 .login-card {
   position: relative;
