@@ -2600,4 +2600,21 @@ html, body {
   .user-menu-dropdown { right: 0; min-width: 180px; }
   .umenu-item { font-size: 11px; padding: 8px 12px; }
 }
+
+/* ── Login background — mobile ── */
+@media (max-width: 768px) {
+  #loginScreen {
+    background-position: 60% center;
+    background-size: cover;
+    align-items: flex-start;
+    padding-top: 10vh;
+  }
+  .login-card {
+    padding: 28px 22px;
+    border-radius: 12px;
+    gap: 12px;
+  }
+  .login-brand { font-size: 22px; }
+  .login-brand-sub { font-size: 9px; }
+}
 }
