@@ -17,12 +17,13 @@ export function crearTransporte() {
   });
 }
 
-export async function enviarCorreo({ to, subject, html, cc }) {
+export async function enviarCorreo({ to, subject, html, cc, replyTo }) {
   const transporter = crearTransporte();
   await transporter.sendMail({
     from: `"Dashboard RDCFT" <${process.env.GMAIL_USER}>`,
     to,
-    ...(cc ? { cc } : {}),
+    ...(cc      ? { cc }      : {}),
+    ...(replyTo ? { replyTo } : {}),
     subject,
     html
   });

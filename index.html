@@ -331,6 +331,108 @@
       #maintenance-banner { padding: 8px 14px; }
       .banner-text { font-size: .72rem; }
     }
+
+    /* ── Modal Soporte Técnico ── */
+    .soporte-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(10,9,7,0.78);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      padding: 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s;
+    }
+    .soporte-overlay.open { opacity: 1; pointer-events: all; }
+    .soporte-card {
+      background: rgba(26,23,19,0.97);
+      border: 1px solid rgba(105,97,88,0.32);
+      border-radius: 16px;
+      padding: 36px 32px;
+      width: 100%; max-width: 540px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.75);
+      position: relative;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .soporte-close-btn {
+      position: absolute; top: 14px; right: 14px;
+      background: rgba(255,255,255,0.07); border: none;
+      border-radius: 50%; width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: rgba(255,255,255,0.55);
+      transition: background .15s;
+    }
+    .soporte-close-btn:hover { background: rgba(255,255,255,0.14); }
+    .soporte-card-title {
+      font-family: 'Manrope', sans-serif;
+      font-size: 1.15rem; font-weight: 800; color: #fff;
+      margin-bottom: 4px;
+    }
+    .soporte-card-sub {
+      font-size: .78rem; color: rgba(223,209,167,0.42);
+      margin-bottom: 24px; line-height: 1.55;
+    }
+    .soporte-label {
+      display: block; margin-bottom: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .6rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+      color: rgba(223,209,167,0.42);
+    }
+    .soporte-field { margin-bottom: 14px; }
+    .soporte-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .soporte-select, .soporte-textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(105,97,88,0.45);
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif; font-size: .88rem;
+      color: rgba(223,209,167,0.85); outline: none;
+    }
+    .soporte-select {
+      padding: 12px 36px 12px 14px;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='rgba(223,209,167,0.38)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 13px center;
+      background-color: rgba(255,255,255,0.04);
+      cursor: pointer;
+    }
+    .soporte-select option { background: #1A1713; color: #dfd1a7; }
+    .soporte-select:focus { border-color: var(--calipso); }
+    .soporte-textarea {
+      padding: 12px 14px;
+      resize: vertical; min-height: 106px; line-height: 1.55;
+    }
+    .soporte-textarea::placeholder { color: rgba(223,209,167,0.28); }
+    .soporte-textarea:focus { border-color: var(--calipso); }
+    .soporte-submit {
+      width: 100%; padding: 13px;
+      background: var(--naranja); border: none; border-radius: 8px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; font-weight: 600; letter-spacing: .06em;
+      cursor: pointer; transition: filter .15s; margin-top: 6px;
+    }
+    .soporte-submit:hover:not(:disabled) { filter: brightness(1.1); }
+    .soporte-submit:disabled { opacity: .45; cursor: not-allowed; }
+    .soporte-err {
+      margin-top: 10px; padding: 9px 13px; border-radius: 7px;
+      font-size: .76rem; text-align: center;
+      background: rgba(201,64,64,0.1); border: 1px solid rgba(201,64,64,0.28); color: #e07070;
+    }
+    .soporte-ok-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 16px; text-align: center; padding: 8px 0 4px;
+    }
+    .soporte-ok-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(45,184,122,0.12); border: 1px solid rgba(45,184,122,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: #5dba97;
+    }
+    @media(max-width:600px) {
+      .soporte-card { padding: 26px 18px; }
+      .soporte-row { grid-template-columns: 1fr; gap: 0; }
+    }
   </style>
 </head>
 <body>
@@ -437,12 +539,71 @@
     <span class="footer-copy">© 2024 ARAUCO. Todos los derechos reservados.</span>
     <div class="footer-links">
       <a href="#">Privacidad</a>
-      <a href="#">Soporte Técnico</a>
+      <a href="#" onclick="abrirSoporte();return false;">Soporte Técnico</a>
       <a href="#">Manual de Usuario</a>
     </div>
     <span class="footer-brand">TERRAMETRIC SYSTEM</span>
   </footer>
 
+</div>
+
+<!-- Modal Soporte Técnico -->
+<div id="soporteOverlay" class="soporte-overlay" onclick="if(event.target===this)cerrarSoporte()">
+  <div class="soporte-card">
+    <button class="soporte-close-btn" onclick="cerrarSoporte()" title="Cerrar">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+      </svg>
+    </button>
+
+    <!-- Formulario -->
+    <div id="soporteFormWrap">
+      <div class="soporte-card-title">Soporte Técnico</div>
+      <div class="soporte-card-sub">Ingresa tu requerimiento y te responderemos a la brevedad al correo indicado.</div>
+
+      <div class="soporte-row">
+        <div>
+          <label class="soporte-label" for="sp-nombre">Nombre</label>
+          <input type="text" id="sp-nombre" class="login-input" placeholder="Tu nombre completo" style="text-align:left;" autocomplete="name"/>
+        </div>
+        <div>
+          <label class="soporte-label" for="sp-correo">Correo de contacto</label>
+          <input type="email" id="sp-correo" class="login-input" placeholder="tucorreo@ejemplo.com" style="text-align:left;" autocomplete="email"/>
+        </div>
+      </div>
+
+      <div class="soporte-field">
+        <label class="soporte-label" for="sp-tipo">Tipo de requerimiento</label>
+        <select id="sp-tipo" class="soporte-select">
+          <option value="" disabled selected>Selecciona una opción…</option>
+          <option value="consulta">❓ Consulta técnica</option>
+          <option value="falla">🔴 Reporte de falla</option>
+          <option value="mejora">🔧 Solicitud de mejora</option>
+          <option value="otro">📋 Otro</option>
+        </select>
+      </div>
+
+      <div class="soporte-field">
+        <label class="soporte-label" for="sp-mensaje">Descripción del requerimiento</label>
+        <textarea id="sp-mensaje" class="soporte-textarea" placeholder="Describe con detalle tu requerimiento o problema…"></textarea>
+      </div>
+
+      <div id="soporteErrMsg" class="soporte-err" style="display:none;"></div>
+      <button id="soporteSubmitBtn" class="soporte-submit" onclick="enviarSoporte()">Enviar requerimiento →</button>
+    </div>
+
+    <!-- Confirmación enviado -->
+    <div id="soporteOkWrap" style="display:none;">
+      <div class="soporte-ok-wrap">
+        <div class="soporte-ok-icon">✓</div>
+        <div>
+          <div style="font-family:'Manrope',sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:6px;">Requerimiento enviado</div>
+          <div id="soporteOkTxt" style="font-size:.82rem;color:rgba(223,209,167,0.52);line-height:1.6;"></div>
+        </div>
+        <button class="login-btn" onclick="cerrarSoporte()" style="max-width:180px;margin-top:4px;">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="js/vendor/leaflet.js"></script>
@@ -478,6 +639,64 @@
 
     document.getElementById('loginScreen').classList.remove('active');
     document.getElementById('selectorScreen').classList.add('active');
+  }
+
+  // ── Soporte técnico ──
+  function abrirSoporte() {
+    document.getElementById('soporteFormWrap').style.display = 'block';
+    document.getElementById('soporteOkWrap').style.display   = 'none';
+    document.getElementById('soporteErrMsg').style.display   = 'none';
+    document.getElementById('sp-nombre').value  = '';
+    document.getElementById('sp-correo').value  = '';
+    document.getElementById('sp-tipo').value    = '';
+    document.getElementById('sp-mensaje').value = '';
+    const btn = document.getElementById('soporteSubmitBtn');
+    btn.disabled    = false;
+    btn.textContent = 'Enviar requerimiento →';
+    document.getElementById('soporteOverlay').classList.add('open');
+  }
+
+  function cerrarSoporte() {
+    document.getElementById('soporteOverlay').classList.remove('open');
+  }
+
+  async function enviarSoporte() {
+    const nombre  = document.getElementById('sp-nombre').value.trim();
+    const correo  = document.getElementById('sp-correo').value.trim();
+    const tipo    = document.getElementById('sp-tipo').value;
+    const mensaje = document.getElementById('sp-mensaje').value.trim();
+    const errEl   = document.getElementById('soporteErrMsg');
+    const btn     = document.getElementById('soporteSubmitBtn');
+
+    const mostrarError = txt => { errEl.textContent = txt; errEl.style.display = 'block'; };
+
+    if (!nombre)                                        return mostrarError('Ingresa tu nombre.');
+    if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return mostrarError('Ingresa un correo válido.');
+    if (!tipo)                                          return mostrarError('Selecciona el tipo de requerimiento.');
+    if (!mensaje || mensaje.length < 10)                return mostrarError('Describe tu requerimiento (mínimo 10 caracteres).');
+
+    errEl.style.display = 'none';
+    btn.disabled    = true;
+    btn.textContent = 'Enviando…';
+
+    try {
+      const res  = await fetch('/api/soporte', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ nombre, correo, tipo, mensaje })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al enviar.');
+
+      document.getElementById('soporteFormWrap').style.display = 'none';
+      document.getElementById('soporteOkTxt').textContent =
+        `Hemos recibido tu requerimiento. Te responderemos a ${correo} a la brevedad.`;
+      document.getElementById('soporteOkWrap').style.display = 'block';
+    } catch (err) {
+      mostrarError(err.message);
+      btn.disabled    = false;
+      btn.textContent = 'Enviar requerimiento →';
+    }
   }
 
   // Banner mantenimiento — se muestra siempre al cargar
