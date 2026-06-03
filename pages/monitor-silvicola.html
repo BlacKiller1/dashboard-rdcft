@@ -12,31 +12,80 @@
 <style>
 :root {
   --color-corteza:#696158; --color-verde:#BFB800; --color-naranja:#EA7600;
-  --color-madera:#DFD1A7; --color-calipso:#5DBAA9; --color-amarillo:#F3D01C;
-  --color-rojo:#B46A5F; --surface:#fdf8f6; --surface-dim:#ded9d7;
-  --surface-low:#f8f3f1;
+  --color-madera:#DFD1A7; --color-calipso:#5DBAA9;
+  --surface:#fdf8f6; --surface-dim:#ded9d7; --surface-low:#f8f3f1;
 }
-body { font-family:'Hanken Grotesk',sans-serif; background:var(--surface); color:var(--color-corteza); }
-.text-corteza{color:var(--color-corteza);} .text-verde{color:var(--color-verde);} .text-naranja{color:var(--color-naranja);}
-.bg-verde{background:var(--color-verde);} .bg-madera{background:var(--color-madera);}
+*{box-sizing:border-box;}
+body{font-family:'Hanken Grotesk',sans-serif;background:var(--surface);color:var(--color-corteza);margin:0;}
+.text-corteza{color:var(--color-corteza);} .text-verde{color:var(--color-verde);}
 .tab-active{border-bottom:2px solid var(--color-verde);color:var(--color-corteza);font-weight:600;}
 .tab-inactive{color:#888;}
-.table-container::-webkit-scrollbar{width:8px;height:8px;}
-.table-container::-webkit-scrollbar-thumb{background:var(--surface-dim);border-radius:4px;}
-.table-container::-webkit-scrollbar-track{background:var(--surface-low);}
+.table-container::-webkit-scrollbar{width:6px;height:6px;}
+.table-container::-webkit-scrollbar-thumb{background:var(--surface-dim);border-radius:3px;}
 .filter-select{
   appearance:none;
   background-image:url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'292.4' height%3D'292.4'%3E%3Cpath fill%3D'%23696158' d%3D'M287 69.4a17.6 17.6 0 0 0-13-5.4H18.4c-5 0-9.3 1.8-12.9 5.4A17.6 17.6 0 0 0 0 82.2c0 5 1.8 9.3 5.4 12.9l128 127.9c3.6 3.6 7.8 5.4 12.8 5.4s9.2-1.8 12.8-5.4L287 95c3.5-3.5 5.4-7.8 5.4-12.8 0-5-1.9-9.2-5.5-12.8z'%2F%3E%3C%2Fsvg%3E");
-  background-repeat:no-repeat; background-position:right .7em top 50%; background-size:.65em auto;
+  background-repeat:no-repeat;background-position:right .7em top 50%;background-size:.65em auto;
 }
-/* Estado badges */
 .badge-favorable{background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:600;}
 .badge-restriccion{background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:600;}
 .badge-sin{background:#f3f4f6;color:#6b7280;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:600;}
-/* Loading */
 .loading-row td{text-align:center;color:#aaa;padding:24px;}
-/* Map */
-#mapa-silv{width:100%;height:100%;min-height:300px;}
+#mapa-silv{width:100%;height:100%;min-height:260px;}
+
+/* ── Topbar ── */
+.topbar{
+  position:sticky;top:0;z-index:30;
+  background:rgba(253,248,246,0.95);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(105,97,88,0.15);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;
+  gap:12px;
+}
+.topbar-title{
+  font-family:'Manrope',sans-serif;
+  font-size:1.1rem;font-weight:700;
+  color:#8E4331;
+  white-space:nowrap;
+}
+.btn-logout{
+  display:flex;align-items:center;gap:6px;
+  background:none;
+  border:1px solid rgba(105,97,88,0.35);
+  border-radius:6px;
+  padding:6px 14px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;font-weight:600;letter-spacing:.04em;
+  color:var(--color-corteza);
+  cursor:pointer;
+  white-space:nowrap;
+  transition:background .15s,border-color .15s,color .15s;
+}
+.btn-logout:hover{background:rgba(191,184,0,0.1);border-color:var(--color-verde);color:var(--color-verde);}
+.btn-logout svg{width:14px;height:14px;flex-shrink:0;}
+
+/* ── Modal confirmación ── */
+#logout-modal{
+  position:fixed;inset:0;z-index:9998;
+  background:rgba(0,0,0,0.45);
+  display:none;align-items:center;justify-content:center;
+}
+#logout-modal.show{display:flex;}
+.modal-card{
+  background:#fff;border-radius:12px;
+  padding:28px 32px;width:320px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.18);
+  text-align:center;
+}
+.modal-icon{font-size:2rem;margin-bottom:10px;}
+.modal-title{font-family:'Manrope',sans-serif;font-size:1rem;font-weight:700;color:#8E4331;margin-bottom:6px;}
+.modal-msg{font-size:.82rem;color:var(--color-corteza);margin-bottom:22px;line-height:1.5;}
+.modal-actions{display:flex;gap:10px;justify-content:center;}
+.btn-modal-cancel{padding:8px 20px;border-radius:6px;background:#f3f4f6;border:none;color:#696158;font-size:.82rem;cursor:pointer;font-family:'Hanken Grotesk',sans-serif;font-weight:600;transition:background .15s;}
+.btn-modal-cancel:hover{background:#e5e7eb;}
+.btn-modal-confirm{padding:8px 20px;border-radius:6px;background:var(--color-verde);border:none;color:#fff;font-size:.82rem;cursor:pointer;font-family:'Hanken Grotesk',sans-serif;font-weight:600;transition:background .15s;}
+.btn-modal-confirm:hover{background:#a8a200;}
 
 /* ── Login Gate ── */
 #login-gate{
@@ -44,22 +93,36 @@ body { font-family:'Hanken Grotesk',sans-serif; background:var(--surface); color
   background:rgba(0,0,0,0.55);
   display:flex;align-items:center;justify-content:center;
   font-family:'Hanken Grotesk',sans-serif;
+  padding:16px;
 }
-.login-card{background:#2b2d3a;border-radius:10px;padding:28px 28px 24px;width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.45);}
+.login-card{background:#2b2d3a;border-radius:10px;padding:28px 28px 24px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.45);}
 .login-title{font-size:1.1rem;font-weight:600;color:#fff;margin-bottom:6px;}
 .login-url{font-size:.78rem;color:#6ea8d8;margin-bottom:20px;word-break:break-all;}
 .login-label{font-size:.82rem;color:#c8ccd6;margin-bottom:5px;display:block;}
-.login-input{width:100%;padding:7px 10px;background:transparent;border:1.5px solid #4a7fa5;border-radius:5px;color:#fff;font-size:.88rem;outline:none;margin-bottom:14px;box-sizing:border-box;}
+.login-input{width:100%;padding:7px 10px;background:transparent;border:1.5px solid #4a7fa5;border-radius:5px;color:#fff;font-size:.88rem;outline:none;margin-bottom:14px;}
 .login-input:focus{border-color:#6ea8d8;}
 .login-error{font-size:.75rem;color:#e05252;min-height:16px;margin-bottom:10px;}
 .login-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:4px;}
-.btn-cancelar{padding:7px 20px;border-radius:5px;background:#3d4b6b;border:none;color:#c8ccd6;font-size:.85rem;cursor:pointer;transition:background .15s;}
-.btn-cancelar:hover{background:#4a5a80;}
-.btn-acceder{padding:7px 20px;border-radius:5px;background:#1a3a5c;border:1.5px solid #4a7fa5;color:#6ea8d8;font-size:.85rem;cursor:pointer;transition:background .15s,border-color .15s;}
-.btn-acceder:hover{background:#1e4a72;border-color:#6ea8d8;}
+.btn-cancelar{padding:7px 20px;border-radius:5px;background:#3d4b6b;border:none;color:#c8ccd6;font-size:.85rem;cursor:pointer;}
+.btn-acceder{padding:7px 20px;border-radius:5px;background:#1a3a5c;border:1.5px solid #4a7fa5;color:#6ea8d8;font-size:.85rem;cursor:pointer;}
+
+/* ── Responsive layout ── */
+.table-map-wrapper{display:flex;gap:12px;flex:1;min-height:260px;}
+.map-section{width:320px;flex-shrink:0;background:#fff;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;}
+@media(max-width:767px){
+  .topbar{padding:10px 14px;}
+  .topbar-title{font-size:.95rem;}
+  .table-map-wrapper{flex-direction:column;min-height:unset;}
+  .map-section{width:100%;height:240px;}
+  .tabs-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tabs-scroll::-webkit-scrollbar{display:none;}
+  #tabs{flex-wrap:nowrap;width:max-content;}
+  .filter-row{flex-direction:column;}
+  .filter-row select{width:100%;}
+}
 </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-sm">
+<body class="flex flex-col h-screen overflow-hidden text-sm">
 
 <!-- Login Gate -->
 <div id="login-gate">
@@ -78,69 +141,88 @@ body { font-family:'Hanken Grotesk',sans-serif; background:var(--surface); color
   </div>
 </div>
 
-<!-- Toolbar filtros activos -->
-<div class="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end shrink-0 text-xs">
-  <div id="filtros-activos" class="flex items-center space-x-2"></div>
-</div>
-
-<!-- Main Content -->
-<main class="flex-1 overflow-auto p-4 flex flex-col space-y-3">
-
-  <!-- Title + Filters -->
-  <div class="flex flex-col space-y-3">
-    <h1 class="text-2xl text-[#8E4331] font-normal">Monitor climático silvícola</h1>
-    <div class="flex flex-wrap gap-2 text-xs">
-      <select id="f-zona" class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-7 bg-white focus:border-verde focus:ring-1 focus:ring-verde" onchange="onFiltroChange()">
-        <option value="">Zona</option>
-      </select>
-      <select id="f-paisaje" class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-7 bg-white focus:border-verde focus:ring-1 focus:ring-verde" onchange="onFiltroChange()">
-        <option value="">Paisaje</option>
-      </select>
-      <select id="f-fecha" class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-7 bg-white focus:border-verde focus:ring-1 focus:ring-verde" onchange="onFiltroChange()">
-        <option value="7">Fecha — 7 días</option>
-        <option value="14">Fecha — 14 días</option>
-      </select>
-      <select id="f-hora" class="filter-select border border-gray-300 rounded shadow-sm py-1 pl-2 pr-7 bg-white focus:border-verde focus:ring-1 focus:ring-verde">
-        <option value="">Hora</option>
-        <option value="10">10:00</option>
-        <option value="15">15:00</option>
-        <option value="18">18:00</option>
-      </select>
+<!-- Modal cerrar sesión -->
+<div id="logout-modal">
+  <div class="modal-card">
+    <div class="modal-icon">🌿</div>
+    <div class="modal-title">Cerrar sesión</div>
+    <div class="modal-msg">¿Está seguro que desea cerrar sesión?<br>Será redirigido a la página principal.</div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="cancelarLogout()">Cancelar</button>
+      <button class="btn-modal-confirm" onclick="confirmarLogout()">Cerrar sesión</button>
     </div>
   </div>
+</div>
 
-  <!-- Chart -->
-  <section class="bg-white border border-gray-200 rounded shadow-sm p-4 flex flex-col">
-    <div class="flex space-x-5 border-b border-gray-200 mb-3 text-xs" id="tabs">
-      <button class="pb-2 tab-active flex items-center space-x-1" data-tab="precip" onclick="switchTab(this)"><span class="text-blue-500 font-bold">///</span><span>Probabilidad precipitaciones</span></button>
-      <button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1" data-tab="temp" onclick="switchTab(this)"><span class="text-red-500 font-bold">\</span><span>Temperatura por hora [°C]</span></button>
-      <button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1" data-tab="viento" onclick="switchTab(this)"><span class="text-green-500 font-bold">~</span><span>Velocidad y ráfagas de viento [km]</span></button>
-      <button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1" data-tab="nube" onclick="switchTab(this)"><span class="text-gray-400 font-bold">O</span><span>Nubosidad baja [%]</span></button>
-      <button class="pb-2 tab-inactive hover:text-corteza flex items-center space-x-1" data-tab="rocio" onclick="switchTab(this)"><span class="text-blue-400 font-bold">o</span><span>Punto rocío [°C]</span></button>
+<!-- Topbar -->
+<header class="topbar shrink-0">
+  <span class="topbar-title">Monitor climático silvícola</span>
+  <div class="flex items-center gap-3">
+    <div id="filtros-activos" class="flex items-center gap-2 flex-wrap"></div>
+    <button class="btn-logout" onclick="pedirLogout()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+      Cerrar sesión
+    </button>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 overflow-auto p-3 md:p-4 flex flex-col gap-3">
+
+  <!-- Filtros -->
+  <div class="flex flex-wrap gap-2 text-xs filter-row">
+    <select id="f-zona" class="filter-select border border-gray-300 rounded shadow-sm py-1.5 pl-2 pr-7 bg-white" onchange="onFiltroChange()">
+      <option value="">Zona</option>
+    </select>
+    <select id="f-paisaje" class="filter-select border border-gray-300 rounded shadow-sm py-1.5 pl-2 pr-7 bg-white" onchange="onFiltroChange()">
+      <option value="">Paisaje</option>
+    </select>
+    <select id="f-fecha" class="filter-select border border-gray-300 rounded shadow-sm py-1.5 pl-2 pr-7 bg-white" onchange="onFiltroChange()">
+      <option value="7">Fecha — 7 días</option>
+      <option value="14">Fecha — 14 días</option>
+    </select>
+    <select id="f-hora" class="filter-select border border-gray-300 rounded shadow-sm py-1.5 pl-2 pr-7 bg-white">
+      <option value="">Hora</option>
+      <option value="10">10:00</option>
+      <option value="15">15:00</option>
+      <option value="18">18:00</option>
+    </select>
+  </div>
+
+  <!-- Gráfico -->
+  <section class="bg-white border border-gray-200 rounded shadow-sm p-3 md:p-4 flex flex-col shrink-0">
+    <div class="tabs-scroll">
+      <div class="flex gap-4 border-b border-gray-200 mb-3 text-xs" id="tabs" style="min-width:max-content">
+        <button class="pb-2 tab-active flex items-center gap-1 whitespace-nowrap" data-tab="precip" onclick="switchTab(this)"><span class="text-blue-500 font-bold">///</span>Probabilidad precipitaciones</button>
+        <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="temp" onclick="switchTab(this)"><span class="text-red-500 font-bold">\</span>Temperatura [°C]</button>
+        <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="viento" onclick="switchTab(this)"><span class="text-green-500 font-bold">~</span>Viento [km/h]</button>
+        <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="nube" onclick="switchTab(this)"><span class="text-gray-400 font-bold">O</span>Nubosidad [%]</button>
+        <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="rocio" onclick="switchTab(this)"><span class="text-blue-400 font-bold">o</span>Punto rocío [°C]</button>
+      </div>
     </div>
-    <div class="w-full h-52 relative">
+    <div class="relative" style="height:200px">
       <canvas id="mainChart"></canvas>
       <div id="chart-loading" class="absolute inset-0 flex items-center justify-center text-xs text-gray-400">Cargando datos...</div>
     </div>
-    <div class="text-center text-xs text-gray-500 mt-1 flex items-center justify-center space-x-1">
+    <div class="text-center text-xs text-gray-400 mt-1 flex items-center justify-center gap-1">
       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
-      <span>dia_formatted</span>
+      dia_formatted
     </div>
   </section>
 
-  <!-- Table + Map -->
-  <div class="flex flex-1 gap-3 min-h-[280px]">
+  <!-- Tabla + Mapa -->
+  <div class="table-map-wrapper">
 
-    <!-- Table -->
-    <section class="flex-1 bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden">
+    <!-- Tabla -->
+    <section class="flex-1 bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden min-w-0">
       <div class="table-container overflow-auto flex-1">
         <table class="w-full text-left text-xs whitespace-nowrap">
-          <thead class="sticky top-0 bg-white shadow-[0_1px_0_rgba(0,0,0,0.1)] z-10">
+          <thead class="sticky top-0 bg-white shadow-[0_1px_0_rgba(0,0,0,0.08)] z-10">
             <tr id="thead-dates">
-              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-44">Paisaje</th>
-              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-36">Zona</th>
-              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-24">Estado</th>
-              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-28">Fecha</th>
+              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-40">Paisaje</th>
+              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-32">Zona</th>
+              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-22">Estado</th>
+              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-28">Métrica</th>
             </tr>
           </thead>
           <tbody id="tbody-data">
@@ -148,11 +230,11 @@ body { font-family:'Hanken Grotesk',sans-serif; background:var(--surface); color
           </tbody>
         </table>
       </div>
-      <div class="px-3 py-1 text-[10px] text-gray-400 border-t border-gray-100">* Mostrando actualmente un conjunto limitado de datos.</div>
+      <div class="px-3 py-1 text-[10px] text-gray-400 border-t border-gray-100 shrink-0">* Mostrando actualmente un conjunto limitado de datos.</div>
     </section>
 
-    <!-- Map -->
-    <section class="w-80 bg-white border border-gray-200 rounded shadow-sm overflow-hidden flex-shrink-0">
+    <!-- Mapa -->
+    <section class="map-section">
       <div id="mapa-silv"></div>
     </section>
 
@@ -162,8 +244,9 @@ body { font-family:'Hanken Grotesk',sans-serif; background:var(--surface); color
 <script src="/js/vendor/leaflet.js"></script>
 <script src="/js/paisajes.js"></script>
 <script>
-// ── AUTH ─────────────────────────────────────────────────────────────────────
+// ── AUTH ──────────────────────────────────────────────────────────────────────
 const SESSION_KEY = 'silv_access';
+
 function validarLogin() {
   const user = document.getElementById('lg-user').value.trim();
   const pass = document.getElementById('lg-pass').value;
@@ -183,17 +266,31 @@ if (sessionStorage.getItem(SESSION_KEY) === '1') {
   document.getElementById('login-gate').style.display = 'none';
 }
 
-// ── ESTADO GLOBAL ─────────────────────────────────────────────────────────────
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+function pedirLogout() {
+  document.getElementById('logout-modal').classList.add('show');
+}
+function cancelarLogout() {
+  document.getElementById('logout-modal').classList.remove('show');
+}
+function confirmarLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  window.location.href = '/';
+}
+document.getElementById('logout-modal').addEventListener('click', function(e) {
+  if (e.target === this) cancelarLogout();
+});
+
+// ── ESTADO ────────────────────────────────────────────────────────────────────
 let tabActual = 'precip';
 let chartInst = null;
 let mapaInst  = null;
 let marcadores = [];
-let datosCache = {};  // lat_lon → weather API response
+let datosCache = {};
 
 // ── FILTROS ───────────────────────────────────────────────────────────────────
 function poblarFiltros() {
   const selZona = document.getElementById('f-zona');
-  const selPaisaje = document.getElementById('f-paisaje');
   ZONAS.forEach(z => {
     const o = document.createElement('option');
     o.value = z.nombre; o.textContent = z.nombre;
@@ -218,23 +315,23 @@ function poblarPaisajes(zonaNombre) {
 function onFiltroChange() {
   const zona = document.getElementById('f-zona').value;
   poblarPaisajes(zona);
-  actualizarFiltrosBadge();
+  actualizarBadges();
   cargarDatos();
 }
 
-function actualizarFiltrosBadge() {
-  const zona = document.getElementById('f-zona').value;
+function actualizarBadges() {
+  const zona    = document.getElementById('f-zona').value;
   const paisaje = document.getElementById('f-paisaje').value;
   const cont = document.getElementById('filtros-activos');
   cont.innerHTML = '';
-  if (zona) cont.innerHTML += badge('Zona', zona);
+  if (zona)    cont.innerHTML += badge('Zona', zona);
   if (paisaje) cont.innerHTML += badge('Paisaje', paisaje);
 }
 
 function badge(key, val) {
   return `<div class="flex items-center bg-green-600 text-white rounded overflow-hidden text-[10px]">
     <div class="px-2 py-0.5 leading-tight"><span class="font-semibold block">${key}</span><span>${val}</span></div>
-    <button onclick="limpiarFiltro('${key}')" class="px-2 py-1 bg-green-700 hover:bg-green-800">
+    <button onclick="limpiarFiltro('${key}')" class="px-1.5 py-1 bg-green-700 hover:bg-green-800">
       <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
     </button></div>`;
 }
@@ -242,29 +339,26 @@ function badge(key, val) {
 function limpiarFiltro(key) {
   if (key === 'Zona') { document.getElementById('f-zona').value = ''; poblarPaisajes(''); }
   if (key === 'Paisaje') document.getElementById('f-paisaje').value = '';
-  actualizarFiltrosBadge();
+  actualizarBadges();
   cargarDatos();
 }
 
-// ── PAISAJES FILTRADOS ────────────────────────────────────────────────────────
+// ── PAISAJES ──────────────────────────────────────────────────────────────────
 function getPaisajesFiltrados() {
-  const zona = document.getElementById('f-zona').value;
+  const zona    = document.getElementById('f-zona').value;
   const paisaje = document.getElementById('f-paisaje').value;
   let lista = [...PAISAJES];
-  if (zona) {
-    const nombres = ZONAS.find(z => z.nombre === zona)?.paisajes || [];
-    lista = lista.filter(p => nombres.includes(p.n));
-  }
+  if (zona)    lista = lista.filter(p => (ZONAS.find(z => z.nombre === zona)?.paisajes || []).includes(p.n));
   if (paisaje) lista = lista.filter(p => p.n === paisaje);
-  return lista.slice(0, 6); // máx 6 para no saturar la API
+  return lista.slice(0, 6);
 }
 
-function getZonaDePaisaje(nombrePaisaje) {
-  return ZONAS.find(z => z.paisajes.includes(nombrePaisaje))?.nombre || '—';
+function getZona(nombre) {
+  return ZONAS.find(z => z.paisajes.includes(nombre))?.nombre || '—';
 }
 
-// ── API OPEN-METEO ────────────────────────────────────────────────────────────
-async function fetchWeatherDiario(lat, lon) {
+// ── API ───────────────────────────────────────────────────────────────────────
+async function fetchWeather(lat, lon) {
   const key = `${lat},${lon}`;
   if (datosCache[key]) return datosCache[key];
   const dias = document.getElementById('f-fecha').value || 7;
@@ -272,26 +366,21 @@ async function fetchWeatherDiario(lat, lon) {
     + `&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,`
     + `precipitation_probability_max,windspeed_10m_max,precipitation_sum,cloudcover_mean,dewpoint_2m_mean`
     + `&timezone=America%2FSantiago&forecast_days=${dias}`;
-  const res = await fetch(url);
-  const data = await res.json();
+  const data = await (await fetch(url)).json();
   datosCache[key] = data;
   return data;
 }
 
-// ── CARGAR DATOS PRINCIPAL ────────────────────────────────────────────────────
 async function cargarDatos() {
-  datosCache = {}; // limpiar cache al cambiar filtros
+  datosCache = {};
   const paisajes = getPaisajesFiltrados();
   if (!paisajes.length) return;
-
   document.getElementById('chart-loading').style.display = 'flex';
   document.getElementById('tbody-data').innerHTML =
     '<tr class="loading-row"><td colspan="12">Cargando datos climáticos...</td></tr>';
-
   const resultados = await Promise.all(
-    paisajes.map(p => fetchWeatherDiario(p.lat, p.lon).then(d => ({ paisaje: p, data: d })))
+    paisajes.map(p => fetchWeather(p.lat, p.lon).then(d => ({ paisaje: p, data: d })))
   );
-
   document.getElementById('chart-loading').style.display = 'none';
   renderChart(resultados);
   renderTabla(resultados);
@@ -299,42 +388,32 @@ async function cargarDatos() {
 }
 
 // ── GRÁFICO ───────────────────────────────────────────────────────────────────
-const COLORES_SERIES = ['#4A81B1','#EA7600','#BFB800','#5DBAA9','#B46A5F','#696158'];
+const COLORES = ['#4A81B1','#EA7600','#BFB800','#5DBAA9','#B46A5F','#696158'];
 
-function getDatosPorTab(weatherData) {
-  const d = weatherData.daily;
+function getTabInfo(d) {
   switch (tabActual) {
-    case 'precip': return { vals: d.precipitation_probability_max, label: 'Prob. Precipitaciones (%)', max: 100, suf: '%' };
-    case 'temp':   return { vals: d.temperature_2m_mean, label: 'Temperatura promedio (°C)', max: null, suf: '°C' };
-    case 'viento': return { vals: d.windspeed_10m_max, label: 'Vel. viento máx (km/h)', max: null, suf: ' km/h' };
-    case 'nube':   return { vals: d.cloudcover_mean, label: 'Nubosidad media (%)', max: 100, suf: '%' };
-    case 'rocio':  return { vals: d.dewpoint_2m_mean, label: 'Punto de rocío (°C)', max: null, suf: '°C' };
+    case 'precip': return { vals: d.precipitation_probability_max, suf: '%',    max: 100  };
+    case 'temp':   return { vals: d.temperature_2m_mean,           suf: '°C',   max: null };
+    case 'viento': return { vals: d.windspeed_10m_max,             suf: ' km/h',max: null };
+    case 'nube':   return { vals: d.cloudcover_mean,               suf: '%',    max: 100  };
+    case 'rocio':  return { vals: d.dewpoint_2m_mean,              suf: '°C',   max: null };
   }
 }
 
-function renderChart(resultados) {
-  const labels = resultados[0].data.daily.time.map(t => {
-    const [y, m, d] = t.split('-');
-    return `${d}-${m}-${y}`;
-  });
-  const datasets = resultados.map((r, i) => {
-    const info = getDatosPorTab(r.data);
+function renderChart(res) {
+  const labels = res[0].data.daily.time.map(t => { const [y,m,d]=t.split('-'); return `${d}-${m}`; });
+  const datasets = res.map((r, i) => {
+    const info = getTabInfo(r.data.daily);
     return {
-      label: r.paisaje.n,
-      data: info.vals,
-      borderColor: COLORES_SERIES[i % COLORES_SERIES.length],
-      backgroundColor: hexA(COLORES_SERIES[i % COLORES_SERIES.length], 0.15),
-      borderWidth: 2,
-      pointRadius: 4,
-      pointBackgroundColor: COLORES_SERIES[i % COLORES_SERIES.length],
-      fill: resultados.length === 1,
-      tension: 0.4
+      label: r.paisaje.n, data: info.vals,
+      borderColor: COLORES[i % COLORES.length],
+      backgroundColor: hexA(COLORES[i % COLORES.length], 0.12),
+      borderWidth: 2, pointRadius: 3,
+      pointBackgroundColor: COLORES[i % COLORES.length],
+      fill: res.length === 1, tension: 0.4
     };
   });
-
-  const suf = getDatosPorTab(resultados[0].data).suf;
-  const yMax = getDatosPorTab(resultados[0].data).max;
-
+  const { suf, max } = getTabInfo(res[0].data.daily);
   if (chartInst) chartInst.destroy();
   chartInst = new Chart(document.getElementById('mainChart'), {
     type: 'line',
@@ -342,80 +421,62 @@ function renderChart(resultados) {
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { display: resultados.length > 1, position: 'top', labels: { boxWidth: 10, font: { size: 10 } } },
+        legend: { display: res.length > 1, position: 'top', labels: { boxWidth: 8, font: { size: 10 } } },
         tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}${suf}` } }
       },
       scales: {
-        y: {
-          min: 0, ...(yMax ? { max: yMax } : {}),
-          ticks: { callback: v => v + suf, color: '#888', font: { size: 10 } },
-          grid: { color: '#e0e0e0' }
-        },
-        x: {
-          ticks: { color: '#888', maxRotation: 0, autoSkip: true, maxTicksLimit: 16, font: { size: 9 } },
-          grid: { color: '#e0e0e0' }
-        }
+        y: { min: 0, ...(max ? { max } : {}), ticks: { callback: v => v + suf, color: '#888', font: { size: 10 } }, grid: { color: '#e0e0e0' } },
+        x: { ticks: { color: '#888', maxRotation: 0, autoSkip: true, maxTicksLimit: 14, font: { size: 9 } }, grid: { color: '#e0e0e0' } }
       },
       animation: { duration: 300 }
     }
   });
 }
 
-function hexA(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
+function hexA(hex, a) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
 }
 
 // ── TABLA ─────────────────────────────────────────────────────────────────────
-function renderTabla(resultados) {
-  const thead = document.getElementById('thead-dates');
-  const tbody = document.getElementById('tbody-data');
-  if (!resultados.length) return;
-
-  const fechas = resultados[0].data.daily.time;
-  // Cabecera dinámica de fechas
-  thead.innerHTML = `
-    <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-44">Paisaje</th>
-    <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-32">Zona</th>
-    <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-20">Estado</th>
-    <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-28">Métrica</th>
-    ${fechas.map(f => {
-      const [y, m, d] = f.split('-');
-      return `<th class="p-2 border-b text-center font-semibold text-corteza">${d}/${m}</th>`;
-    }).join('')}`;
+function renderTabla(res) {
+  const fechas = res[0].data.daily.time;
+  document.getElementById('thead-dates').innerHTML =
+    `<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-40">Paisaje</th>
+     <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-32">Zona</th>
+     <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza">Estado</th>
+     <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-28">Métrica</th>
+     ${fechas.map(f => { const [y,m,d]=f.split('-'); return `<th class="p-2 border-b text-center font-semibold text-corteza">${d}/${m}</th>`; }).join('')}`;
 
   const METRICAS = [
-    { key: 'temperature_2m_max',          label: 'T° Máxima',           fmt: v => v != null ? Math.round(v) : '—' },
-    { key: 'temperature_2m_mean',         label: 'T° Promedio',         fmt: v => v != null ? Math.round(v) : '—' },
-    { key: 'temperature_2m_min',          label: 'T° Mínima',           fmt: v => v != null ? Math.round(v) : '—' },
+    { key: 'temperature_2m_max',            label: 'T° Máxima',             fmt: v => v != null ? Math.round(v) : '—' },
+    { key: 'temperature_2m_mean',           label: 'T° Promedio',           fmt: v => v != null ? Math.round(v) : '—' },
+    { key: 'temperature_2m_min',            label: 'T° Mínima',             fmt: v => v != null ? Math.round(v) : '—' },
     { key: 'precipitation_probability_max', label: 'Prob. Precipitaciones', fmt: v => v != null ? v + '%' : '—' },
-    { key: 'windspeed_10m_max',           label: 'Vel. viento [km/h]',  fmt: v => v != null ? Math.round(v) : '—' },
-    { key: 'precipitation_sum',           label: 'Precipitaciones [mm]', fmt: v => v != null ? v.toFixed(2).replace('.', ',') : '—' },
+    { key: 'windspeed_10m_max',             label: 'Vel. viento [km/h]',    fmt: v => v != null ? Math.round(v) : '—' },
+    { key: 'precipitation_sum',             label: 'Precipitaciones [mm]',  fmt: v => v != null ? v.toFixed(2).replace('.', ',') : '—' },
   ];
 
-  tbody.innerHTML = resultados.map(({ paisaje, data }, pi) => {
+  document.getElementById('tbody-data').innerHTML = res.map(({ paisaje, data }, pi) => {
     const d = data.daily;
-    const zona = getZonaDePaisaje(paisaje.n);
-    const badgeClass = paisaje.e === 'favorable' ? 'badge-favorable' : paisaje.e === 'restriccion' ? 'badge-restriccion' : 'badge-sin';
-    const badgeLabel = paisaje.e === 'favorable' ? 'Favorable' : paisaje.e === 'restriccion' ? 'Restricción' : 'Sin RDCFT';
-    const bg = pi % 2 === 0 ? '' : 'bg-gray-50';
-
+    const zona  = getZona(paisaje.n);
+    const bCls  = paisaje.e === 'favorable' ? 'badge-favorable' : paisaje.e === 'restriccion' ? 'badge-restriccion' : 'badge-sin';
+    const bLbl  = paisaje.e === 'favorable' ? 'Favorable' : paisaje.e === 'restriccion' ? 'Restricción' : 'Sin RDCFT';
+    const bg    = pi % 2 === 0 ? '' : 'bg-gray-50';
     return METRICAS.map((m, mi) => `
       <tr class="align-middle ${bg}">
         ${mi === 0 ? `<td class="p-2 border-b border-r border-gray-200 font-medium" rowspan="${METRICAS.length}">${paisaje.n}</td>
-        <td class="p-2 border-b border-r border-gray-200 text-gray-500" rowspan="${METRICAS.length}">${zona}</td>
-        <td class="p-2 border-b border-r border-gray-200" rowspan="${METRICAS.length}"><span class="${badgeClass}">${badgeLabel}</span></td>` : ''}
+        <td class="p-2 border-b border-r border-gray-200 text-gray-500 text-xs" rowspan="${METRICAS.length}">${zona}</td>
+        <td class="p-2 border-b border-r border-gray-200" rowspan="${METRICAS.length}"><span class="${bCls}">${bLbl}</span></td>` : ''}
         <td class="p-2 border-b border-r border-gray-200 text-gray-500">${m.label}</td>
-        ${d.time.map((_, di) => `<td class="p-2 border-b text-right">${m.fmt(d[m.key]?.[di])}</td>`).join('')}
+        ${d.time.map((_,di) => `<td class="p-2 border-b text-right">${m.fmt(d[m.key]?.[di])}</td>`).join('')}
       </tr>`).join('');
   }).join('');
 }
 
 // ── MAPA ──────────────────────────────────────────────────────────────────────
 function iniciarMapa() {
-  mapaInst = L.map('mapa-silv', { zoomControl: true, scrollWheelZoom: true });
+  mapaInst = L.map('mapa-silv', { zoomControl: true, scrollWheelZoom: false });
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© OpenStreetMap © CARTO', maxZoom: 18
   }).addTo(mapaInst);
@@ -425,7 +486,6 @@ function actualizarMapa(paisajes) {
   marcadores.forEach(m => m.remove());
   marcadores = [];
   if (!mapaInst || !paisajes.length) return;
-
   const bounds = [];
   paisajes.forEach(p => {
     const color = p.e === 'favorable' ? '#065f46' : p.e === 'restriccion' ? '#92400e' : '#6b7280';
@@ -434,22 +494,20 @@ function actualizarMapa(paisajes) {
       html: `<div style="background:${color};color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.3)">${p.n}</div>`,
       iconAnchor: [0, 0]
     });
-    const m = L.marker([p.lat, p.lon], { icon })
-      .addTo(mapaInst)
+    const m = L.marker([p.lat, p.lon], { icon }).addTo(mapaInst)
       .bindPopup(`<b>${p.n}</b><br>Lat: ${p.lat.toFixed(3)}<br>Lon: ${p.lon.toFixed(3)}`);
     marcadores.push(m);
     bounds.push([p.lat, p.lon]);
   });
-
   if (bounds.length) mapaInst.fitBounds(bounds, { padding: [20, 20] });
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
 function switchTab(btn) {
   document.querySelectorAll('#tabs button').forEach(b => {
-    b.classList.remove('tab-active'); b.classList.add('tab-inactive');
+    b.classList.replace('tab-active', 'tab-inactive');
   });
-  btn.classList.remove('tab-inactive'); btn.classList.add('tab-active');
+  btn.classList.replace('tab-inactive', 'tab-active');
   tabActual = btn.dataset.tab;
   datosCache = {};
   cargarDatos();
@@ -459,15 +517,12 @@ function switchTab(btn) {
 function iniciarApp() {
   poblarFiltros();
   iniciarMapa();
-  // Seleccionar primera zona por defecto
-  const selZona = document.getElementById('f-zona');
-  selZona.value = ZONAS[0].nombre;
+  document.getElementById('f-zona').value = ZONAS[0].nombre;
   poblarPaisajes(ZONAS[0].nombre);
-  actualizarFiltrosBadge();
+  actualizarBadges();
   cargarDatos();
 }
 
-// Arrancar si ya hay sesión
 if (sessionStorage.getItem(SESSION_KEY) === '1') {
   document.addEventListener('DOMContentLoaded', iniciarApp);
 }
