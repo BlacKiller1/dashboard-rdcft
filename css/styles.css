@@ -2571,6 +2571,7 @@ html, body {
 .umenu-item:hover { background: rgba(255,255,255,0.06); }
 
 .umenu-item--admin  { color: #4A9EE8; }
+.umenu-item--aviso  { color: #d6611e; }
 .umenu-item--consulta { color: #4A9EE8; }
 .umenu-item--feedback { color: var(--c-green); }
 .umenu-item--logout { color: var(--c-red); }
