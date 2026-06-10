@@ -4,6 +4,7 @@ __pycache__/
 .claude/
 
 data/usuarios.json
+data/clima.json
 
 node_modules/
 package-lock.json

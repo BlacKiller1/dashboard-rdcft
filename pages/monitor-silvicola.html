@@ -150,10 +150,27 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--surface);color:var
   .map-section{width:100%;height:240px;}
   .tabs-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
   .tabs-scroll::-webkit-scrollbar{display:none;}
-  #tabs{flex-wrap:nowrap;width:max-content;}
+  #tabs,#viv-tabs{flex-wrap:nowrap;width:max-content;}
   .filter-row{flex-direction:column;}
-  .filter-row select{width:100%;}
+  .filter-row select,.filter-row input{width:100%;}
 }
+
+/* ── Navegación de secciones ── */
+.sec-nav{display:flex;gap:6px;padding:10px 14px;background:#fff;border-bottom:1px solid #e5e7eb;flex-shrink:0;overflow-x:auto;}
+.sec-nav::-webkit-scrollbar{display:none;}
+.sec-btn{padding:5px 14px;border-radius:999px;white-space:nowrap;font-size:.72rem;font-weight:600;flex-shrink:0;border:1px solid #e5e7eb;background:none;color:#696158;cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
+.sec-btn:hover{background:#f3f4f6;}
+.sec-btn.active{background:var(--color-verde);border-color:var(--color-verde);color:#fff;}
+
+/* ── Tabla Plan Trimestral ── */
+.plan-table{width:100%;border-collapse:collapse;font-size:.72rem;}
+.plan-table th{padding:8px 10px;font-weight:600;color:#696158;background:#fafafa;border-bottom:2px solid #e5e7eb;position:sticky;top:0;z-index:5;white-space:nowrap;}
+.plan-table td{padding:6px 10px;border-bottom:1px solid #f3f4f6;white-space:nowrap;}
+.plan-table tr:hover td{background:#fdf8f6;}
+.badge-act{border-radius:3px;padding:1px 6px;font-size:.65rem;font-weight:600;}
+.ba-manejo{background:#dbeafe;color:#1e40af;} .ba-mant{background:#dcfce7;color:#166534;}
+.ba-estab{background:#f3e8ff;color:#6b21a8;} .ba-prev{background:#fef3c7;color:#92400e;}
+.clima-cell{font-size:.65rem;color:#555;white-space:nowrap;}
 </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden text-sm">
@@ -218,7 +235,17 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--surface);color:var
 </header>
 
 <!-- Main -->
-<main class="flex-1 overflow-auto p-3 md:p-4 flex flex-col gap-3">
+<main class="flex-1 overflow-hidden flex flex-col">
+
+  <!-- Navegación de secciones -->
+  <div class="sec-nav">
+    <button class="sec-btn active" data-sec="pronostico" onclick="switchSection('pronostico')">⛅ Pronóstico</button>
+    <button class="sec-btn" data-sec="viveros"    onclick="switchSection('viveros')">🌱 Viveros</button>
+    <button class="sec-btn" data-sec="plan"       onclick="switchSection('plan')">📋 Plan Trimestral</button>
+  </div>
+
+  <!-- Sección: Pronóstico paisajes -->
+  <div id="sec-pronostico" class="flex-1 overflow-auto p-3 md:p-4 flex flex-col gap-3">
 
   <!-- Filtros -->
   <div class="flex flex-wrap gap-2 text-xs filter-row">
@@ -290,6 +317,115 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--surface);color:var
     </section>
 
   </div>
+  </div><!-- /sec-pronostico -->
+
+  <!-- ═══════════════════════════════════════
+       Sección: Viveros
+  ═══════════════════════════════════════ -->
+  <div id="sec-viveros" class="flex-1 overflow-auto p-3 md:p-4 flex flex-col gap-3" style="display:none">
+
+    <!-- Filtro vivero -->
+    <div class="flex flex-wrap gap-2 text-xs items-center">
+      <select id="viv-filter" class="filter-select border border-gray-300 rounded shadow-sm py-1.5 pl-2 pr-7 bg-white" onchange="renderViveros()">
+        <option value="">Todos los viveros</option>
+        <option value="Vivero Horcones">Vivero Horcones</option>
+        <option value="Vivero Los Castanos">Vivero Los Castanos</option>
+        <option value="Vivero Quivolgo">Vivero Quivolgo</option>
+      </select>
+      <span id="viv-estado" class="text-gray-400 text-xs">Cargando...</span>
+    </div>
+
+    <!-- Gráfico viveros -->
+    <section class="bg-white border border-gray-200 rounded shadow-sm p-3 md:p-4 flex flex-col shrink-0">
+      <div class="tabs-scroll">
+        <div class="flex gap-4 border-b border-gray-200 mb-3 text-xs" id="viv-tabs" style="min-width:max-content">
+          <button class="pb-2 tab-active flex items-center gap-1 whitespace-nowrap" data-tab="precip" onclick="switchVivTab(this)"><span class="text-blue-500 font-bold">///</span>Probabilidad precipitaciones</button>
+          <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="temp"   onclick="switchVivTab(this)"><span class="text-red-500 font-bold">\</span>Temperatura [°C]</button>
+          <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="viento" onclick="switchVivTab(this)"><span class="text-green-500 font-bold">~</span>Viento [km/h]</button>
+          <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="nube"   onclick="switchVivTab(this)"><span class="text-gray-400 font-bold">O</span>Nubosidad [%]</button>
+          <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="rocio"  onclick="switchVivTab(this)"><span class="text-blue-400 font-bold">o</span>Punto rocío [°C]</button>
+        </div>
+      </div>
+      <div class="relative" style="height:200px">
+        <canvas id="vivChart"></canvas>
+        <div id="viv-loading" class="absolute inset-0 flex items-center justify-center text-xs text-gray-400">Cargando datos de viveros...</div>
+      </div>
+    </section>
+
+    <!-- Tabla viveros -->
+    <section class="flex-1 bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden min-w-0">
+      <div class="table-container overflow-auto flex-1">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+          <thead class="sticky top-0 bg-white shadow-[0_1px_0_rgba(0,0,0,0.08)] z-10">
+            <tr id="viv-thead">
+              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-40">Vivero</th>
+              <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-36">Métrica</th>
+            </tr>
+          </thead>
+          <tbody id="viv-tbody">
+            <tr class="loading-row"><td colspan="20">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="px-3 py-1 text-[10px] text-gray-400 border-t border-gray-100 shrink-0">Datos horarios agregados a nivel diario · Período: 8–24 jun 2026</div>
+    </section>
+
+  </div><!-- /sec-viveros -->
+
+  <!-- ═══════════════════════════════════════
+       Sección: Plan Trimestral
+  ═══════════════════════════════════════ -->
+  <div id="sec-plan" class="flex-1 overflow-auto p-3 md:p-4 flex flex-col gap-3" style="display:none">
+
+    <!-- Filtros -->
+    <div class="flex flex-wrap gap-2 text-xs filter-row">
+      <select id="plan-zona" class="filter-select border border-gray-300 rounded shadow-sm py-1.5 pl-2 pr-7 bg-white" onchange="renderPlan()">
+        <option value="">Zona</option>
+        <option>Arauco</option><option>Chillán</option><option>Constitucion</option><option>Valdivia</option>
+      </select>
+      <select id="plan-actividad" class="filter-select border border-gray-300 rounded shadow-sm py-1.5 pl-2 pr-7 bg-white" onchange="renderPlan()">
+        <option value="">Actividad</option>
+        <option>Establecimiento</option><option>Manejo</option><option>Mantención</option><option>Prevención</option>
+      </select>
+      <select id="plan-mes" class="filter-select border border-gray-300 rounded shadow-sm py-1.5 pl-2 pr-7 bg-white" onchange="renderPlan()">
+        <option value="">Mes</option>
+        <option>Junio</option><option>Julio</option><option>Agosto</option>
+      </select>
+      <input id="plan-search" type="text" placeholder="🔍 Buscar predio o faena..."
+        class="border border-gray-300 rounded shadow-sm py-1.5 px-2 bg-white text-xs outline-none focus:border-green-400"
+        oninput="planPagina=0;renderPlanPagina()" style="min-width:175px">
+    </div>
+
+    <!-- Contador resultados -->
+    <div id="plan-stats" class="text-xs text-gray-500 -mt-1"></div>
+
+    <!-- Tabla plan -->
+    <section class="flex-1 bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden">
+      <div class="table-container overflow-auto flex-1">
+        <table class="plan-table">
+          <thead>
+            <tr>
+              <th>ID Predio</th>
+              <th>Nombre Predio</th>
+              <th>Área / Zona</th>
+              <th>Actividad</th>
+              <th>Faena</th>
+              <th>Especie</th>
+              <th class="text-right">Sup. (ha)</th>
+              <th>Mes</th>
+              <th>Clima período</th>
+            </tr>
+          </thead>
+          <tbody id="plan-tbody">
+            <tr><td colspan="9" class="text-center text-gray-400 py-8">Cargando plan trimestral...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="plan-pag" class="flex items-center gap-2 px-3 py-2 border-t border-gray-100 text-xs text-gray-500 shrink-0 flex-wrap"></div>
+    </section>
+
+  </div><!-- /sec-plan -->
+
 </main>
 
 <script src="/js/vendor/leaflet.js"></script>
@@ -592,6 +728,234 @@ function iniciarApp() {
 
 if (sessionStorage.getItem(SESSION_KEY) === '1') {
   document.addEventListener('DOMContentLoaded', iniciarApp);
+}
+
+// ── SECCIONES ─────────────────────────────────────────────────────────────────
+function switchSection(sec) {
+  ['pronostico','viveros','plan'].forEach(s => {
+    document.getElementById('sec-' + s).style.display = s === sec ? 'flex' : 'none';
+  });
+  document.querySelectorAll('.sec-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.sec === sec);
+  });
+  if (sec === 'viveros' && !climaViverosData) cargarViverosSection();
+  if (sec === 'plan'    && !planData)         cargarPlanSection();
+}
+
+// ── VIVEROS ───────────────────────────────────────────────────────────────────
+let climaViverosData = null;
+let viverosDiarios   = null;
+let vivChartInst     = null;
+let tabViveros       = 'precip';
+
+async function cargarViverosSection() {
+  try {
+    climaViverosData = await (await fetch('/data/clima_viveros.json')).json();
+    viverosDiarios = agregarViverosDiario(climaViverosData);
+    document.getElementById('viv-estado').textContent =
+      `${viverosDiarios.length} días · 3 viveros`;
+    renderViveros();
+  } catch(e) {
+    document.getElementById('viv-loading').textContent = 'Error al cargar datos de viveros.';
+  }
+}
+
+function agregarViverosDiario(data) {
+  const byKey = {};
+  data.forEach(r => {
+    const dia = r.dia.split('T')[0];
+    const k = `${r.nombre_vivero}||${dia}`;
+    if (!byKey[k]) byKey[k] = { vivero: r.nombre_vivero, dia,
+      temps:[], winds:[], precips:[], probs:[], clouds:[], dews:[], hums:[], gusts:[] };
+    const g = byKey[k];
+    if (r.temperature_2m            != null) g.temps.push(r.temperature_2m);
+    if (r.wind_speed_10m            != null) g.winds.push(r.wind_speed_10m);
+    if (r.hourly_wind_gusts_10m     != null) g.gusts.push(r.hourly_wind_gusts_10m);
+    if (r.precipitation             != null) g.precips.push(r.precipitation);
+    if (r.precipitation_probability != null) g.probs.push(r.precipitation_probability);
+    if (r.cloud_cover_low           != null) g.clouds.push(r.cloud_cover_low);
+    if (r.dew_point_2m              != null) g.dews.push(r.dew_point_2m);
+    if (r.relative_humidity_2m      != null) g.hums.push(r.relative_humidity_2m);
+  });
+  const avg = a => a.length ? a.reduce((s,v)=>s+v,0)/a.length : null;
+  const mn  = a => a.length ? a.reduce((m,v)=>Math.min(m,v), Infinity) : null;
+  const mx  = a => a.length ? a.reduce((m,v)=>Math.max(m,v),-Infinity) : null;
+  return Object.values(byKey).map(g => ({
+    vivero: g.vivero, dia: g.dia,
+    temp_avg: avg(g.temps), temp_min: mn(g.temps), temp_max: mx(g.temps),
+    wind_max: mx(g.gusts) ?? mx(g.winds),
+    precip:      g.precips.reduce((s,v)=>s+v,0),
+    precip_prob: mx(g.probs),
+    cloud_avg:   avg(g.clouds),
+    dew_avg:     avg(g.dews),
+    hum_avg:     avg(g.hums)
+  })).sort((a,b) => a.dia.localeCompare(b.dia));
+}
+
+function renderViveros() {
+  if (!viverosDiarios) return;
+  const filtro = document.getElementById('viv-filter').value;
+  let viveros = [...new Set(viverosDiarios.map(r => r.vivero))].sort();
+  if (filtro) viveros = viveros.filter(v => v === filtro);
+  const dias = [...new Set(viverosDiarios.map(r => r.dia))].sort();
+
+  // ── Gráfico ──
+  document.getElementById('viv-loading').style.display = 'none';
+  const sufMap = { precip:'%', temp:'°C', viento:' km/h', nube:'%', rocio:'°C' };
+  const suf = sufMap[tabViveros] || '';
+  const datasets = viveros.map((viv, i) => {
+    const rows = viverosDiarios.filter(r => r.vivero === viv);
+    const values = dias.map(d => {
+      const row = rows.find(r => r.dia === d);
+      if (!row) return null;
+      const v = { precip: row.precip_prob, temp: row.temp_avg, viento: row.wind_max,
+                  nube: row.cloud_avg, rocio: row.dew_avg }[tabViveros];
+      return v != null ? +v.toFixed(1) : null;
+    });
+    return {
+      label: viv, data: values,
+      borderColor: COLORES[i % COLORES.length],
+      backgroundColor: hexA(COLORES[i % COLORES.length], 0.12),
+      borderWidth: 2, pointRadius: 3, tension: 0.4,
+      fill: viveros.length === 1
+    };
+  });
+  const labels = dias.map(d => { const [,m,dd]=d.split('-'); return `${dd}-${m}`; });
+  if (vivChartInst) vivChartInst.destroy();
+  vivChartInst = new Chart(document.getElementById('vivChart'), {
+    type: 'line', data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: viveros.length > 1, position: 'top', labels: { boxWidth: 8, font:{size:10} } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}${suf}` } }
+      },
+      scales: {
+        y: { min: 0, ticks: { callback: v => v+suf, color:'#888', font:{size:10} }, grid:{color:'#e0e0e0'} },
+        x: { ticks: { color:'#888', maxRotation:0, autoSkip:true, maxTicksLimit:16, font:{size:9} }, grid:{color:'#e0e0e0'} }
+      },
+      animation: { duration: 300 }
+    }
+  });
+
+  // ── Tabla ──
+  const METRICAS_VIV = [
+    { key:'temp_avg',    label:'T° Promedio',          fmt: v => v!=null ? Math.round(v)+'°C' : '—' },
+    { key:'temp_min',    label:'T° Mínima',            fmt: v => v!=null ? Math.round(v)+'°C' : '—' },
+    { key:'temp_max',    label:'T° Máxima',            fmt: v => v!=null ? Math.round(v)+'°C' : '—' },
+    { key:'wind_max',    label:'Racha máxima [km/h]',  fmt: v => v!=null ? Math.round(v) : '—' },
+    { key:'precip',      label:'Precipitaciones [mm]', fmt: v => v!=null ? v.toFixed(1).replace('.',',') : '—' },
+    { key:'precip_prob', label:'Prob. precipitación',  fmt: v => v!=null ? Math.round(v)+'%' : '—' },
+    { key:'hum_avg',     label:'Humedad relativa',     fmt: v => v!=null ? Math.round(v)+'%' : '—' },
+  ];
+  document.getElementById('viv-thead').innerHTML =
+    `<th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-40">Vivero</th>
+     <th class="p-2 border-b border-r border-gray-200 font-semibold text-corteza w-36">Métrica</th>
+     ${dias.map(d=>{ const[,m,dd]=d.split('-'); return `<th class="p-2 border-b text-center font-semibold text-corteza">${dd}/${m}</th>`; }).join('')}`;
+  document.getElementById('viv-tbody').innerHTML = viveros.map((viv,vi) => {
+    const rows = viverosDiarios.filter(r => r.vivero === viv);
+    const bg = vi%2===1 ? 'bg-gray-50' : '';
+    return METRICAS_VIV.map((m,mi) => `
+      <tr class="${bg}">
+        ${mi===0 ? `<td class="p-2 border-b border-r border-gray-200 font-medium" rowspan="${METRICAS_VIV.length}">${viv}</td>` : ''}
+        <td class="p-2 border-b border-r border-gray-200 text-gray-500">${m.label}</td>
+        ${dias.map(d=>{ const row=rows.find(r=>r.dia===d); return `<td class="p-2 border-b text-right">${row?m.fmt(row[m.key]):'—'}</td>`; }).join('')}
+      </tr>`).join('');
+  }).join('');
+}
+
+function switchVivTab(btn) {
+  document.querySelectorAll('#viv-tabs button').forEach(b => b.classList.replace('tab-active','tab-inactive'));
+  btn.classList.replace('tab-inactive','tab-active');
+  tabViveros = btn.dataset.tab;
+  renderViveros();
+}
+
+// ── PLAN TRIMESTRAL ───────────────────────────────────────────────────────────
+let planData    = null;
+let predioClima = null;
+let planPagina  = 0;
+const PLAN_PER_PAGE = 30;
+
+async function cargarPlanSection() {
+  try {
+    [planData, predioClima] = await Promise.all([
+      fetch('/data/plan_trimestral.json').then(r => r.json()),
+      fetch('/data/clima_predio_resumen.json').then(r => r.json())
+    ]);
+    renderPlan();
+  } catch(e) {
+    document.getElementById('plan-tbody').innerHTML =
+      `<tr><td colspan="9" class="text-center text-gray-400 py-8">Error al cargar datos del plan.</td></tr>`;
+  }
+}
+
+function getPlanFiltrado() {
+  if (!planData) return [];
+  const zona  = document.getElementById('plan-zona').value;
+  const act   = document.getElementById('plan-actividad').value;
+  const mes   = document.getElementById('plan-mes').value;
+  const q     = document.getElementById('plan-search').value.toLowerCase();
+  return planData.filter(r => {
+    if (zona && r.zona      !== zona) return false;
+    if (act  && r.actividad !== act)  return false;
+    if (mes  && r.mes       !== mes)  return false;
+    if (q && !r.nombre_predio?.toLowerCase().includes(q) &&
+             !r.faena_tablero?.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function actBadge(act) {
+  const cls = { Manejo:'ba-manejo', Mantención:'ba-mant', Establecimiento:'ba-estab', Prevención:'ba-prev' };
+  return `<span class="badge-act ${cls[act]||''}">${act}</span>`;
+}
+
+function renderPlan() { planPagina = 0; renderPlanPagina(); }
+
+function renderPlanPagina() {
+  const data  = getPlanFiltrado();
+  const total = data.length;
+  const page  = data.slice(planPagina * PLAN_PER_PAGE, (planPagina+1) * PLAN_PER_PAGE);
+  document.getElementById('plan-stats').textContent =
+    `${total.toLocaleString('es-CL')} registro${total!==1?'s':''} encontrado${total!==1?'s':''}`;
+  const tbody = document.getElementById('plan-tbody');
+  if (!page.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-gray-400 py-8">Sin resultados.</td></tr>`;
+    document.getElementById('plan-pag').innerHTML = '';
+    return;
+  }
+  tbody.innerHTML = page.map((r,i) => {
+    const cl = predioClima?.[String(r.id_predio)];
+    const climaHtml = cl
+      ? `<span class="clima-cell">${cl.t_min}–${cl.t_max}°C &nbsp;💧${cl.p_tot}mm</span>`
+      : `<span class="clima-cell text-gray-300">—</span>`;
+    return `<tr class="${i%2===1?'bg-gray-50':''}">
+      <td class="text-gray-400">${r.id_predio}</td>
+      <td class="font-medium">${r.nombre_predio}</td>
+      <td class="text-gray-500">${r.area||'—'}<span class="ml-1 text-gray-400 text-[10px]">${r.zona}</span></td>
+      <td>${actBadge(r.actividad)}</td>
+      <td>${r.faena_tablero||r.faena_plan_trimestral}</td>
+      <td>${r.especie_simple||r.especie}</td>
+      <td class="text-right">${r.superficie!=null?r.superficie.toFixed(1):'—'}</td>
+      <td>${r.mes}</td>
+      <td>${climaHtml}</td>
+    </tr>`;
+  }).join('');
+  // Paginación
+  const totalPages = Math.ceil(total/PLAN_PER_PAGE);
+  const pag = document.getElementById('plan-pag');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+  pag.innerHTML =
+    `<span>Pág. ${planPagina+1}/${totalPages}</span>` +
+    (planPagina>0 ? `<button onclick="planIrPag(${planPagina-1})" class="px-2 py-0.5 border border-gray-200 rounded hover:bg-gray-100">← Anterior</button>` : '') +
+    (planPagina<totalPages-1 ? `<button onclick="planIrPag(${planPagina+1})" class="px-2 py-0.5 border border-gray-200 rounded hover:bg-gray-100">Siguiente →</button>` : '');
+}
+
+function planIrPag(p) {
+  planPagina = p;
+  renderPlanPagina();
+  document.getElementById('sec-plan').scrollTo(0,0);
 }
 </script>
 </body>
