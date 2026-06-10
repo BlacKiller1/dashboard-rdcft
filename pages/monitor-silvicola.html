@@ -241,6 +241,7 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--surface);color:var
   <div class="sec-nav">
     <button class="sec-btn active" data-sec="pronostico" onclick="switchSection('pronostico')">⛅ Pronóstico</button>
     <button class="sec-btn" data-sec="viveros"    onclick="switchSection('viveros')">🌱 Viveros</button>
+    <button class="sec-btn" data-sec="clima"      onclick="switchSection('clima')">🌡️ Clima Predios</button>
     <button class="sec-btn" data-sec="plan"       onclick="switchSection('plan')">📋 Plan Trimestral</button>
   </div>
 
@@ -371,6 +372,76 @@ body{font-family:'Hanken Grotesk',sans-serif;background:var(--surface);color:var
     </section>
 
   </div><!-- /sec-viveros -->
+
+  <!-- ═══════════════════════════════════════
+       Sección: Clima Predios
+  ═══════════════════════════════════════ -->
+  <div id="sec-clima" class="flex-1 overflow-auto p-3 md:p-4 flex flex-col gap-3" style="display:none">
+
+    <!-- Filtros -->
+    <div class="flex flex-wrap gap-2 text-xs filter-row">
+      <select id="cp-zona" class="filter-select border border-gray-300 rounded shadow-sm py-1.5 pl-2 pr-7 bg-white" onchange="renderClimaPredios()">
+        <option value="">Zona</option>
+        <option>Arauco</option><option>Chillán</option><option>Constitucion</option><option>Valdivia</option>
+      </select>
+      <select id="cp-orden" class="filter-select border border-gray-300 rounded shadow-sm py-1.5 pl-2 pr-7 bg-white" onchange="renderClimaPredios()">
+        <option value="t_max_desc">T° Máx ↓</option>
+        <option value="t_min_asc">T° Mín ↑</option>
+        <option value="p_desc">Precipitación ↓</option>
+        <option value="w_desc">Viento ↓</option>
+        <option value="nombre_asc">Nombre A–Z</option>
+      </select>
+      <input id="cp-search" type="text" placeholder="🔍 Buscar predio..."
+        class="border border-gray-300 rounded shadow-sm py-1.5 px-2 bg-white text-xs outline-none focus:border-green-400"
+        oninput="cpPagina=0;renderClimaPredios()" style="min-width:160px">
+    </div>
+
+    <!-- Gráfico top predios -->
+    <section class="bg-white border border-gray-200 rounded shadow-sm p-3 md:p-4 flex flex-col shrink-0">
+      <div class="tabs-scroll mb-3">
+        <div class="flex gap-4 border-b border-gray-200 pb-0 text-xs" id="cp-tabs" style="min-width:max-content">
+          <button class="pb-2 tab-active flex items-center gap-1 whitespace-nowrap" data-tab="temp"   onclick="switchCpTab(this)"><span class="text-red-500 font-bold">\</span>Temperatura [°C]</button>
+          <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="viento" onclick="switchCpTab(this)"><span class="text-green-500 font-bold">~</span>Viento máx. [km/h]</button>
+          <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="precip" onclick="switchCpTab(this)"><span class="text-blue-500 font-bold">///</span>Precipitación [mm]</button>
+          <button class="pb-2 tab-inactive flex items-center gap-1 whitespace-nowrap" data-tab="hum"    onclick="switchCpTab(this)"><span class="text-blue-400 font-bold">~</span>Humedad [%]</button>
+        </div>
+      </div>
+      <div class="text-[10px] text-gray-400 mb-2">Mostrando los primeros 20 predios según el ordenamiento seleccionado</div>
+      <div class="relative" style="height:220px">
+        <canvas id="cpChart"></canvas>
+        <div id="cp-loading" class="absolute inset-0 flex items-center justify-center text-xs text-gray-400">Cargando datos...</div>
+      </div>
+    </section>
+
+    <!-- Contador -->
+    <div id="cp-stats" class="text-xs text-gray-500 -mt-1"></div>
+
+    <!-- Tabla predios -->
+    <section class="flex-1 bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden">
+      <div class="table-container overflow-auto flex-1">
+        <table class="plan-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre Predio</th>
+              <th>Zona</th>
+              <th class="text-right">T° Mín</th>
+              <th class="text-right">T° Prom</th>
+              <th class="text-right">T° Máx</th>
+              <th class="text-right">Viento Máx</th>
+              <th class="text-right">Precip. Total</th>
+              <th class="text-right">Humedad</th>
+            </tr>
+          </thead>
+          <tbody id="cp-tbody">
+            <tr><td colspan="9" class="text-center text-gray-400 py-8">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="cp-pag" class="flex items-center gap-2 px-3 py-2 border-t border-gray-100 text-xs text-gray-500 shrink-0 flex-wrap"></div>
+    </section>
+
+  </div><!-- /sec-clima -->
 
   <!-- ═══════════════════════════════════════
        Sección: Plan Trimestral
@@ -732,13 +803,14 @@ if (sessionStorage.getItem(SESSION_KEY) === '1') {
 
 // ── SECCIONES ─────────────────────────────────────────────────────────────────
 function switchSection(sec) {
-  ['pronostico','viveros','plan'].forEach(s => {
+  ['pronostico','viveros','clima','plan'].forEach(s => {
     document.getElementById('sec-' + s).style.display = s === sec ? 'flex' : 'none';
   });
   document.querySelectorAll('.sec-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.sec === sec);
   });
   if (sec === 'viveros' && !climaViverosData) cargarViverosSection();
+  if (sec === 'clima'   && !predioClima)      cargarClimaSection();
   if (sec === 'plan'    && !planData)         cargarPlanSection();
 }
 
@@ -869,6 +941,150 @@ function switchVivTab(btn) {
   btn.classList.replace('tab-inactive','tab-active');
   tabViveros = btn.dataset.tab;
   renderViveros();
+}
+
+// ── CLIMA PREDIOS ─────────────────────────────────────────────────────────────
+let cpChartInst = null;
+let cpPagina    = 0;
+let tabCp       = 'temp';
+const CP_PER_PAGE = 30;
+
+async function cargarClimaSection() {
+  try {
+    const [resumen, plan] = await Promise.all([
+      predioClima ? predioClima : fetch('/data/clima_predio_resumen.json').then(r=>r.json()),
+      planData    ? planData    : fetch('/data/plan_trimestral.json').then(r=>r.json())
+    ]);
+    predioClima = resumen;
+    planData    = plan;
+    // Build id → {nombre, zona} map from plan
+    if (!window.cpNombres) {
+      window.cpNombres = {};
+      plan.forEach(r => {
+        if (!window.cpNombres[r.id_predio]) {
+          window.cpNombres[r.id_predio] = { nombre: r.nombre_predio, zona: r.zona };
+        }
+      });
+    }
+    document.getElementById('cp-loading').style.display = 'none';
+    renderClimaPredios();
+  } catch(e) {
+    document.getElementById('cp-loading').textContent = 'Error al cargar datos.';
+  }
+}
+
+function getCpFiltrado() {
+  if (!predioClima) return [];
+  const zona = document.getElementById('cp-zona').value;
+  const q    = document.getElementById('cp-search').value.toLowerCase();
+  const orden= document.getElementById('cp-orden').value;
+
+  let rows = Object.entries(predioClima).map(([id, d]) => {
+    const info = window.cpNombres?.[Number(id)] || {};
+    return { id: Number(id), nombre: info.nombre || `Predio ${id}`, zona: info.zona || '—', ...d };
+  });
+  if (zona) rows = rows.filter(r => r.zona === zona);
+  if (q)    rows = rows.filter(r => r.nombre.toLowerCase().includes(q) || String(r.id).includes(q));
+
+  const sortFns = {
+    t_max_desc:  (a,b) => (b.t_max||0) - (a.t_max||0),
+    t_min_asc:   (a,b) => (a.t_min||0) - (b.t_min||0),
+    p_desc:      (a,b) => (b.p_tot||0) - (a.p_tot||0),
+    w_desc:      (a,b) => (b.w_max||0) - (a.w_max||0),
+    nombre_asc:  (a,b) => a.nombre.localeCompare(b.nombre)
+  };
+  rows.sort(sortFns[orden] || sortFns.t_max_desc);
+  return rows;
+}
+
+function renderClimaPredios() {
+  if (!predioClima) return;
+  cpPagina = 0;
+  renderCpChart();
+  renderCpTabla();
+}
+
+function renderCpChart() {
+  const rows  = getCpFiltrado().slice(0, 20);
+  const labels = rows.map(r => r.nombre.length > 18 ? r.nombre.slice(0,16)+'…' : r.nombre);
+
+  let datasets;
+  if (tabCp === 'temp') {
+    datasets = [
+      { label:'T° Mínima',  data: rows.map(r=>r.t_min), backgroundColor: hexA('#4A81B1',0.7), borderRadius:3 },
+      { label:'T° Promedio',data: rows.map(r=>r.t_avg), backgroundColor: hexA('#EA7600',0.7), borderRadius:3 },
+      { label:'T° Máxima',  data: rows.map(r=>r.t_max), backgroundColor: hexA('#B46A5F',0.7), borderRadius:3 },
+    ];
+  } else if (tabCp === 'viento') {
+    datasets = [{ label:'Viento Máx. [km/h]', data: rows.map(r=>r.w_max), backgroundColor: hexA('#BFB800',0.75), borderRadius:3 }];
+  } else if (tabCp === 'precip') {
+    datasets = [{ label:'Precip. Total [mm]', data: rows.map(r=>r.p_tot), backgroundColor: hexA('#5DBAA9',0.75), borderRadius:3 }];
+  } else {
+    datasets = [{ label:'Humedad Prom. [%]', data: rows.map(r=>r.h_avg), backgroundColor: hexA('#696158',0.65), borderRadius:3 }];
+  }
+
+  if (cpChartInst) cpChartInst.destroy();
+  cpChartInst = new Chart(document.getElementById('cpChart'), {
+    type: 'bar', data: { labels, datasets },
+    options: {
+      responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins: { legend:{ display: tabCp==='temp', position:'top', labels:{ boxWidth:8, font:{size:10} } } },
+      scales: {
+        x: { ticks:{ color:'#888', font:{size:10} }, grid:{color:'#e0e0e0'} },
+        y: { ticks:{ color:'#555', font:{size:9} }, grid:{color:'#f0f0f0'} }
+      },
+      animation:{ duration:300 }
+    }
+  });
+}
+
+function renderCpTabla() {
+  const data  = getCpFiltrado();
+  const total = data.length;
+  document.getElementById('cp-stats').textContent =
+    `${total.toLocaleString('es-CL')} predio${total!==1?'s':''} encontrado${total!==1?'s':''}`;
+
+  const page  = data.slice(cpPagina*CP_PER_PAGE, (cpPagina+1)*CP_PER_PAGE);
+  const tbody = document.getElementById('cp-tbody');
+
+  if (!page.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-gray-400 py-8">Sin resultados.</td></tr>`;
+    document.getElementById('cp-pag').innerHTML = '';
+    return;
+  }
+
+  tbody.innerHTML = page.map((r,i) => {
+    const bg = i%2===1 ? 'bg-gray-50' : '';
+    const bar = (v, max, color) => `<div style="display:inline-block;width:${Math.min(40,Math.round(v/max*40))}px;height:6px;background:${color};border-radius:2px;vertical-align:middle;margin-left:4px;"></div>`;
+    return `<tr class="${bg}">
+      <td class="text-gray-400">${r.id}</td>
+      <td class="font-medium">${r.nombre}</td>
+      <td class="text-gray-500">${r.zona}</td>
+      <td class="text-right">${r.t_min!=null?r.t_min+'°C':'—'}</td>
+      <td class="text-right">${r.t_avg!=null?r.t_avg+'°C':'—'}</td>
+      <td class="text-right font-medium">${r.t_max!=null?r.t_max+'°C':'—'}</td>
+      <td class="text-right">${r.w_max!=null?r.w_max+' km/h':'—'}</td>
+      <td class="text-right">${r.p_tot!=null?r.p_tot+' mm':'—'}</td>
+      <td class="text-right">${r.h_avg!=null?r.h_avg+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const totalPages = Math.ceil(total/CP_PER_PAGE);
+  const pag = document.getElementById('cp-pag');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+  pag.innerHTML =
+    `<span>Pág. ${cpPagina+1}/${totalPages}</span>` +
+    (cpPagina>0 ? `<button onclick="cpIrPag(${cpPagina-1})" class="px-2 py-0.5 border border-gray-200 rounded hover:bg-gray-100">← Anterior</button>` : '') +
+    (cpPagina<totalPages-1 ? `<button onclick="cpIrPag(${cpPagina+1})" class="px-2 py-0.5 border border-gray-200 rounded hover:bg-gray-100">Siguiente →</button>` : '');
+}
+
+function cpIrPag(p) { cpPagina=p; renderCpTabla(); document.getElementById('sec-clima').scrollTo(0,0); }
+
+function switchCpTab(btn) {
+  document.querySelectorAll('#cp-tabs button').forEach(b => b.classList.replace('tab-active','tab-inactive'));
+  btn.classList.replace('tab-inactive','tab-active');
+  tabCp = btn.dataset.tab;
+  renderCpChart();
 }
 
 // ── PLAN TRIMESTRAL ───────────────────────────────────────────────────────────
