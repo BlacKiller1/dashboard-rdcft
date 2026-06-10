@@ -632,10 +632,10 @@
     };
 
     try {
-      const res = await fetch('/api/aviso-rdcft', {
+      const res = await fetch('/api/soporte', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destinatario: dest, imagenBase64, datos })
+        body: JSON.stringify({ servicio: 'aviso-rdcft', destinatario: dest, imagenBase64, datos })
       });
       if (!res.ok) {
         const e = await res.json().catch(() => ({}));
