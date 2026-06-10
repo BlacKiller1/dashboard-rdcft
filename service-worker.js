@@ -5,7 +5,7 @@
                Network First para JS/CSS/datos, Cache First para el resto
    ═══════════════════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'rdcft-20260610020323';
+const CACHE_NAME = 'rdcft-20260610020711';
 const CACHE_OFFLINE = 'rdcft-offline-v1';
 
 // Solo manifest para pre-cachear (index.html NUNCA se cachea para que
