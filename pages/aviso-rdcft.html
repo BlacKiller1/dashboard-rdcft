@@ -262,6 +262,36 @@
   }
 
 
+  /* ---------- HORA AUTO ---------- */
+  .f-input--auto{background:#f7f6f1;cursor:default;color:var(--pine-soft);user-select:none;}
+
+  /* ---------- MODAL ENVÍO ---------- */
+  .envio-overlay{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,.5);z-index:200;
+    align-items:center;justify-content:center;padding:16px;
+  }
+  .envio-overlay.show{display:flex;}
+  .envio-card{
+    background:#fff;border-radius:10px;padding:28px 30px;
+    width:100%;max-width:400px;
+    box-shadow:0 8px 40px rgba(0,0,0,.25);
+  }
+  .envio-card h3{font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:var(--pine);margin:0 0 6px;}
+  .envio-card p{font-size:12.5px;color:var(--muted);margin:0 0 18px;line-height:1.5;}
+  .envio-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px;}
+  .envio-input{
+    width:100%;border:1.5px solid var(--line);border-radius:6px;
+    padding:9px 12px;font-size:14px;font-family:'Inter',sans-serif;
+    outline:none;color:var(--ink);margin-bottom:14px;
+    transition:border-color .15s;
+  }
+  .envio-input:focus{border-color:var(--ember);}
+  .envio-error{display:none;font-size:12px;color:#c0392b;margin-bottom:10px;}
+  .envio-ok{display:none;font-size:13px;color:var(--pine);background:#d4edda;padding:10px 12px;border-radius:6px;margin-bottom:10px;}
+  .envio-actions{display:flex;gap:8px;justify-content:flex-end;}
+  .envio-progress{font-size:11.5px;color:var(--muted);margin-bottom:10px;display:none;min-height:18px;}
+
   /* ---------- IMPRESIÓN / PDF ---------- */
   @media print{
     @page{size:A4;margin:14mm}
@@ -284,7 +314,7 @@
       <div class="toolbar-actions">
         <button class="btn-tool ghost" onclick="limpiarFormulario()">🗑 Limpiar</button>
         <button class="btn-tool ghost" onclick="window.print()">🖨 Imprimir</button>
-        <button class="btn-tool primary" onclick="enviarPorCorreo()">📧 Enviar por correo</button>
+        <button class="btn-tool primary" onclick="abrirEnvio()">📧 Enviar por correo</button>
       </div>
     </div>
 
@@ -333,7 +363,7 @@
       <div class="grid">
         <div class="field">
           <div class="k">Fecha y hora del aviso</div>
-          <div class="v"><input class="f-input" id="fechaHoraDisplay" placeholder="DD-MM-AAAA, H:MM p. m."></div>
+          <div class="v"><input class="f-input f-input--auto" id="fechaHoraDisplay" readonly tabindex="-1"></div>
         </div>
         <div class="field">
           <div class="k">Responsable</div>
@@ -448,6 +478,25 @@
 
   </div>
 
+  <!-- ── Modal enviar por correo ── -->
+  <div class="envio-overlay" id="envioOverlay" onclick="if(event.target===this)cerrarEnvio()">
+    <div class="envio-card">
+      <h3>📧 Enviar aviso por correo</h3>
+      <p>El documento se enviará como imagen. Los links de coordenadas quedan activos en el correo.</p>
+      <label class="envio-label" for="correoDestinatario">Correo destinatario</label>
+      <input class="envio-input" id="correoDestinatario" type="email" placeholder="nombre@arauco.com"
+             onkeydown="if(event.key==='Enter')confirmarEnvio()">
+      <div class="envio-progress" id="envioProgress"></div>
+      <div class="envio-error"   id="envioError"></div>
+      <div class="envio-ok"      id="envioOk">✅ Correo enviado correctamente.</div>
+      <div class="envio-actions">
+        <button class="btn-tool ghost" onclick="cerrarEnvio()">Cancelar</button>
+        <button class="btn-tool primary" id="btnConfirmarEnvio" onclick="confirmarEnvio()">📧 Enviar</button>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
   // ── Formato hora 12h ─────────────────────────────────────────────────────────
   function formatFechaHora(d) {
@@ -512,64 +561,103 @@
     document.getElementById('fechaHoraDisplay').value = formatFechaHora(new Date());
   }
 
-  // ── Enviar por correo (abre cliente de correo del usuario) ───────────────────
-  function enviarPorCorreo() {
-    const val = id => (document.getElementById(id)?.value || '').trim();
-    const correlativo   = val('correlativo');
-    const responsable   = val('responsable');
-    const fechaHora     = val('fechaHoraDisplay');
-    const region        = val('region');
-    const comuna        = val('comuna');
-    const predio        = val('predio');
-    const tipoActividad = val('tipoActividad');
-    const combustible   = val('combustible');
-    const superficie    = val('superficie');
-    const coordenadas   = val('coordenadas');
-    const sector        = val('sector');
-    const observacion   = val('observacion');
-
-    const partes     = coordenadas.split(',').map(s => parseFloat(s.trim()));
-    const tieneCoord = partes.length >= 2 && !isNaN(partes[0]) && !isNaN(partes[1]);
-    const [lat, lon] = tieneCoord ? partes : [];
-    const gmaps = tieneCoord
-      ? `https://www.google.com/maps/search/?api=1&query=${lat},${lon}` : '';
-    const osm = tieneCoord
-      ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}` : '';
-
-    const asunto = `Aviso RDCFT ${correlativo} — ${predio || 'Predio sin nombre'}`;
-
-    const lineas = [
-      'AVISO RDCFT — ARAUCO',
-      '═══════════════════════════════════════════',
-      'Junto con saludar, se informa la ejecución de actividades',
-      'asociadas a reducción de combustible y fuego técnico.',
-      '',
-      `Correlativo : ${correlativo}`,
-      `Fecha y Hora: ${fechaHora}`,
-      `Responsable : ${responsable}`,
-      '',
-      '─── Ubicación ──────────────────────────────',
-      `Región      : ${region}`,
-      `Comuna      : ${comuna}`,
-      `Predio      : ${predio}`,
-      sector      ? `Sector      : ${sector}` : null,
-      coordenadas ? `Coordenadas : ${coordenadas}` : null,
-      gmaps       ? `Google Maps : ${gmaps}` : null,
-      osm         ? `OpenStreetMap: ${osm}` : null,
-      '',
-      '─── Actividad ──────────────────────────────',
-      `Tipo        : ${tipoActividad}`,
-      `Combustible : ${combustible}`,
-      `Superficie  : ${superficie} ha`,
-      observacion ? `\nObservación :\n${observacion}` : null,
-      '',
-      '────────────────────────────────────────────',
-      'Sistema RDCFT — Gestión Operacional de Quemas Controladas · Arauco',
-    ].filter(l => l !== null).join('\n');
-
-    window.location.href =
-      `mailto:?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(lineas)}`;
+  // ── Modal envío ───────────────────────────────────────────────────────────────
+  function abrirEnvio() {
+    const ov = document.getElementById('envioOverlay');
+    ov.classList.add('show');
+    document.getElementById('envioError').style.display    = 'none';
+    document.getElementById('envioOk').style.display       = 'none';
+    document.getElementById('envioProgress').style.display = 'none';
+    document.getElementById('correoDestinatario').value    = '';
+    setTimeout(() => document.getElementById('correoDestinatario').focus(), 80);
   }
+
+  function cerrarEnvio() {
+    document.getElementById('envioOverlay').classList.remove('show');
+  }
+
+  async function confirmarEnvio() {
+    const dest  = document.getElementById('correoDestinatario').value.trim();
+    const errEl = document.getElementById('envioError');
+    const okEl  = document.getElementById('envioOk');
+    const prog  = document.getElementById('envioProgress');
+    const btn   = document.getElementById('btnConfirmarEnvio');
+
+    errEl.style.display = 'none';
+    okEl.style.display  = 'none';
+
+    if (!dest || !dest.includes('@')) {
+      errEl.textContent   = 'Ingresa un correo válido.';
+      errEl.style.display = 'block'; return;
+    }
+
+    btn.disabled   = true;
+    btn.textContent = '⏳ Capturando...';
+    prog.textContent   = 'Generando imagen del documento...';
+    prog.style.display = 'block';
+
+    const toolbar = document.querySelector('.toolbar');
+    const overlay = document.getElementById('envioOverlay');
+    toolbar.style.visibility = 'hidden';
+    overlay.classList.remove('show');
+
+    let imagenBase64 = null;
+    try {
+      const canvas = await html2canvas(document.querySelector('.sheet'), {
+        scale: 1.4, useCORS: true,
+        backgroundColor: '#f1efe8', logging: false
+      });
+      imagenBase64 = canvas.toDataURL('image/jpeg', 0.88).split(',')[1];
+    } catch(e) {
+      console.warn('html2canvas:', e);
+    } finally {
+      toolbar.style.visibility = '';
+      overlay.classList.add('show');
+    }
+
+    btn.textContent    = '📡 Enviando...';
+    prog.textContent   = 'Enviando correo...';
+
+    const datos = {
+      correlativo:   document.getElementById('correlativo').value,
+      responsable:   document.getElementById('responsable').value,
+      fechaHora:     document.getElementById('fechaHoraDisplay').value,
+      region:        document.getElementById('region').value,
+      comuna:        document.getElementById('comuna').value,
+      predio:        document.getElementById('predio').value,
+      tipoActividad: document.getElementById('tipoActividad').value,
+      combustible:   document.getElementById('combustible').value,
+      superficie:    document.getElementById('superficie').value,
+      coordenadas:   document.getElementById('coordenadas').value,
+      sector:        document.getElementById('sector').value,
+      observacion:   document.getElementById('observacion').value,
+    };
+
+    try {
+      const r = await fetch('/api/soporte', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ servicio: 'aviso-rdcft', destinatario: dest, imagenBase64, datos })
+      });
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        throw new Error(e.error || 'Error del servidor');
+      }
+      prog.style.display = 'none';
+      okEl.style.display = 'block';
+      btn.textContent    = '📧 Enviar';
+      btn.disabled       = false;
+      setTimeout(cerrarEnvio, 2800);
+    } catch(e) {
+      prog.style.display  = 'none';
+      errEl.textContent   = e.message || 'Error al enviar. Intenta nuevamente.';
+      errEl.style.display = 'block';
+      btn.textContent     = '📧 Enviar';
+      btn.disabled        = false;
+    }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarEnvio(); });
 </script>
 </body>
 </html>
