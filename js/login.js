@@ -236,6 +236,8 @@ function mostrarDashboard(usuario) {
   const umenuAdminSep = document.getElementById('umenuAdminSep');
   if (umenuAdminSep) umenuAdminSep.style.display = usuario.rol === 'admin' ? 'block' : 'none';
   if (usuario.rol === 'admin') iniciarPollAdmin();
+  const btnAvisoRDCFT = document.getElementById('btnAvisoRDCFT');
+  if (btnAvisoRDCFT) btnAvisoRDCFT.style.display = usuario.cargo === 'Central Proteccion' ? 'flex' : 'none';
 }
 
 // ── Login ─────────────────────────────────────────────────────────────────────
