@@ -59,7 +59,8 @@ function guard(){
   const s=dashSession();
   if(!s||!s.email){$('denegadoMsg').textContent='No se encontró una sesión activa. Inicie sesión en el panel para continuar.';$('denegado').style.display='flex';$('mainApp').style.display='none';return false;}
   const cargo=String(s.cargo||'').trim();
-  if(cargo!=='Central Proteccion'){$('denegadoMsg').textContent='Esta sección está disponible solo para el cargo Central Proteccion.';$('denegado').style.display='flex';$('mainApp').style.display='none';return false;}
+  const cargoNorm=cargo.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  if(s.rol!=='admin'&&cargoNorm!=='central proteccion'){$('denegadoMsg').textContent='Esta sección está disponible solo para el cargo Central Proteccion.';$('denegado').style.display='flex';$('mainApp').style.display='none';return false;}
   currentUser={email:s.email,role:s.rol==='admin'?'ADMINISTRADOR':'USUARIO',name:s.email,cargo};
   return true;
 }
@@ -74,7 +75,7 @@ function applySession(){
   const lg=$('reportLogo'); if(lg) lg.src=ARAUCO_LOGO;
   renderHistory();
 }
-function norm(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().trim()}function clean(v){return(v===null||v===undefined||String(v).trim()==='')?'No informado':String(v).trim()}function numfmt(v){let n=Number(String(v).replace(',','.'));return isFinite(n)?(Math.round(n*100)/100).toString().replace('.',','):clean(v)}
+function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim()}function clean(v){return(v===null||v===undefined||String(v).trim()==='')?'No informado':String(v).trim()}function numfmt(v){let n=Number(String(v).replace(',','.'));return isFinite(n)?(Math.round(n*100)/100).toString().replace('.',','):clean(v)}
 function localNowValue(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)}function humanDate(v){if(!v)return'';const d=new Date(v);return d.toLocaleString('es-CL',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}
 
 function localPredios(){

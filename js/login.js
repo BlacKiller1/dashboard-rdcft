@@ -237,7 +237,9 @@ function mostrarDashboard(usuario) {
   if (umenuAdminSep) umenuAdminSep.style.display = usuario.rol === 'admin' ? 'block' : 'none';
   if (usuario.rol === 'admin') iniciarPollAdmin();
   const btnAvisoRDCFT = document.getElementById('btnAvisoRDCFT');
-  if (btnAvisoRDCFT) btnAvisoRDCFT.style.display = usuario.cargo === 'Central Proteccion' ? 'flex' : 'none';
+  const cargoNorm = (usuario.cargo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  const verAviso  = usuario.rol === 'admin' || cargoNorm === 'central proteccion';
+  if (btnAvisoRDCFT) btnAvisoRDCFT.style.display = verAviso ? 'flex' : 'none';
 }
 
 // ── Login ─────────────────────────────────────────────────────────────────────
