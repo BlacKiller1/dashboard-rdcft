@@ -60,19 +60,45 @@
     <div class="login-brand">arauco</div>
     <div class="login-brand-sub">Optimización de Reducción de Combustible mediante Fuego Técnico · Dashboard Meteorológico</div>
     <div class="login-title">Acceso restringido</div>
-    <div class="login-desc">Ingresa tu correo corporativo <strong>@arauco.com</strong> para acceder.</div>
-    <input
-      type="email"
-      id="inputEmail"
-      class="login-input"
-      placeholder="tucorreo@arauco.com"
-      onkeydown="handleKeyDown(event)"
-      autocomplete="email"
-    />
-    <button class="login-btn" id="btnAcceder" onclick="verificarCorreo()">
-      Acceder →
-    </button>
-    <button class="solicitud-link-btn" onclick="toggleSolicitud()">¿No tienes acceso? Solicitar →</button>
+    <div class="login-desc" id="loginDesc">Ingresa tu correo corporativo <strong>@arauco.com</strong> para acceder.</div>
+
+    <!-- Paso 1: correo -->
+    <div id="emailStep">
+      <input
+        type="email"
+        id="inputEmail"
+        class="login-input"
+        placeholder="tucorreo@arauco.com"
+        onkeydown="handleKeyDown(event)"
+        autocomplete="email"
+      />
+      <button class="login-btn" id="btnAcceder" onclick="verificarCorreo()">
+        Enviar código →
+      </button>
+      <button class="solicitud-link-btn" onclick="toggleSolicitud()">¿No tienes acceso? Solicitar →</button>
+    </div>
+
+    <!-- Paso 2: código OTP -->
+    <div id="otpStep" style="display:none;">
+      <div class="login-desc" style="margin-bottom:10px">Código de 6 dígitos enviado a <strong id="otpEmailDisplay"></strong>.</div>
+      <input
+        type="text"
+        id="inputOtp"
+        class="login-input"
+        inputmode="numeric"
+        maxlength="6"
+        placeholder="••••••"
+        style="text-align:center; letter-spacing:8px; font-size:20px;"
+        onkeydown="handleOtpKeyDown(event)"
+        autocomplete="one-time-code"
+      />
+      <button class="login-btn" id="btnVerificarOtp" onclick="verificarOTP()">
+        Verificar e ingresar →
+      </button>
+      <button class="solicitud-link-btn" id="btnReenviarOtp" onclick="reenviarOTP()">Reenviar código</button>
+      <button class="solicitud-link-btn" onclick="volverAEmail()">← Cambiar correo</button>
+    </div>
+
     <a href="/" style="font-size:11px; color:rgba(223,209,167,0.3); text-decoration:none; margin-top:2px; transition:color .15s;" onmouseover="this.style.color='rgba(223,209,167,0.6)'" onmouseout="this.style.color='rgba(223,209,167,0.3)'">← Volver al portal</a>
     <div id="loginError" class="login-error" style="display:none;"></div>
 

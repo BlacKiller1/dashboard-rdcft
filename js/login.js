@@ -45,6 +45,7 @@ let usuariosDB          = null;
 let sessionPollTimer    = null;
 let adminPollTimer      = null;
 let _pinUsuarioPendiente = null;
+let _otpEmailPendiente   = null;
 
 // BroadcastChannel: notifica a otras pestañas del mismo navegador cuando hay un nuevo login
 const _sessionChannel = typeof BroadcastChannel !== 'undefined'
@@ -209,6 +210,12 @@ function mostrarLogin() {
   detenerPollSesion();
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('appShell').style.display   = 'none';
+  // Resetear a paso 1 (correo)
+  _otpEmailPendiente = null;
+  const emailStep = document.getElementById('emailStep');
+  const otpStep   = document.getElementById('otpStep');
+  if (emailStep) emailStep.style.display = 'block';
+  if (otpStep)   otpStep.style.display   = 'none';
   setTimeout(() => { const i = document.getElementById('inputEmail'); if (i) i.focus(); }, 100);
 }
 
@@ -268,54 +275,146 @@ async function _doLogin(force) {
     return;
   }
 
-  btn.textContent = '⏳ Verificando...'; btn.disabled = true;
   _ocultarSolicitud();
 
-  try {
-    let usuario;
-
-    if (ES_LOCAL) {
+  // Modo local: sin servidor ni correo — login directo (solo desarrollo)
+  if (ES_LOCAL) {
+    btn.textContent = '⏳ Verificando...'; btn.disabled = true;
+    try {
       if (!usuariosDB) await cargarUsuarios();
-      usuario = usuariosDB.find(u => u.email === email);
-      if (!usuario) {
-        _mostrarErrorConSolicitud(email);
-        return;
-      }
-    } else {
-      const resp = await fetch('/api/verificar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, force: force || false })
-      });
-      if (resp.status === 409) {
-        _mostrarErrorConFuerza('Ya existe una sesión activa con este correo en otro dispositivo.');
-        return;
-      }
-      if (resp.status === 403) {
-        _mostrarErrorConSolicitud(email);
-        return;
-      }
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || `Error del servidor (${resp.status})`);
-      }
-      usuario = await resp.json();
+      const usuario = usuariosDB.find(u => u.email === email);
+      if (!usuario) { _mostrarErrorConSolicitud(email); return; }
+      await _finalizarLogin(usuario);
+    } catch (err) {
+      errorMsg.textContent = err.message; errorMsg.style.display = 'block';
+    } finally {
+      btn.textContent = 'Enviar código →'; btn.disabled = false;
     }
+    return;
+  }
 
-    if (usuario.rol === 'admin') {
-      // Los admins pasan por verificación de PIN antes de acceder
-      await mostrarPantallaPIN(usuario);
-    } else {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
-      registrarSession(usuario.email);
-      _sessionChannel?.postMessage({ type: 'new_login', email: usuario.email });
-      mostrarDashboard(usuario);
+  // Producción: solicitar código OTP al correo
+  btn.textContent = '⏳ Enviando...'; btn.disabled = true;
+  try {
+    const resp = await fetch('/api/verificar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, force: force || false })
+    });
+    if (resp.status === 409) {
+      _mostrarErrorConFuerza('Ya existe una sesión activa con este correo en otro dispositivo.');
+      return;
     }
+    if (resp.status === 403) {
+      _mostrarErrorConSolicitud(email);
+      return;
+    }
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `Error del servidor (${resp.status})`);
+    }
+    // Código enviado → mostrar paso 2 (verificación)
+    _otpEmailPendiente = email;
+    _mostrarOtpStep(email);
   } catch (err) {
     errorMsg.textContent = err.message;
     errorMsg.style.display = 'block';
   } finally {
-    btn.textContent = 'Acceder →'; btn.disabled = false;
+    btn.textContent = 'Enviar código →'; btn.disabled = false;
+  }
+}
+
+// ── OTP: verificación del código enviado por correo ─────────────────────────────
+
+function _mostrarOtpStep(email) {
+  const errorMsg = document.getElementById('loginError');
+  if (errorMsg) errorMsg.style.display = 'none';
+  document.getElementById('emailStep').style.display = 'none';
+  document.getElementById('otpStep').style.display   = 'block';
+  const disp = document.getElementById('otpEmailDisplay');
+  if (disp) disp.textContent = email;
+  const otpInput = document.getElementById('inputOtp');
+  if (otpInput) { otpInput.value = ''; setTimeout(() => otpInput.focus(), 100); }
+}
+
+function volverAEmail() {
+  _otpEmailPendiente = null;
+  document.getElementById('otpStep').style.display   = 'none';
+  document.getElementById('emailStep').style.display = 'block';
+  const errorMsg = document.getElementById('loginError');
+  if (errorMsg) errorMsg.style.display = 'none';
+  const i = document.getElementById('inputEmail'); if (i) i.focus();
+}
+
+function handleOtpKeyDown(e) { if (e.key === 'Enter') verificarOTP(); }
+
+async function reenviarOTP() {
+  if (!_otpEmailPendiente) return;
+  const btn      = document.getElementById('btnReenviarOtp');
+  const errorMsg = document.getElementById('loginError');
+  if (errorMsg) errorMsg.style.display = 'none';
+  if (btn) { btn.textContent = 'Reenviando...'; btn.disabled = true; }
+  try {
+    const resp = await fetch('/api/verificar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _otpEmailPendiente, force: true })
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `Error ${resp.status}`);
+    }
+  } catch (err) {
+    if (errorMsg) { errorMsg.textContent = err.message; errorMsg.style.display = 'block'; }
+  } finally {
+    if (btn) { btn.textContent = 'Reenviar código'; btn.disabled = false; }
+  }
+}
+
+async function verificarOTP() {
+  const errorMsg = document.getElementById('loginError');
+  const btn      = document.getElementById('btnVerificarOtp');
+  const codigo   = (document.getElementById('inputOtp')?.value || '').trim();
+  if (errorMsg) errorMsg.style.display = 'none';
+
+  if (!/^\d{6}$/.test(codigo)) {
+    if (errorMsg) { errorMsg.textContent = 'Ingresa el código de 6 dígitos.'; errorMsg.style.display = 'block'; }
+    return;
+  }
+  if (!_otpEmailPendiente) { volverAEmail(); return; }
+
+  if (btn) { btn.textContent = '⏳ Verificando...'; btn.disabled = true; }
+  try {
+    const resp = await fetch('/api/verificar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _otpEmailPendiente, codigo })
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `Error ${resp.status}`);
+    }
+    const usuario = await resp.json();
+    _otpEmailPendiente = null;
+    await _finalizarLogin(usuario);
+  } catch (err) {
+    if (errorMsg) { errorMsg.textContent = err.message; errorMsg.style.display = 'block'; }
+    const otpInput = document.getElementById('inputOtp');
+    if (otpInput) { otpInput.value = ''; otpInput.focus(); }
+  } finally {
+    if (btn) { btn.textContent = 'Verificar e ingresar →'; btn.disabled = false; }
+  }
+}
+
+// Completa el login una vez verificada la identidad (admin → PIN; usuario → dashboard)
+async function _finalizarLogin(usuario) {
+  if (usuario.rol === 'admin') {
+    await mostrarPantallaPIN(usuario);
+  } else {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
+    registrarSession(usuario.email);
+    _sessionChannel?.postMessage({ type: 'new_login', email: usuario.email });
+    mostrarDashboard(usuario);
   }
 }
 
