@@ -83,9 +83,6 @@ async function cargarEstadosTodos() {
     p.finally(() => {
       completados++;
       if (!activePaisaje) renderEmpty();
-      if (completados === PAISAJES.length) {
-        console.log('[RDCFT] Estados de todos los paisajes cargados.');
-      }
     });
   });
 }
@@ -96,7 +93,6 @@ async function cargarPrecipitaciones() {
     const resp = await fetch('/data/precipitaciones.json');
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     window.precipData = await resp.json();
-    console.log(`[RDCFT] Precipitaciones cargadas — período: ${window.precipData.periodo.inicio} → ${window.precipData.periodo.fin}`);
   } catch (err) {
     console.warn('[RDCFT] Sin datos de precipitaciones:', err.message);
     window.precipData = null;
@@ -108,8 +104,6 @@ async function init() {
   await cargarPrecipitaciones();
   renderSidebar(null);
   renderEmpty();
-  console.log(`[RDCFT] Dashboard iniciado — ${PAISAJES.length} paisajes cargados.`);
-  console.log(`[RDCFT] Límite operacional de viento: ${VIENTO_LIMITE_RDCFT} km/h`);
   cargarEstadosTodos();
 }
 

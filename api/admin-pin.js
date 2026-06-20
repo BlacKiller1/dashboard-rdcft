@@ -3,7 +3,8 @@ import crypto from 'crypto';
 import { redis, setCorsHeaders, parseAuth, verificarToken } from './_auth.js';
 
 function hashPin(pin, email) {
-  const secret = process.env.ADMIN_SECRET || 'rdcft-fallback';
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret) throw new Error('ADMIN_SECRET no configurado');
   return crypto.createHmac('sha256', secret).update(`${pin}:${email}`).digest('hex');
 }
 

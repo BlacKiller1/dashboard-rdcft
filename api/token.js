@@ -22,12 +22,11 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Token inválido' });
     }
 
-    // Validar sessionId contra Redis (si fue provisto)
-    if (creds.sessionId) {
-      const stored = await redis(['GET', `session:${creds.email}`]);
-      if (!stored || stored !== creds.sessionId) {
-        return res.status(401).json({ error: 'Sesión inválida o expirada. Vuelve a iniciar sesión.' });
-      }
+    // Validar sessionId contra Redis (obligatorio)
+    if (!creds.sessionId) return res.status(401).json({ error: 'Sesión requerida' });
+    const stored = await redis(['GET', `session:${creds.email}`]);
+    if (!stored || stored !== creds.sessionId) {
+      return res.status(401).json({ error: 'Sesión inválida o expirada. Vuelve a iniciar sesión.' });
     }
 
     try {

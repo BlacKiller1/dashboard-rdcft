@@ -24,16 +24,11 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Token inválido' });
   }
 
-  // Validar sessionId contra Redis
-  if (creds.sessionId) {
-    try {
-      const stored = await redis(['GET', `session:${creds.email}`]);
-      if (!stored || stored !== creds.sessionId) {
-        return res.status(401).json({ error: 'Sesión inválida o expirada. Vuelve a iniciar sesión.' });
-      }
-    } catch (redisErr) {
-      console.warn('[RDCFT] Redis no disponible:', redisErr.message);
-    }
+  // Validar sessionId contra Redis (obligatorio — un fallo de Redis NO debe abrir la puerta)
+  if (!creds.sessionId) return res.status(401).json({ error: 'Sesión requerida' });
+  const stored = await redis(['GET', `session:${creds.email}`]);
+  if (!stored || stored !== creds.sessionId) {
+    return res.status(401).json({ error: 'Sesión inválida o expirada. Vuelve a iniciar sesión.' });
   }
 
   // Verificar rol admin

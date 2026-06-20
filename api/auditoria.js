@@ -17,13 +17,10 @@ export default async function handler(req, res) {
   if (!verificarToken(creds.email, creds.token, secret))
     return res.status(401).json({ error: 'Token inválido' });
 
-  if (creds.sessionId) {
-    try {
-      const stored = await redis(['GET', `session:${creds.email}`]);
-      if (!stored || stored !== creds.sessionId)
-        return res.status(401).json({ error: 'Sesión inválida o expirada.' });
-    } catch {}
-  }
+  if (!creds.sessionId) return res.status(401).json({ error: 'Sesión requerida' });
+  const stored = await redis(['GET', `session:${creds.email}`]);
+  if (!stored || stored !== creds.sessionId)
+    return res.status(401).json({ error: 'Sesión inválida o expirada.' });
 
   const usuarios = await getUsuarios();
   const reqUser  = usuarios.find(u => u.email === creds.email);
