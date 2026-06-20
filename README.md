@@ -10,7 +10,6 @@ Portal web operacional para la toma de decisiones en **Optimización de Reducci�
 |---|---|
 | **Portal** | Selector de plataformas (entrada principal) |
 | **Plataforma de Protección** | Dashboard meteorológico RDCFT |
-| **Monitor Climático Silvícola** | Monitor de clima para operaciones silvícolas |
 | **Alertas Comunales Preventivas** | Mapa ArcGIS embebido |
 | **Panel de Administración** | Gestión de usuarios y auditoría |
 
@@ -27,14 +26,6 @@ Portal web operacional para la toma de decisiones en **Optimización de Reducci�
 - **Consulta por coordenadas libres** — pronóstico horario para cualquier punto del mapa
 - **Precipitaciones históricas** por estación vinculadas a cada paisaje
 - **Exportación a PDF** por paisaje (layout portrait, colores corporativos Arauco)
-
-### Monitor Climático Silvícola
-- Acceso protegido con credenciales independientes
-- **Datos en tiempo real** desde Open-Meteo API
-- **Mapa Leaflet interactivo** con marcadores por paisaje
-- **Gráficos históricos** con 5 variables: precipitación, temperatura, viento, nubosidad y punto de rocío
-- **Tabla comparativa** de condiciones por paisaje
-- **Filtros por zona y paisaje** con paleta de colores corporativa Arauco
 
 ### Mapa interactivo
 - Capas de mapa oscuro, satélite y predios GeoJSON

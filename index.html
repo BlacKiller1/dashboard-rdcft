@@ -202,12 +202,6 @@
     }
     .plat-btn:hover { filter: brightness(1.12); }
 
-    /* Silvícola */
-    .plat-card.silvicola:hover { border-color: var(--verde); }
-    .silvicola .plat-badge { background: rgba(191,184,0,0.12); color: var(--verde); border: 1px solid rgba(191,184,0,0.3); }
-    .silvicola .plat-icon  { color: var(--verde); }
-    .silvicola .plat-btn   { background: var(--verde); color: var(--dark); }
-
     /* Protección */
     .plat-card.proteccion:hover { border-color: var(--naranja); }
     .proteccion .plat-badge { background: rgba(234,118,0,0.12); color: var(--naranja); border: 1px solid rgba(234,118,0,0.3); }
@@ -491,19 +485,6 @@
       </div>
 
       <div class="platforms">
-
-        <!-- Silvícola -->
-        <div class="plat-card silvicola" onclick="this.querySelector('.plat-btn').click()">
-          <div class="plat-card-top">
-            <span class="plat-badge">Silvícola</span>
-            <div class="plat-title">Plataforma Silvícola</div>
-            <div class="plat-desc">Gestión y Optimización de Masas Forestales.</div>
-          </div>
-          <div class="plat-card-bottom">
-            <span class="material-symbols-outlined plat-icon">forest</span>
-            <button class="plat-btn" onclick="window.location.href='/pages/monitor-silvicola.html'">Entrar →</button>
-          </div>
-        </div>
 
         <!-- Protección -->
         <div class="plat-card proteccion" onclick="this.querySelector('.plat-btn').click()">
