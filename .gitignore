@@ -7,3 +7,6 @@ data/usuarios.json
 data/clima.json
 
 node_modules/
+
+# Base fuente con datos de contacto (no publicar)
+data/predios_extraidos.csv
