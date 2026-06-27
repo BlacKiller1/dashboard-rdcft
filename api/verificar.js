@@ -121,7 +121,8 @@ export default async function handler(req, res) {
       subject: 'Tu código de acceso · Dashboard RDCFT',
       html:    correoOtpHtml(otp)
     });
-  } catch {
+  } catch (err) {
+    console.error('[RDCFT] Error enviando OTP:', err);
     await redis(['DEL', `otp:${email}`]);
     await redis(['DEL', cooldownKey]);
     return res.status(500).json({ error: 'No se pudo enviar el correo. Intenta más tarde.' });
