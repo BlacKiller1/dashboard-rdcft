@@ -16,6 +16,21 @@ function hashPassword(password, email) {
   return salt.toString('hex') + ':' + derived.toString('hex');
 }
 
+function verifyPassword(password, email, stored) {
+  const secret = process.env.ADMIN_SECRET;
+  const [saltHex, hashHex] = String(stored).split(':');
+  if (!saltHex || !hashHex) return false;
+  try {
+    const derived = crypto.scryptSync(`${password}:${email}:${secret}`, Buffer.from(saltHex, 'hex'), 32);
+    return crypto.timingSafeEqual(derived, Buffer.from(hashHex, 'hex'));
+  } catch { return false; }
+}
+
+function safeEq(a, b) {
+  const A = Buffer.from(String(a)), B = Buffer.from(String(b));
+  return A.length === B.length && crypto.timingSafeEqual(A, B);
+}
+
 export default async function handler(req, res) {
   setCorsHeaders(req, res, 'POST, OPTIONS', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -44,8 +59,17 @@ export default async function handler(req, res) {
     if (!newPassword || String(newPassword).length < 6) {
       return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
     }
+    const stored = await redis(['GET', `passhash:${creds.email}`]);
+    // Si ya tiene contraseña, exige la actual (o el código maestro como recuperación).
+    // Si no tiene (primer ingreso vía código maestro), la crea sin pedir la actual.
+    if (stored) {
+      const cur    = req.body.currentPassword ? String(req.body.currentPassword) : '';
+      const master = process.env.ACCESO_MAESTRO || '';
+      const okCur  = (cur && verifyPassword(cur, creds.email, stored)) || (master && cur && safeEq(cur, master));
+      if (!okCur) return res.status(401).json({ error: 'La contraseña actual es incorrecta.' });
+    }
     await redis(['SET', `passhash:${creds.email}`, hashPassword(String(newPassword), creds.email)]);
-    await pushAuditLog({ admin: creds.email, accion: 'set_password', usuario: creds.email, detalle: 'Cambió su propia contraseña' }).catch(() => {});
+    await pushAuditLog({ admin: creds.email, accion: 'set_password', usuario: creds.email, detalle: stored ? 'Cambió su contraseña' : 'Creó su contraseña (primer ingreso)' }).catch(() => {});
     return res.status(200).json({ ok: true });
   }
 

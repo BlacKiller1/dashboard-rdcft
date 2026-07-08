@@ -323,6 +323,7 @@ async function _doLogin(force) {
     }
     const usuario = await resp.json();
     if (passInput) passInput.value = '';
+    if (usuario.mustSetPassword) { _mostrarCrearPass(usuario); return; }
     await _finalizarLogin(usuario);
   } catch (err) {
     errorMsg.textContent = err.message;
@@ -348,7 +349,9 @@ function _mostrarOtpStep(email) {
 
 function volverAEmail() {
   _otpEmailPendiente = null;
+  _usuarioPendientePass = null;
   document.getElementById('otpStep').style.display   = 'none';
+  const ns = document.getElementById('newPassStep'); if (ns) ns.style.display = 'none';
   document.getElementById('emailStep').style.display = 'block';
   const errorMsg = document.getElementById('loginError');
   if (errorMsg) errorMsg.style.display = 'none';
@@ -424,6 +427,84 @@ async function _finalizarLogin(usuario) {
     registrarSession(usuario.email);
     _sessionChannel?.postMessage({ type: 'new_login', email: usuario.email });
     mostrarDashboard(usuario);
+  }
+}
+
+// ── Primer ingreso: crear contraseña personal ───────────────────────────────
+let _usuarioPendientePass = null;
+function _mostrarCrearPass(usuario) {
+  _usuarioPendientePass = usuario;
+  const err = document.getElementById('loginError'); if (err) err.style.display = 'none';
+  const es = document.getElementById('emailStep');   if (es) es.style.display = 'none';
+  const ns = document.getElementById('newPassStep'); if (ns) ns.style.display = 'block';
+  const i1 = document.getElementById('inputFirstPass');  if (i1) { i1.value = ''; setTimeout(() => i1.focus(), 80); }
+  const i2 = document.getElementById('inputFirstPass2'); if (i2) i2.value = '';
+}
+async function guardarPrimeraPass() {
+  const err = document.getElementById('loginError');
+  const btn = document.getElementById('btnCrearPass');
+  const p1  = (document.getElementById('inputFirstPass')?.value  || '');
+  const p2  = (document.getElementById('inputFirstPass2')?.value || '');
+  const showErr = t => { if (err) { err.textContent = t; err.style.display = 'block'; } };
+  if (err) err.style.display = 'none';
+  if (p1.length < 6) return showErr('La contraseña debe tener al menos 6 caracteres.');
+  if (p1 !== p2)     return showErr('Las contraseñas no coinciden.');
+  if (!_usuarioPendientePass) { volverAEmail(); return; }
+  if (btn) { btn.textContent = '⏳ Guardando...'; btn.disabled = true; }
+  try {
+    const resp = await fetch('/api/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(_usuarioPendientePass)}` },
+      body: JSON.stringify({ action: 'change', newPassword: p1 })
+    });
+    if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
+    const usuario = _usuarioPendientePass; _usuarioPendientePass = null;
+    const ns = document.getElementById('newPassStep'); if (ns) ns.style.display = 'none';
+    await _finalizarLogin(usuario);
+  } catch (e) {
+    showErr(e.message);
+  } finally {
+    if (btn) { btn.textContent = 'Crear contraseña e ingresar →'; btn.disabled = false; }
+  }
+}
+
+// ── Cambiar contraseña (usuario con sesión activa) ──────────────────────────
+function abrirCambiarPass() {
+  ['cpActual', 'cpNueva', 'cpNueva2'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const msg = document.getElementById('cpMsg'); if (msg) msg.style.display = 'none';
+  const o = document.getElementById('cambiarPassOverlay'); if (o) o.style.display = 'block';
+  const m = document.getElementById('cambiarPassModal');   if (m) m.style.display = 'flex';
+}
+function cerrarCambiarPass() {
+  const o = document.getElementById('cambiarPassOverlay'); if (o) o.style.display = 'none';
+  const m = document.getElementById('cambiarPassModal');   if (m) m.style.display = 'none';
+}
+async function guardarCambioPass() {
+  const sesion = verificarSesion();
+  const msg = document.getElementById('cpMsg');
+  const btn = document.getElementById('btnCambiarPass');
+  const cur = (document.getElementById('cpActual')?.value || '');
+  const n1  = (document.getElementById('cpNueva')?.value  || '');
+  const n2  = (document.getElementById('cpNueva2')?.value || '');
+  const showErr = t => { if (msg) { msg.textContent = t; msg.style.display = 'block'; } };
+  if (msg) msg.style.display = 'none';
+  if (!sesion) return showErr('Sesión no válida. Vuelve a iniciar sesión.');
+  if (n1.length < 6) return showErr('La nueva contraseña debe tener al menos 6 caracteres.');
+  if (n1 !== n2)     return showErr('Las contraseñas no coinciden.');
+  if (btn) { btn.textContent = 'Guardando...'; btn.disabled = true; }
+  try {
+    const resp = await fetch('/api/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(sesion)}` },
+      body: JSON.stringify({ action: 'change', newPassword: n1, currentPassword: cur })
+    });
+    if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
+    cerrarCambiarPass();
+    alert('Contraseña actualizada correctamente.');
+  } catch (e) {
+    showErr(e.message);
+  } finally {
+    if (btn) { btn.textContent = 'Guardar contraseña'; btn.disabled = false; }
   }
 }
 
