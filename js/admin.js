@@ -161,7 +161,7 @@ async function setPassword(idx) {
   const pass = String(p).trim();
   if (pass.length < 6) { mostrarMensaje('❌ La contraseña debe tener al menos 6 caracteres.', 'error'); return; }
   try {
-    const resp = await fetch('/api/password', {
+    const resp = await fetch('/api/login-pass', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(sesion)}` },
       body: JSON.stringify({ action: 'set', targetEmail: u.email, newPassword: pass })

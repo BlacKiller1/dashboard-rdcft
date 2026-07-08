@@ -323,7 +323,6 @@ async function _doLogin(force) {
     }
     const usuario = await resp.json();
     if (passInput) passInput.value = '';
-    if (usuario.mustSetPassword) { _mostrarCrearPass(usuario); return; }
     await _finalizarLogin(usuario);
   } catch (err) {
     errorMsg.textContent = err.message;
@@ -452,7 +451,7 @@ async function guardarPrimeraPass() {
   if (!_usuarioPendientePass) { volverAEmail(); return; }
   if (btn) { btn.textContent = '⏳ Guardando...'; btn.disabled = true; }
   try {
-    const resp = await fetch('/api/password', {
+    const resp = await fetch('/api/login-pass', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(_usuarioPendientePass)}` },
       body: JSON.stringify({ action: 'change', newPassword: p1 })
@@ -493,7 +492,7 @@ async function guardarCambioPass() {
   if (n1 !== n2)     return showErr('Las contraseñas no coinciden.');
   if (btn) { btn.textContent = 'Guardando...'; btn.disabled = true; }
   try {
-    const resp = await fetch('/api/password', {
+    const resp = await fetch('/api/login-pass', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(sesion)}` },
       body: JSON.stringify({ action: 'change', newPassword: n1, currentPassword: cur })
