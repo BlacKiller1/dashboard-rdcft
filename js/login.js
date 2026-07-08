@@ -288,26 +288,18 @@ async function _doLogin(force) {
     } catch (err) {
       errorMsg.textContent = err.message; errorMsg.style.display = 'block';
     } finally {
-      btn.textContent = 'Ingresar →'; btn.disabled = false;
+      btn.textContent = 'Enviar código →'; btn.disabled = false;
     }
     return;
   }
 
-  // Producción: login con contraseña
-  const passInput = document.getElementById('inputPass');
-  const password  = (passInput?.value || '');
-  if (!password) {
-    errorMsg.textContent = 'Ingresa tu contraseña.';
-    errorMsg.style.display = 'block';
-    if (passInput) passInput.focus();
-    return;
-  }
-  btn.textContent = '⏳ Ingresando...'; btn.disabled = true;
+  // Producción: solicitar código OTP al correo
+  btn.textContent = '⏳ Enviando...'; btn.disabled = true;
   try {
-    const resp = await fetch('/api/login-pass', {
+    const resp = await fetch('/api/verificar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, force: force || false })
+      body: JSON.stringify({ email, force: force || false })
     });
     if (resp.status === 409) {
       _mostrarErrorConFuerza('Ya existe una sesión activa con este correo en otro dispositivo.');
@@ -321,15 +313,14 @@ async function _doLogin(force) {
       const err = await resp.json().catch(() => ({}));
       throw new Error(err.error || `Error del servidor (${resp.status})`);
     }
-    const usuario = await resp.json();
-    if (passInput) passInput.value = '';
-    await _finalizarLogin(usuario);
+    // Código enviado → mostrar paso 2 (verificación)
+    _otpEmailPendiente = email;
+    _mostrarOtpStep(email);
   } catch (err) {
     errorMsg.textContent = err.message;
     errorMsg.style.display = 'block';
-    if (passInput) passInput.value = '';
   } finally {
-    btn.textContent = 'Ingresar →'; btn.disabled = false;
+    btn.textContent = 'Enviar código →'; btn.disabled = false;
   }
 }
 
@@ -348,9 +339,7 @@ function _mostrarOtpStep(email) {
 
 function volverAEmail() {
   _otpEmailPendiente = null;
-  _usuarioPendientePass = null;
   document.getElementById('otpStep').style.display   = 'none';
-  const ns = document.getElementById('newPassStep'); if (ns) ns.style.display = 'none';
   document.getElementById('emailStep').style.display = 'block';
   const errorMsg = document.getElementById('loginError');
   if (errorMsg) errorMsg.style.display = 'none';
@@ -426,84 +415,6 @@ async function _finalizarLogin(usuario) {
     registrarSession(usuario.email);
     _sessionChannel?.postMessage({ type: 'new_login', email: usuario.email });
     mostrarDashboard(usuario);
-  }
-}
-
-// ── Primer ingreso: crear contraseña personal ───────────────────────────────
-let _usuarioPendientePass = null;
-function _mostrarCrearPass(usuario) {
-  _usuarioPendientePass = usuario;
-  const err = document.getElementById('loginError'); if (err) err.style.display = 'none';
-  const es = document.getElementById('emailStep');   if (es) es.style.display = 'none';
-  const ns = document.getElementById('newPassStep'); if (ns) ns.style.display = 'block';
-  const i1 = document.getElementById('inputFirstPass');  if (i1) { i1.value = ''; setTimeout(() => i1.focus(), 80); }
-  const i2 = document.getElementById('inputFirstPass2'); if (i2) i2.value = '';
-}
-async function guardarPrimeraPass() {
-  const err = document.getElementById('loginError');
-  const btn = document.getElementById('btnCrearPass');
-  const p1  = (document.getElementById('inputFirstPass')?.value  || '');
-  const p2  = (document.getElementById('inputFirstPass2')?.value || '');
-  const showErr = t => { if (err) { err.textContent = t; err.style.display = 'block'; } };
-  if (err) err.style.display = 'none';
-  if (p1.length < 6) return showErr('La contraseña debe tener al menos 6 caracteres.');
-  if (p1 !== p2)     return showErr('Las contraseñas no coinciden.');
-  if (!_usuarioPendientePass) { volverAEmail(); return; }
-  if (btn) { btn.textContent = '⏳ Guardando...'; btn.disabled = true; }
-  try {
-    const resp = await fetch('/api/login-pass', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(_usuarioPendientePass)}` },
-      body: JSON.stringify({ action: 'change', newPassword: p1 })
-    });
-    if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
-    const usuario = _usuarioPendientePass; _usuarioPendientePass = null;
-    const ns = document.getElementById('newPassStep'); if (ns) ns.style.display = 'none';
-    await _finalizarLogin(usuario);
-  } catch (e) {
-    showErr(e.message);
-  } finally {
-    if (btn) { btn.textContent = 'Crear contraseña e ingresar →'; btn.disabled = false; }
-  }
-}
-
-// ── Cambiar contraseña (usuario con sesión activa) ──────────────────────────
-function abrirCambiarPass() {
-  ['cpActual', 'cpNueva', 'cpNueva2'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  const msg = document.getElementById('cpMsg'); if (msg) msg.style.display = 'none';
-  const o = document.getElementById('cambiarPassOverlay'); if (o) o.style.display = 'block';
-  const m = document.getElementById('cambiarPassModal');   if (m) m.style.display = 'flex';
-}
-function cerrarCambiarPass() {
-  const o = document.getElementById('cambiarPassOverlay'); if (o) o.style.display = 'none';
-  const m = document.getElementById('cambiarPassModal');   if (m) m.style.display = 'none';
-}
-async function guardarCambioPass() {
-  const sesion = verificarSesion();
-  const msg = document.getElementById('cpMsg');
-  const btn = document.getElementById('btnCambiarPass');
-  const cur = (document.getElementById('cpActual')?.value || '');
-  const n1  = (document.getElementById('cpNueva')?.value  || '');
-  const n2  = (document.getElementById('cpNueva2')?.value || '');
-  const showErr = t => { if (msg) { msg.textContent = t; msg.style.display = 'block'; } };
-  if (msg) msg.style.display = 'none';
-  if (!sesion) return showErr('Sesión no válida. Vuelve a iniciar sesión.');
-  if (n1.length < 6) return showErr('La nueva contraseña debe tener al menos 6 caracteres.');
-  if (n1 !== n2)     return showErr('Las contraseñas no coinciden.');
-  if (btn) { btn.textContent = 'Guardando...'; btn.disabled = true; }
-  try {
-    const resp = await fetch('/api/login-pass', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(sesion)}` },
-      body: JSON.stringify({ action: 'change', newPassword: n1, currentPassword: cur })
-    });
-    if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
-    cerrarCambiarPass();
-    alert('Contraseña actualizada correctamente.');
-  } catch (e) {
-    showErr(e.message);
-  } finally {
-    if (btn) { btn.textContent = 'Guardar contraseña'; btn.disabled = false; }
   }
 }
 
