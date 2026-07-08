@@ -261,6 +261,15 @@ function mostrarDashboard(usuario) {
 
 function verificarCorreo() { _doLogin(false); }
 
+// Sin auto-servicio (no usamos correo): el restablecimiento lo hace el administrador
+function olvideClave() {
+  const errorMsg = document.getElementById('loginError');
+  if (!errorMsg) return;
+  errorMsg.style.display = 'block';
+  errorMsg.innerHTML = 'Si olvidaste tu contraseña, pide a un <strong>administrador</strong> que la restablezca ' +
+    'desde el panel. Luego podrás definir una nueva al ingresar.';
+}
+
 async function _doLogin(force) {
   const input    = document.getElementById('inputEmail');
   const errorMsg = document.getElementById('loginError');

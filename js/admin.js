@@ -103,6 +103,7 @@ function renderTabla() {
             <td>${formatLastLogin(u.lastlogin)}</td>
             <td class="ap-acciones">
               <button class="btn-logout" onclick="setPassword(${idx})" title="Asignar o cambiar contraseña">&#128273; Contraseña</button>
+              <button class="btn-logout" onclick="resetPassword(${idx})" title="Borrar la contraseña: el usuario definirá una nueva en su próximo ingreso">&#8635; Restablecer</button>
               ${!esSelf ? `
                 <button class="btn-rol ${esAdmin ? 'btn-quitar' : 'btn-dar'}" onclick="cambiarRol(${idx})">
                   ${esAdmin ? '⬇ Usuario' : '⬆ Admin'}
@@ -168,6 +169,22 @@ async function setPassword(idx) {
     });
     if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
     mostrarMensaje(`🔑 Contraseña actualizada para ${u.email}.`, 'success');
+  } catch (err) {
+    mostrarMensaje('❌ ' + err.message, 'error');
+  }
+}
+
+async function resetPassword(idx) {
+  const u = usuariosDB[idx];
+  if (!confirm(`¿Restablecer la contraseña de ${u.email}?\n\nSe borrará su clave actual. En su próximo ingreso definirá una nueva (como la primera vez).`)) return;
+  try {
+    const resp = await fetch('/api/login-pass', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(sesion)}` },
+      body: JSON.stringify({ action: 'clear', targetEmail: u.email })
+    });
+    if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
+    mostrarMensaje(`↺ Contraseña restablecida para ${u.email}. Definirá una nueva al ingresar.`, 'success');
   } catch (err) {
     mostrarMensaje('❌ ' + err.message, 'error');
   }
