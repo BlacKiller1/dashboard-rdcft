@@ -102,6 +102,7 @@ function renderTabla() {
             <td><input class="ap-cargo-input" value="${escapeHtml(u.cargo || '')}" placeholder="—" oninput="editarCargo(${idx},this.value)"/></td>
             <td>${formatLastLogin(u.lastlogin)}</td>
             <td class="ap-acciones">
+              <button class="btn-logout" onclick="setPassword(${idx})" title="Asignar o cambiar contraseña">&#128273; Contraseña</button>
               ${!esSelf ? `
                 <button class="btn-rol ${esAdmin ? 'btn-quitar' : 'btn-dar'}" onclick="cambiarRol(${idx})">
                   ${esAdmin ? '⬇ Usuario' : '⬆ Admin'}
@@ -148,6 +149,25 @@ async function forzarLogout(idx) {
     });
     if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
     mostrarMensaje(`Sesión de ${u.email} cerrada. Deberá volver a iniciar sesión.`, 'success');
+  } catch (err) {
+    mostrarMensaje('❌ ' + err.message, 'error');
+  }
+}
+
+async function setPassword(idx) {
+  const u = usuariosDB[idx];
+  const p = prompt(`Nueva contraseña para ${u.email}\n(mínimo 6 caracteres · déjalo vacío para cancelar):`);
+  if (p === null) return;
+  const pass = String(p).trim();
+  if (pass.length < 6) { mostrarMensaje('❌ La contraseña debe tener al menos 6 caracteres.', 'error'); return; }
+  try {
+    const resp = await fetch('/api/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${crearCredenciales(sesion)}` },
+      body: JSON.stringify({ action: 'set', targetEmail: u.email, newPassword: pass })
+    });
+    if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error || `Error ${resp.status}`); }
+    mostrarMensaje(`🔑 Contraseña actualizada para ${u.email}.`, 'success');
   } catch (err) {
     mostrarMensaje('❌ ' + err.message, 'error');
   }

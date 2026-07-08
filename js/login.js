@@ -288,18 +288,26 @@ async function _doLogin(force) {
     } catch (err) {
       errorMsg.textContent = err.message; errorMsg.style.display = 'block';
     } finally {
-      btn.textContent = 'Enviar código →'; btn.disabled = false;
+      btn.textContent = 'Ingresar →'; btn.disabled = false;
     }
     return;
   }
 
-  // Producción: solicitar código OTP al correo
-  btn.textContent = '⏳ Enviando...'; btn.disabled = true;
+  // Producción: login con contraseña
+  const passInput = document.getElementById('inputPass');
+  const password  = (passInput?.value || '');
+  if (!password) {
+    errorMsg.textContent = 'Ingresa tu contraseña.';
+    errorMsg.style.display = 'block';
+    if (passInput) passInput.focus();
+    return;
+  }
+  btn.textContent = '⏳ Ingresando...'; btn.disabled = true;
   try {
-    const resp = await fetch('/api/verificar', {
+    const resp = await fetch('/api/login-pass', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, force: force || false })
+      body: JSON.stringify({ email, password, force: force || false })
     });
     if (resp.status === 409) {
       _mostrarErrorConFuerza('Ya existe una sesión activa con este correo en otro dispositivo.');
@@ -313,14 +321,15 @@ async function _doLogin(force) {
       const err = await resp.json().catch(() => ({}));
       throw new Error(err.error || `Error del servidor (${resp.status})`);
     }
-    // Código enviado → mostrar paso 2 (verificación)
-    _otpEmailPendiente = email;
-    _mostrarOtpStep(email);
+    const usuario = await resp.json();
+    if (passInput) passInput.value = '';
+    await _finalizarLogin(usuario);
   } catch (err) {
     errorMsg.textContent = err.message;
     errorMsg.style.display = 'block';
+    if (passInput) passInput.value = '';
   } finally {
-    btn.textContent = 'Enviar código →'; btn.disabled = false;
+    btn.textContent = 'Ingresar →'; btn.disabled = false;
   }
 }
 

@@ -60,9 +60,9 @@
     <div class="login-brand">arauco</div>
     <div class="login-brand-sub">Optimización de Reducción de Combustible mediante Fuego Técnico · Dashboard Meteorológico</div>
     <div class="login-title">Acceso restringido</div>
-    <div class="login-desc" id="loginDesc">Ingresa tu correo corporativo <strong>@arauco.com</strong> para acceder.</div>
+    <div class="login-desc" id="loginDesc">Ingresa tu correo corporativo <strong>@arauco.com</strong> y tu contraseña.</div>
 
-    <!-- Paso 1: correo -->
+    <!-- Paso 1: correo + contraseña -->
     <div id="emailStep">
       <input
         type="email"
@@ -72,8 +72,16 @@
         onkeydown="handleKeyDown(event)"
         autocomplete="email"
       />
+      <input
+        type="password"
+        id="inputPass"
+        class="login-input"
+        placeholder="Contraseña"
+        onkeydown="handleKeyDown(event)"
+        autocomplete="current-password"
+      />
       <button class="login-btn" id="btnAcceder" onclick="verificarCorreo()">
-        Enviar código →
+        Ingresar →
       </button>
       <button class="solicitud-link-btn" onclick="toggleSolicitud()">¿No tienes acceso? Solicitar →</button>
     </div>
