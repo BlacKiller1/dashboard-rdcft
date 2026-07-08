@@ -60,9 +60,9 @@
     <div class="login-brand">arauco</div>
     <div class="login-brand-sub">Optimización de Reducción de Combustible mediante Fuego Técnico · Dashboard Meteorológico</div>
     <div class="login-title">Acceso restringido</div>
-    <div class="login-desc" id="loginDesc">Ingresa tu correo corporativo <strong>@arauco.com</strong> para acceder.</div>
+    <div class="login-desc" id="loginDesc">Ingresa tu correo <strong>@arauco.com</strong> y tu contraseña.<br><span style="font-size:.85em;opacity:.75">Si es tu primer ingreso, la contraseña que escribas quedará registrada como la tuya.</span></div>
 
-    <!-- Paso 1: correo -->
+    <!-- Paso 1: correo + contraseña -->
     <div id="emailStep">
       <input
         type="email"
@@ -72,8 +72,16 @@
         onkeydown="handleKeyDown(event)"
         autocomplete="email"
       />
+      <input
+        type="password"
+        id="inputPass"
+        class="login-input"
+        placeholder="Contraseña"
+        onkeydown="handleKeyDown(event)"
+        autocomplete="current-password"
+      />
       <button class="login-btn" id="btnAcceder" onclick="verificarCorreo()">
-        Enviar código →
+        Ingresar →
       </button>
       <button class="solicitud-link-btn" onclick="toggleSolicitud()">¿No tienes acceso? Solicitar →</button>
     </div>
@@ -97,6 +105,14 @@
       </button>
       <button class="solicitud-link-btn" id="btnReenviarOtp" onclick="reenviarOTP()">Reenviar código</button>
       <button class="solicitud-link-btn" onclick="volverAEmail()">← Cambiar correo</button>
+    </div>
+
+    <!-- Primer ingreso: crear contraseña personal -->
+    <div id="newPassStep" style="display:none;">
+      <div class="login-desc" style="margin-bottom:10px">Es tu primer ingreso. Crea tu contraseña personal para los próximos accesos.</div>
+      <input type="password" id="inputFirstPass" class="login-input" placeholder="Nueva contraseña (mín. 6 caracteres)" autocomplete="new-password" onkeydown="if(event.key==='Enter')guardarPrimeraPass()"/>
+      <input type="password" id="inputFirstPass2" class="login-input" placeholder="Repite la contraseña" autocomplete="new-password" onkeydown="if(event.key==='Enter')guardarPrimeraPass()"/>
+      <button class="login-btn" id="btnCrearPass" onclick="guardarPrimeraPass()">Crear contraseña e ingresar →</button>
     </div>
 
     <a href="/" style="font-size:11px; color:rgba(223,209,167,0.3); text-decoration:none; margin-top:2px; transition:color .15s;" onmouseover="this.style.color='rgba(223,209,167,0.6)'" onmouseout="this.style.color='rgba(223,209,167,0.3)'">← Volver al portal</a>
@@ -725,10 +741,29 @@
   <button class="umenu-item umenu-item--feedback" onclick="abrirFeedback(); cerrarUserMenu()" role="menuitem">
     💬 Sugerencias
   </button>
+  <button class="umenu-item" onclick="abrirCambiarPass(); cerrarUserMenu()" role="menuitem">
+    🔑 Cambiar contraseña
+  </button>
   <div class="umenu-sep"></div>
   <button class="umenu-item umenu-item--logout" onclick="abrirConfirmLogout(); cerrarUserMenu()" role="menuitem">
     ⎋ Salir
   </button>
+</div>
+
+<!-- ── Modal cambiar contraseña ── -->
+<div class="modal-overlay" id="cambiarPassOverlay" onclick="cerrarCambiarPass()" style="display:none;"></div>
+<div class="modal" id="cambiarPassModal" style="display:none;">
+  <div class="modal-header">
+    <span class="modal-title">🔑 Cambiar contraseña</span>
+    <button class="modal-close" onclick="cerrarCambiarPass()">✕</button>
+  </div>
+  <div class="modal-body" style="display:flex; flex-direction:column; gap:12px; padding:22px 24px;">
+    <input type="password" id="cpActual" class="login-input" placeholder="Contraseña actual" autocomplete="current-password"/>
+    <input type="password" id="cpNueva"  class="login-input" placeholder="Nueva contraseña (mín. 6)" autocomplete="new-password"/>
+    <input type="password" id="cpNueva2" class="login-input" placeholder="Repite la nueva contraseña" autocomplete="new-password" onkeydown="if(event.key==='Enter')guardarCambioPass()"/>
+    <div id="cpMsg" class="login-error" style="display:none;"></div>
+    <button class="login-btn" id="btnCambiarPass" onclick="guardarCambioPass()">Guardar contraseña</button>
+  </div>
 </div>
 
 <!-- ── Modal confirmación cerrar sesión ── -->
