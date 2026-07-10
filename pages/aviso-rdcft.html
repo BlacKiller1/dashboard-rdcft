@@ -34,7 +34,7 @@ label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;margin:1
 <div class="app" id="mainApp" style="display:none"><aside class="panel no-print"><h1>Aviso RDCFT Arauco</h1><p>Generación de avisos RDCFT a partir de la base de predios, con imagen satelital y enlace a Google Maps.</p><div class="sessionBox"><div>Usuario: <b id="sessionUser">-</b></div><div>Perfil: <span class="roleBadge" id="sessionRole">-</span></div><div class="btns" style="margin-top:10px"><button class="ghost wide" onclick="window.location.href='/pages/dashboard.html'">Volver al dashboard</button></div></div>
 <div class="card"><label>Buscar predio (nombre o código)</label><div class="acWrap"><input id="predioSearch" autocomplete="off" placeholder="Escriba parte del nombre o el código..."><div id="predioAC" class="acList"></div></div><label>Selector de predio</label><select id="predioSelect"><option value="">Seleccione...</option></select><div class="meta" id="status">Cargando base de predios...</div></div>
 <div class="card"><label>Número de aviso CONAF</label><input id="folio" placeholder="Ingrese el N° de aviso CONAF (editable)"><div class="btns"><button class="ghost wide admin-only" onclick="nuevoFolio()">Generar N° automático</button></div><label>Fecha y hora del aviso (automática)</label><input id="fechaAviso" type="text" readonly><div class="btns"><button class="ghost wide" onclick="refreshFecha()">Actualizar a la hora actual</button></div><label>Encargado del predio (editable)</label><input id="encargado" placeholder="Se completa al elegir predio — puedes modificarlo" oninput="renderReport()"><label>Superficie a quemar (ha)</label><input id="superficieManual" type="text" inputmode="decimal" placeholder="Ej: 12,5"><label>Coordenadas (decimal o GMS)</label><input id="coordsManual" placeholder="-39.494815, -73.078950  ó  39°29&#39;41.3&quot;S 73°04&#39;44.2&quot;O"><div class="coordBtns"><button class="secondary" onclick="openPicker()">🗺️ Seleccionar en mapa</button></div><label>Observación adicional</label><textarea id="observacion" placeholder="Opcional"></textarea></div>
-<div class="card"><div class="btns"><button class="primary" onclick="window.print()">Exportar PDF</button><button class="secondary" onclick="downloadReportHtml()">Exportar HTML</button><button class="primary wide" onclick="openMail()">Vista previa correo profesional HTML</button><button class="secondary wide" onclick="generarEml()">Generar correo Outlook HTML (.eml)</button><button class="ghost wide" onclick="copiarCorreoHTML()">Copiar correo HTML corporativo</button><button class="ghost wide" onclick="registrarAviso()">Guardar trazabilidad</button></div><div class="meta">El correlativo y el historial se guardan en LocalStorage de este navegador.</div></div>
+<div class="card"><div class="btns"><button class="primary" onclick="window.print()">Exportar PDF</button><button class="secondary" onclick="downloadReportHtml()">Exportar HTML</button><button class="primary wide" onclick="openMail()">Vista previa correo profesional HTML</button><button class="primary wide" id="btnOutlook" onclick="generarEml()">📧 Enviar por Outlook (1 clic)</button><button class="ghost wide" onclick="copiarCorreoHTML()">Copiar con formato (pegar en Outlook)</button><button class="ghost wide" onclick="registrarAviso()">Guardar trazabilidad</button></div><div class="meta">El correlativo y el historial se guardan en LocalStorage de este navegador.</div></div>
 <div class="card"><label>Historial de trazabilidad</label><div class="history"><table><thead><tr><th>N°</th><th>Predio</th><th>Fecha</th></tr></thead><tbody id="historyBody"></tbody></table></div><div class="btns"><button class="ghost admin-only" onclick="exportHistoryCsv()">Exportar CSV</button><button class="danger admin-only" onclick="clearHistory()">Limpiar</button></div></div>
 
 <div class="card admin-only" id="predioAdminCard"><label>Ingreso de nuevo predio a quemar</label><div class="localPredioGrid">
@@ -356,8 +356,7 @@ function buildEmailHtml(){
           <div style="width:96px;height:58px;border-radius:10px;background:#ffffff;border:1px solid #d8ccb0;padding:8px;text-align:center;"><img src="${RDCFT_LOGO}" alt="RDCFT" style="max-width:100%;max-height:42px;vertical-align:middle;"></div>
         </td>
         <td style="vertical-align:top;padding-left:10px;">
-          <div style="height:58px;background:#696158;width:100%;max-width:360px;"></div>
-          <div style="font-weight:900;color:#696158;margin-top:5px;font-size:17px;text-transform:uppercase;">AVISO RDCFT ARAUCO</div><div style="font-weight:800;color:#696158;margin-top:2px;font-size:14px;">Reducción de combustible / fuego técnico</div>
+          <div style="font-weight:900;color:#696158;margin-top:5px;font-size:19px;text-transform:uppercase;">AVISO RDCFT ARAUCO</div><div style="font-weight:800;color:#696158;margin-top:2px;font-size:14px;">Reducción de combustible / fuego técnico</div>
         </td>
         <td style="width:230px;vertical-align:top;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:0;border:2px solid #696158;border-radius:12px;overflow:hidden;">
@@ -387,24 +386,60 @@ function buildEmailHtml(){
   </div>`;
 }
 function openMail(){if(!selected){alert('Seleccione un predio antes de preparar el correo.');return}lastEmailHtml=buildEmailHtml();$('emailHtmlPreview').innerHTML=lastEmailHtml;$('emailPreview').style.display='flex';}
-function generarEml(){
-  if(!selected){alert('Seleccione un predio.');return}
-  let r=datos();
-  lastEmailHtml=buildEmailHtml();
-  let subject=`${r.folio} - Aviso RDCFT Arauco - ${r.predio}`;
-  let safeTitle=esc(subject);
-  let emlBody='<!doctype html><html><head><meta charset="utf-8"><title>'+safeTitle+'</title></head><body>'+lastEmailHtml+'</body></html>';
-  let eml=['MIME-Version: 1.0','Content-Type: text/html; charset=UTF-8','Content-Transfer-Encoding: 8bit','Subject: '+subject,'X-Unsent: 1','',emlBody].join('\r\n');
-  let blob=new Blob([eml],{type:'message/rfc822;charset=utf-8'});
-  let a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=(r.folio+'_Aviso_RDCFT_Arauco.eml').replace(/[^a-zA-Z0-9_.-]/g,'_');
-  document.body.appendChild(a);a.click();
-  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
-  registrarAviso(false);
-  alert('Se generó el correo profesional en formato .eml. Abra el archivo descargado con Outlook para enviarlo conservando tabla, colores corporativos y enlace de ubicación.');
+async function fetchAsBase64(url){
+  const resp=await fetch(url,{mode:'cors'});
+  if(!resp.ok)throw new Error('HTTP '+resp.status);
+  const bytes=new Uint8Array(await resp.arrayBuffer());
+  let bin='';const CH=0x8000;
+  for(let i=0;i<bytes.length;i+=CH)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));
+  return btoa(bin);
 }
-async function copiarCorreoHTML(){if(!selected){alert('Seleccione un predio.');return}lastEmailHtml=buildEmailHtml();try{await navigator.clipboard.writeText(lastEmailHtml);alert('Correo HTML profesional copiado. Péguelo en Outlook para conservar la tabla y colores.')}catch(e){$('emailHtmlPreview').innerHTML='<pre>'+lastEmailHtml.replace(/[<>&]/g,m=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[m]))+'</pre>';$('emailPreview').style.display='flex'}}
+function buildRelatedEml(subject,html,parts){
+  const CRLF='\r\n';
+  const doc='<!doctype html><html><head><meta charset="utf-8"><title>'+esc(subject)+'</title></head><body>'+html+'</body></html>';
+  if(!parts.length){
+    return ['Subject: '+subject,'MIME-Version: 1.0','X-Unsent: 1','Content-Type: text/html; charset=UTF-8','Content-Transfer-Encoding: 8bit','',doc].join(CRLF);
+  }
+  const B='=_RDCFT_'+Date.now();
+  let out=['Subject: '+subject,'MIME-Version: 1.0','X-Unsent: 1',
+    'Content-Type: multipart/related; type="text/html"; boundary="'+B+'"','',
+    '--'+B,'Content-Type: text/html; charset=UTF-8','Content-Transfer-Encoding: 8bit','',doc];
+  parts.forEach(p=>{
+    const b64=p.b64.replace(/\s+/g,'').replace(/.{1,76}/g,'$&'+CRLF).replace(/\r\n$/,'');
+    out.push('--'+B,'Content-Type: '+p.mime,'Content-Transfer-Encoding: base64','Content-ID: <'+p.cid+'>','Content-Disposition: inline','',b64);
+  });
+  out.push('--'+B+'--','');
+  return out.join(CRLF);
+}
+async function generarEml(){
+  if(!selected){alert('Seleccione un predio antes de preparar el correo.');return}
+  const btn=$('btnOutlook');const prev=btn?btn.textContent:'';
+  if(btn){btn.textContent='⏳ Preparando...';btn.disabled=true;}
+  try{
+    const r=datos();
+    let html=buildEmailHtml();
+    const parts=[];
+    const lm=RDCFT_LOGO.match(/^data:(image\/[a-z.+-]+);base64,(.+)$/i);
+    if(lm){html=html.split(RDCFT_LOGO).join('cid:logo@rdcft');parts.push({cid:'logo@rdcft',mime:lm[1],b64:lm[2]});}
+    if(r.mapImg){
+      try{const b64=await fetchAsBase64(r.mapImg);html=html.split(esc(r.mapImg)).join('cid:mapa@rdcft');parts.push({cid:'mapa@rdcft',mime:'image/jpeg',b64});}
+      catch(e){console.warn('No se pudo incrustar el mapa; se deja como imagen remota:',e);}
+    }
+    const subject=`${r.folio} - Aviso RDCFT Arauco - ${r.predio}`;
+    const eml=buildRelatedEml(subject,html,parts);
+    const blob=new Blob([eml],{type:'message/rfc822'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=(r.folio+'_Aviso_RDCFT_Arauco.eml').replace(/[^a-zA-Z0-9_.-]/g,'_');
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+    registrarAviso(false);
+    alert('✅ Correo listo. Abre el archivo .eml descargado (doble clic) y se abrirá en Outlook como correo nuevo, con formato, logo e imagen. Solo agrega el destinatario y envía.');
+  }finally{
+    if(btn){btn.textContent=prev;btn.disabled=false;}
+  }
+}
+async function copiarCorreoHTML(){if(!selected){alert('Seleccione un predio.');return}lastEmailHtml=buildEmailHtml();try{const bH=new Blob([lastEmailHtml],{type:'text/html'});const bT=new Blob([lastEmailHtml],{type:'text/plain'});await navigator.clipboard.write([new ClipboardItem({'text/html':bH,'text/plain':bT})]);alert('Correo copiado CON formato. Abre un correo nuevo en Outlook y pega con Ctrl+V.')}catch(e){try{await navigator.clipboard.writeText(lastEmailHtml);alert('Copiado como texto (tu navegador no permitió copia con formato). Pégalo en Outlook.')}catch(e2){$('emailHtmlPreview').innerHTML=lastEmailHtml;$('emailPreview').style.display='flex'}}}
 function downloadReportHtml(){
   if(!selected){alert('Seleccione un predio.');return}
   let doc='<!doctype html><html><head><meta charset="utf-8"><title>'+datos().folio+'</title>'+document.querySelector('style').outerHTML+'</head><body>'+document.getElementById('report').outerHTML+'</body></html>';
