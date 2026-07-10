@@ -28,11 +28,12 @@ label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;margin:1
 .loadingBox{font-size:12px;color:#bcae8c;margin-top:8px}
 .coordBtns{display:flex;gap:8px;margin-top:8px}.coordBtns button{flex:1}
 .pickerModal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:10000;padding:16px}.pickerCard{background:#16140f;color:#f3ecd9;border:1px solid rgba(223,209,167,.2);border-radius:16px;width:min(960px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}.pickerHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid rgba(223,209,167,.12)}.pickerHead b{font-family:'Inter',sans-serif;font-size:15px}.pickerLayers{display:flex;gap:8px}#pickerMap{flex:1;min-height:55vh;background:#0e0d0a}.pickerFoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-top:1px solid rgba(223,209,167,.12);flex-wrap:wrap}.pickerCoords{font-family:'Inter',sans-serif}.pickerCoords #pickerDMS{font-size:16px;font-weight:700;color:#fff}.pickerCoords small{color:#bcae8c}.pickerActions{display:flex;gap:10px}.pickerActions button{width:auto}.leaflet-container{font-family:'Inter',Arial,sans-serif}
+.acWrap{position:relative}.acList{position:absolute;left:0;right:0;top:100%;z-index:60;display:none;background:#1c1a14;border:1px solid rgba(223,209,167,.28);border-top:0;border-radius:0 0 10px 10px;max-height:300px;overflow:auto;box-shadow:0 14px 28px rgba(0,0,0,.45)}.acItem{padding:9px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05)}.acItem:last-child{border-bottom:0}.acItem:hover,.acItem.sel{background:rgba(234,118,0,.18)}.acItem b{font-weight:700;font-size:13px;color:#f3ecd9}.acItem small{display:block;color:#9a8f72;font-size:11px;margin-top:2px}.acItem.acEmpty{color:#9a8f72;cursor:default}.acItem.acEmpty:hover{background:none}
 </style></head><body>
 <div id="denegado" class="denegado no-print"><div class="box"><h2 style="margin:0 0 10px;color:#8b3d2e">Acceso restringido</h2><p id="denegadoMsg" style="margin:0 0 18px">Esta sección está disponible solo para el cargo Central Proteccion.</p><button class="primary" onclick="window.location.href='/pages/dashboard.html'">Volver al panel</button></div></div>
 <div class="app" id="mainApp" style="display:none"><aside class="panel no-print"><h1>Aviso RDCFT Arauco</h1><p>Generación de avisos RDCFT a partir de la base de predios, con imagen satelital y enlace a Google Maps.</p><div class="sessionBox"><div>Usuario: <b id="sessionUser">-</b></div><div>Perfil: <span class="roleBadge" id="sessionRole">-</span></div><div class="btns" style="margin-top:10px"><button class="ghost wide" onclick="window.location.href='/pages/dashboard.html'">Volver al dashboard</button></div></div>
-<div class="card"><label>Buscar predio (nombre o código)</label><input id="predioSearch" list="prediosList" placeholder="Escriba parte del nombre o el código..."><datalist id="prediosList"></datalist><label>Selector de predio</label><select id="predioSelect"><option value="">Seleccione...</option></select><div class="meta" id="status">Cargando base de predios...</div></div>
-<div class="card"><label>N° correlativo</label><input id="folio" readonly><div class="btns"><button class="ghost wide admin-only" onclick="nuevoFolio()">Generar nuevo correlativo</button></div><label>Fecha y hora del aviso (automática)</label><input id="fechaAviso" type="text" readonly><div class="btns"><button class="ghost wide" onclick="refreshFecha()">Actualizar a la hora actual</button></div><label>Encargado del predio (editable)</label><input id="encargado" placeholder="Se completa al elegir predio — puedes modificarlo" oninput="renderReport()"><label>Superficie a quemar (ha)</label><input id="superficieManual" type="text" inputmode="decimal" placeholder="Ej: 12,5"><label>Coordenadas (decimal o GMS)</label><input id="coordsManual" placeholder="-39.494815, -73.078950  ó  39°29&#39;41.3&quot;S 73°04&#39;44.2&quot;O"><div class="coordBtns"><button class="secondary" onclick="openPicker()">🗺️ Seleccionar en mapa</button></div><label>Observación adicional</label><textarea id="observacion" placeholder="Opcional"></textarea></div>
+<div class="card"><label>Buscar predio (nombre o código)</label><div class="acWrap"><input id="predioSearch" autocomplete="off" placeholder="Escriba parte del nombre o el código..."><div id="predioAC" class="acList"></div></div><label>Selector de predio</label><select id="predioSelect"><option value="">Seleccione...</option></select><div class="meta" id="status">Cargando base de predios...</div></div>
+<div class="card"><label>Número de aviso CONAF</label><input id="folio" placeholder="Ingrese el N° de aviso CONAF (editable)"><div class="btns"><button class="ghost wide admin-only" onclick="nuevoFolio()">Generar N° automático</button></div><label>Fecha y hora del aviso (automática)</label><input id="fechaAviso" type="text" readonly><div class="btns"><button class="ghost wide" onclick="refreshFecha()">Actualizar a la hora actual</button></div><label>Encargado del predio (editable)</label><input id="encargado" placeholder="Se completa al elegir predio — puedes modificarlo" oninput="renderReport()"><label>Superficie a quemar (ha)</label><input id="superficieManual" type="text" inputmode="decimal" placeholder="Ej: 12,5"><label>Coordenadas (decimal o GMS)</label><input id="coordsManual" placeholder="-39.494815, -73.078950  ó  39°29&#39;41.3&quot;S 73°04&#39;44.2&quot;O"><div class="coordBtns"><button class="secondary" onclick="openPicker()">🗺️ Seleccionar en mapa</button></div><label>Observación adicional</label><textarea id="observacion" placeholder="Opcional"></textarea></div>
 <div class="card"><div class="btns"><button class="primary" onclick="window.print()">Exportar PDF</button><button class="secondary" onclick="downloadReportHtml()">Exportar HTML</button><button class="primary wide" onclick="openMail()">Vista previa correo profesional HTML</button><button class="secondary wide" onclick="generarEml()">Generar correo Outlook HTML (.eml)</button><button class="ghost wide" onclick="copiarCorreoHTML()">Copiar correo HTML corporativo</button><button class="ghost wide" onclick="registrarAviso()">Guardar trazabilidad</button></div><div class="meta">El correlativo y el historial se guardan en LocalStorage de este navegador.</div></div>
 <div class="card"><label>Historial de trazabilidad</label><div class="history"><table><thead><tr><th>N°</th><th>Predio</th><th>Fecha</th></tr></thead><tbody id="historyBody"></tbody></table></div><div class="btns"><button class="ghost admin-only" onclick="exportHistoryCsv()">Exportar CSV</button><button class="danger admin-only" onclick="clearHistory()">Limpiar</button></div></div>
 
@@ -51,7 +52,7 @@ label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;margin:1
 <button class="secondary full" onclick="addPredioLocal()">Agregar predio local</button>
 </div><div class="warnText">Los predios ingresados se guardan en LocalStorage y se agregan al buscador sin modificar la base original.</div><div class="localPredioList" id="localPredioList"></div></div></aside>
 <main class="content"><section id="report" class="paper"><div id="emptyState" style="text-align:center;color:#696158;margin:70px 0"><h2>Seleccione un predio para generar el aviso</h2><p>La vista previa tipo carta se actualizará automáticamente.</p></div><div id="reportBody" style="display:none">
-<div class="report-top"><div class="logoBox"><img id="reportLogo" src="" alt="RDCFT"></div><div class="titleBlock"><div class="rtitle">Aviso RDCFT Arauco</div><div class="subtitle">Reducción de combustible / fuego técnico</div></div><div class="folio"><div class="cap">N° correlativo</div><div class="num" id="rFolio">-</div></div></div>
+<div class="report-top"><div class="logoBox"><img id="reportLogo" src="" alt="RDCFT"></div><div class="titleBlock"><div class="rtitle">Aviso RDCFT Arauco</div><div class="subtitle">Reducción de combustible / fuego técnico</div></div><div class="folio"><div class="cap">N° aviso CONAF</div><div class="num" id="rFolio">-</div></div></div>
 <div class="intro">Junto con saludar, se informa la ejecución de actividades asociadas a reducción de combustible y fuego técnico, conforme a los antecedentes del predio seleccionado. Se solicita tomar conocimiento del presente aviso.</div>
 <div class="section-title">Antecedentes generales</div><table class="infoTable"><tbody><tr><th>Fecha y hora del aviso</th><td id="rFecha"></td></tr><tr><th>Código del predio</th><td id="rCodigo"></td></tr><tr><th>Predio</th><td id="rNombre"></td></tr><tr><th>Encargado</th><td id="rEncargado"></td></tr><tr><th>Región</th><td id="rRegion"></td></tr><tr><th>Provincia</th><td id="rProvincia"></td></tr><tr><th>Comuna</th><td id="rComuna"></td></tr><tr><th>Superficie</th><td id="rSuperficie"></td></tr><tr><th>Coordenadas</th><td id="rCoords"></td></tr></tbody></table>
 <div class="section-title">Ubicación referencial</div><div id="map" class="mapbox"></div><div class="geoLinks"><a class="maplink" id="googleMapsLink" href="#" target="_blank">📍 Ver en Google Maps</a></div><div class="intro" style="margin-top:16px"><b>Observación:</b> <span id="rObs">Sin observaciones adicionales.</span></div><div class="footer"><b>Reporte generado por CENTRAL DE PROTECCIÓN ARAUCO</b><br>Sistema de Avisos RDCFT — Gestión Operacional de Quemas Controladas</div>
@@ -138,11 +139,10 @@ function loadLocalPredios(){
   });
 }
 function rebuildPredioOptions(){
-  const dl=$('prediosList'), sel=$('predioSelect');
-  if(!dl||!sel)return;
-  dl.innerHTML=''; sel.innerHTML='<option value="">Seleccione...</option>';
+  const sel=$('predioSelect');
+  if(!sel)return;
+  sel.innerHTML='<option value="">Seleccione...</option>';
   DATA.forEach((d,i)=>{
-    let o=document.createElement('option');o.value=d.nombre+(d.codigo?' ['+d.codigo+']':'');dl.appendChild(o);
     let s=document.createElement('option');s.value=i;s.textContent=(d.codigo?d.codigo+' — ':'')+d.nombre+(d.comuna?' · '+d.comuna:'')+(d.origen==='LOCAL'?' [LOCAL]':'');sel.appendChild(s)
   });
   $('status').textContent='Predios disponibles: '+DATA.length;
@@ -199,12 +199,35 @@ async function init(){
   await loadBase();
   loadLocalPredios();
   rebuildPredioOptions();
-  $('predioSearch').addEventListener('input',searchPredio);
+  $('predioSearch').addEventListener('input',onACInput);
+  $('predioSearch').addEventListener('keydown',onACKey);
+  document.addEventListener('click',e=>{if(!e.target.closest('.acWrap'))hideAC();});
   $('predioSelect').addEventListener('change',e=>selectIndex(e.target.value));
   ['observacion','folio','superficieManual','coordsManual'].forEach(id=>$(id).addEventListener('input',renderReport));
   renderLocalPredios();
 }
-function searchPredio(){const q=norm(this.value).replace(/\[.*\]$/,'').trim();if(q.length<2)return;let idx=DATA.findIndex(d=>norm(d.nombre)===q||norm(d.codigo)===q);if(idx<0)idx=DATA.findIndex(d=>norm(d.nombre).includes(q)||norm(d.codigo).includes(q));if(idx>=0){$('predioSelect').value=idx;selectIndex(idx)}}
+let _acItems=[], _acSel=-1;
+function hideAC(){const b=$('predioAC');if(b){b.style.display='none';b.innerHTML=''}_acItems=[];_acSel=-1;}
+function onACInput(){
+  const q=norm(this.value).trim();const box=$('predioAC');if(!box)return;
+  if(q.length<2){hideAC();return;}
+  const res=[];
+  for(let i=0;i<DATA.length&&res.length<25;i++){const d=DATA[i];if(norm(d.nombre).includes(q)||norm(d.codigo).includes(q))res.push(i);}
+  _acItems=res;_acSel=-1;
+  if(!res.length){box.innerHTML='<div class="acItem acEmpty">Sin resultados</div>';box.style.display='block';return;}
+  box.innerHTML=res.map(idx=>{const d=DATA[idx];return `<div class="acItem" onmousedown="pickAC(${idx})"><b>${esc(d.nombre)}</b><small>${esc(d.codigo||'')}${d.comuna?' · '+esc(d.comuna):''}${d.origen==='LOCAL'?' · LOCAL':''}</small></div>`;}).join('');
+  box.style.display='block';
+}
+function pickAC(idx){hideAC();$('predioSelect').value=idx;selectIndex(idx);}
+function highlightAC(){const box=$('predioAC');if(!box)return;[...box.children].forEach((c,k)=>{c.classList.toggle('sel',k===_acSel);if(k===_acSel)c.scrollIntoView({block:'nearest'});});}
+function onACKey(e){
+  const box=$('predioAC');const abierto=box&&box.style.display!=='none'&&_acItems.length;
+  if(!abierto){if(e.key==='Enter'){const q=norm(this.value).trim();if(q.length>=2){const i=DATA.findIndex(d=>norm(d.nombre).includes(q)||norm(d.codigo).includes(q));if(i>=0)pickAC(i);}}return;}
+  if(e.key==='ArrowDown'){e.preventDefault();_acSel=Math.min(_acSel+1,_acItems.length-1);highlightAC();}
+  else if(e.key==='ArrowUp'){e.preventDefault();_acSel=Math.max(_acSel-1,0);highlightAC();}
+  else if(e.key==='Enter'){e.preventDefault();pickAC(_acItems[_acSel<0?0:_acSel]);}
+  else if(e.key==='Escape'){hideAC();}
+}
 function encargadoFull(p){const n=String(p&&p.encargado||'').trim();const c=String(p&&p.claveRadio||'').trim();if(!n)return'No informado';return c?`${n} (${c})`:n;}
 function selectIndex(i){if(i===''||DATA[i]===undefined)return;selected=DATA[Number(i)];$('predioSearch').value=selected.nombre;$('encargado').value=encargadoFull(selected);$('fechaAviso').value=localNowValue();renderReport()}
 function validLatLon(p){let lat=Number(p?.lat),lon=Number(p?.long);if(!isFinite(lat)||!isFinite(lon))return null;const rawLat=String(p.latRaw||'').toUpperCase();const rawLon=String(p.longRaw||'').toUpperCase();/* Chile: latitudes Sur y longitudes Oeste negativas. */if(lat>0&&(rawLat.includes('S')||(lat>=17&&lat<=56)))lat=-lat;if(lon>0&&(rawLon.includes('O')||rawLon.includes('W')||(lon>=66&&lon<=76)))lon=-lon;return{lat,lon}}
@@ -332,7 +355,7 @@ function buildEmailHtml(){
         </td>
         <td style="width:230px;vertical-align:top;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:0;border:2px solid #696158;border-radius:12px;overflow:hidden;">
-            <tr><td style="background:#696158;color:#ffffff;text-align:center;font-weight:900;font-size:12px;padding:8px;">N° correlativo</td></tr>
+            <tr><td style="background:#696158;color:#ffffff;text-align:center;font-weight:900;font-size:12px;padding:8px;">N° aviso CONAF</td></tr>
             <tr><td style="background:#fffaf3;color:#EA7600;text-align:center;font-weight:900;font-size:20px;padding:12px;">${esc(r.folio)}</td></tr>
           </table>
         </td>
