@@ -11,7 +11,10 @@ export default async function handler(req, res) {
     const parts = (req.headers.authorization || '').split(' ');
     if (parts[0] === 'Bearer' && parts[1]) {
       const { email } = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-      if (email) await redis(['DEL', `session:${email}`]);
+      if (email) {
+        await redis(['DEL', `session:${email}`]);
+        await redis(['ZREM', 'online', email]); // sale de la lista de conectados
+      }
     }
   } catch {}
 

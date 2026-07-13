@@ -295,6 +295,58 @@ function iniciarPollAdmin_sesion() {
   _adminSesionTimer = setInterval(validarSesionAdmin, 15000);
 }
 
+// ── Usuarios conectados en tiempo real ────────────────────────────────────
+// Cada navegador late contra /api/ping-sesion cada 15 s; el servidor guarda ese
+// "visto por última vez" y aquí lo leemos. Conectado = latió en el último minuto.
+
+let _onlineTimer = null;
+
+function haceCuanto(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 10) return 'ahora mismo';
+  if (s < 60) return `hace ${s} s`;
+  return `hace ${Math.round(s / 60)} min`;
+}
+
+async function cargarConectados() {
+  const cont  = document.getElementById('onlineList');
+  const stat  = document.getElementById('statOnline');
+  const s     = verificarSesion();
+  if (!cont || !s?.token) return;
+
+  try {
+    const resp = await fetch('/api/token?type=online', {
+      headers: { Authorization: `Bearer ${crearCredenciales(s)}` },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const lista = data.conectados || [];
+
+    if (stat) stat.textContent = lista.length;
+
+    cont.innerHTML = lista.length === 0
+      ? '<div class="on-empty">No hay usuarios conectados en este momento.</div>'
+      : lista.map(u => `
+          <div class="on-item">
+            <span class="on-dot"></span>
+            <div class="on-info">
+              <div class="on-mail">${escapeHtml(u.email)}</div>
+              <div class="on-meta">${escapeHtml(u.cargo || 'Sin cargo')} · ${haceCuanto((data.ahora || Date.now()) - u.lastSeen)}</div>
+            </div>
+            ${u.rol === 'admin' ? '<span class="on-admin">ADMIN</span>' : ''}
+          </div>
+        `).join('');
+  } catch {
+    cont.innerHTML = '<div class="on-empty">No se pudo cargar la lista de conectados.</div>';
+  }
+}
+
+function iniciarPollConectados() {
+  cargarConectados();
+  _onlineTimer = setInterval(cargarConectados, 15000);
+}
+
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') validarSesionAdmin();
 });
@@ -422,4 +474,5 @@ window.addEventListener('DOMContentLoaded', () => {
     if (tabGuardada && tabGuardada !== 'usuarios') switchTab(tabGuardada);
   });
   iniciarPollAdmin_sesion();
+  iniciarPollConectados();
 });

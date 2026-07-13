@@ -75,6 +75,13 @@ function guard(){
   return true;
 }
 function isAdmin(){return currentUser&&currentUser.role==='ADMINISTRADOR'}
+// Latido de presencia: mantiene al usuario en la lista de "conectados" del panel admin
+function latidoPresencia(){
+  const s=dashSession();
+  if(!s||!s.email||!s.token||!s.sessionId)return;
+  const cred=btoa(JSON.stringify({email:s.email,token:s.token,sessionId:s.sessionId}));
+  fetch('/api/ping-sesion',{headers:{Authorization:'Bearer '+cred}}).catch(()=>{});
+}
 function nombreUsuario(){
   const em=currentUser&&currentUser.email?String(currentUser.email):'';
   const parts=em.split('@')[0].replace(/[._]+/g,' ').trim().split(' ').filter(Boolean);
@@ -200,6 +207,7 @@ async function init(){
   document.title='Aviso RDCFT Arauco';
   if(!guard())return;
   applySession();
+  latidoPresencia();setInterval(latidoPresencia,15000);
   $('fechaAviso').value=localNowValue();
   $('folio').value=getFolio();
   await loadBase();

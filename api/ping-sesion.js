@@ -17,6 +17,9 @@ export default async function handler(req, res) {
     if (!stored || stored !== sessionId) {
       return res.status(401).json({ valid: false });
     }
+    // Latido de presencia: deja registrado "visto por última vez" para que el
+    // panel de administración pueda mostrar quién está conectado ahora.
+    await redis(['ZADD', 'online', String(Date.now()), email]).catch(() => {});
     return res.status(200).json({ valid: true });
   } catch {
     return res.status(500).json({ valid: false });

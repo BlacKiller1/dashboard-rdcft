@@ -17,7 +17,18 @@
 
 <!-- Banner mantenimiento -->
 <div id="maint-banner" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:linear-gradient(90deg,#7c4a00,#EA7600,#7c4a00);background-size:200% 100%;animation:maint-slide 4s ease infinite;display:flex;align-items:center;justify-content:space-between;padding:8px 16px;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,0.35);transition:opacity .4s,transform .4s;font-family:Inter,system-ui,sans-serif;">
-  <style>@keyframes maint-slide{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}</style>
+  <style>@keyframes maint-slide{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+  @keyframes on-pulse{0%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}100%{opacity:1;transform:scale(1)}}
+  .on-hint{font-weight:400;font-size:11.5px;opacity:.6;margin-left:8px}
+  .on-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:12px}
+  .on-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.09);border-radius:10px;background:rgba(255,255,255,.03)}
+  .on-dot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--c-green,#2DB87A);box-shadow:0 0 8px var(--c-green,#2DB87A);animation:on-pulse 1.8s ease-in-out infinite}
+  .on-info{min-width:0;flex:1}
+  .on-mail{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .on-meta{font-size:11px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .on-admin{flex:none;font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px;background:rgba(232,130,10,.18);color:var(--c-orange,#E8820A)}
+  .on-empty{grid-column:1/-1;padding:16px;text-align:center;font-size:13px;opacity:.6}
+  </style>
   <div style="display:flex;align-items:center;gap:8px;flex:1;">
     <span style="font-size:15px;flex-shrink:0;">⚠️</span>
     <span style="font-size:.75rem;font-weight:500;color:rgba(255,255,255,.95);line-height:1.4;"><strong style="font-weight:700;color:#fff;">Plataforma en mejora continua.</strong> Algunos servicios pueden presentar intermitencias o tiempos de respuesta superiores a lo habitual.</span>
@@ -78,7 +89,23 @@
           <div class="ap-stat-label">Solicitudes pendientes</div>
         </div>
       </div>
+      <div class="ap-stat-card">
+        <div class="ap-stat-icon">🟢</div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-value" id="statOnline">—</div>
+          <div class="ap-stat-label">Conectados ahora</div>
+        </div>
+      </div>
     </div>
+
+    <!-- ── Usuarios conectados (tiempo real) ── -->
+    <section class="ap-section" id="seccionOnline">
+      <div class="ap-section-title">
+        Usuarios conectados
+        <span class="on-hint">se actualiza cada 15 s · se considera conectado si estuvo activo en el último minuto</span>
+      </div>
+      <div id="onlineList" class="on-list"><div class="on-empty">Cargando…</div></div>
+    </section>
 
     <!-- ── Agregar usuario ── -->
     <section class="ap-section">
