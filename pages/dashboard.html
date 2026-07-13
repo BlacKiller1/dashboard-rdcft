@@ -711,7 +711,7 @@
     });
 
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
+      navigator.serviceWorker.register('/service-worker.js')
         .then(reg => {
           console.log('[RDCFT] Service Worker registrado:', reg.scope);
           // Verificar actualizaciones cada vez que el usuario vuelve a la pestaña

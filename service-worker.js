@@ -5,7 +5,7 @@
                Network First para JS/CSS/datos, Cache First para el resto
    ═══════════════════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'rdcft-20260713175543';
+const CACHE_NAME = 'rdcft-20260713202443';
 const CACHE_OFFLINE = 'rdcft-offline-v1';
 
 // Solo manifest para pre-cachear (index.html NUNCA se cachea para que
@@ -49,10 +49,13 @@ self.addEventListener('fetch', event => {
   // Peticiones cross-origin → no interceptar
   if (url.origin !== location.origin) return;
 
-  // Documentos HTML → Network First (los headers CSP deben venir de Vercel)
+  // Documentos HTML → Network First, saltándose la caché HTTP del navegador
+  // (si no, una copia vieja de la página puede quedarse pegada en el cliente)
   if (event.request.destination === 'document') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/pages/dashboard.html'))
+      fetch(event.request, { cache: 'no-cache' })
+        .catch(() => fetch(event.request))
+        .catch(() => caches.match('/pages/dashboard.html'))
     );
     return;
   }
