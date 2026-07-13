@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía de uso — Aviso RDCFT Arauco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap">
+<style>
+:root{--cafe:#696158;--lima:#BFB800;--naranja:#EA7600;--crema:#DFD1A7;--fondo:#f5f1e6;--tinta:#26231f;--linea:#d8ccb0;--verde:#2DB87A;--rojo:#8b3d2e}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter','Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,var(--fondo),#fffaf0);color:var(--tinta);line-height:1.55}
+.wrap{max-width:900px;margin:0 auto;padding:28px 20px 70px}
+
+/* Encabezado */
+.head{display:flex;align-items:center;gap:16px;border-bottom:4px solid var(--naranja);padding-bottom:16px;margin-bottom:8px}
+.head .logo{width:78px;height:78px;background:#fff;border:1px solid var(--linea);border-radius:12px;display:flex;align-items:center;justify-content:center;padding:6px;flex:none}
+.head .logo img{max-width:100%;max-height:100%;object-fit:contain}
+.head h1{margin:0;font-family:'Manrope',sans-serif;font-size:26px;color:var(--cafe);text-transform:uppercase;letter-spacing:.4px}
+.head p{margin:4px 0 0;color:#7d7263;font-size:14px}
+.backbar{margin:16px 0 26px}
+.backbar a{display:inline-block;background:var(--cafe);color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:9px 14px;border-radius:9px}
+.backbar a:hover{background:#57504a}
+
+/* Leyenda */
+.leyenda{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;background:#fff;border:1px solid var(--linea);border-radius:14px;padding:16px;margin-bottom:28px}
+.leyenda .li{display:flex;align-items:center;gap:9px;font-size:13.5px}
+.chip{font-size:11px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
+.chip.edit{background:#e3f6ec;color:#17734a;border:1px solid #9fd9bd}
+.chip.auto{background:#eee9dd;color:#6b5f4b;border:1px solid var(--linea)}
+.chip.btn{background:#fde5cc;color:#a24f00;border:1px solid #f0b878}
+.chip.oblig{background:#fbe3de;color:#8b3d2e;border:1px solid #e6b2a6}
+
+/* Pasos */
+.paso{background:#fff;border:1px solid var(--linea);border-radius:16px;padding:20px 22px;margin-bottom:22px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.paso h2{display:flex;align-items:center;gap:12px;margin:0 0 6px;font-size:19px;color:var(--cafe);font-family:'Manrope',sans-serif}
+.num{flex:none;width:34px;height:34px;border-radius:50%;background:var(--naranja);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.paso .sub{margin:0 0 16px;color:#7d7263;font-size:14px}
+.paso p{margin:10px 0}
+.nota{border-left:6px solid var(--lima);background:#faf5e4;border-radius:8px;padding:11px 14px;font-size:13.5px;margin:14px 0}
+.alerta{border-left:6px solid var(--rojo);background:#fbeeea;border-radius:8px;padding:11px 14px;font-size:13.5px;margin:14px 0}
+
+/* Maqueta del panel oscuro (réplica de la app) */
+.mock{background:#16140f;border:1px solid rgba(223,209,167,.18);border-radius:14px;padding:16px;color:#f3ecd9;margin:14px 0}
+.mock .card{border:1px solid rgba(223,209,167,.14);border-radius:12px;padding:14px;background:rgba(255,255,255,.035);margin-bottom:12px}
+.mock .card:last-child{margin-bottom:0}
+.mock label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;margin:12px 0 5px;text-transform:uppercase;color:#bcae8c}
+.mock .card > .row:first-child label{margin-top:0}
+.mock .input{width:100%;padding:9px 11px;border:1px solid rgba(223,209,167,.2);border-radius:9px;font-size:13px;background:#211e18;color:#f3ecd9}
+.mock .input.ro{background:#1a1813;color:#cfc4a4}
+.mock .input.ph{color:#857b64}
+.mock .btn{display:block;width:100%;text-align:center;border:0;border-radius:9px;padding:10px;font-weight:700;font-size:12.5px;margin-top:9px}
+.mock .btn.primary{background:var(--naranja);color:#fff}
+.mock .btn.secondary{background:var(--lima);color:#1f1f1e}
+.mock .btn.ghost{background:rgba(255,255,255,.05);color:#f3ecd9;border:1px solid rgba(223,209,167,.25)}
+.mock .row{position:relative;padding-left:34px;margin-bottom:12px}
+.mock .row:last-child{margin-bottom:0}
+.mock .tag{position:absolute;left:0;top:16px;width:24px;height:24px;border-radius:50%;background:var(--naranja);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.mock .row.plain{padding-left:0}
+.mock .marks{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.mock .caption{font-size:11.5px;color:#9a8f72;margin-top:6px}
+
+/* Autocompletado simulado */
+.ac{border:1px solid rgba(223,209,167,.28);border-top:0;border-radius:0 0 9px 9px;background:#1c1a14;overflow:hidden}
+.ac .it{padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.05);font-size:12.5px}
+.ac .it:last-child{border-bottom:0}
+.ac .it.sel{background:rgba(234,118,0,.18)}
+.ac .it b{display:block;color:#f3ecd9}
+.ac .it small{color:#9a8f72;font-size:10.5px}
+
+/* Maqueta del reporte (papel blanco) */
+.paper{background:#fff;border:1px solid var(--linea);border-radius:12px;padding:16px;margin:14px 0}
+.paper .top{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border-bottom:4px solid var(--naranja);padding-bottom:10px}
+.paper .lg{width:64px;height:44px;border:1px solid var(--linea);border-radius:8px;display:flex;align-items:center;justify-content:center;padding:4px}
+.paper .lg img{max-width:100%;max-height:100%}
+.paper .ti{font-weight:900;color:var(--cafe);text-transform:uppercase;font-size:15px}
+.paper .st{font-weight:700;color:var(--cafe);font-size:11px;opacity:.85}
+.paper .fo{border:2px solid var(--cafe);border-radius:9px;overflow:hidden;text-align:center;min-width:150px}
+.paper .fo .cap{background:var(--cafe);color:#fff;font-size:10px;font-weight:900;padding:5px}
+.paper .fo .num2{color:var(--naranja);font-weight:900;font-size:14px;padding:8px;background:#fffaf3}
+.paper table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:12px}
+.paper th{width:34%;background:var(--cafe);color:#fff;text-align:left;padding:7px;border:1px solid #fff;font-weight:700}
+.paper td{padding:7px;border:1px solid var(--linea);background:#fffdf8}
+
+/* Mapa simulado */
+.mapmock{position:relative;height:190px;border-radius:10px;overflow:hidden;border:2px solid var(--linea);background:linear-gradient(135deg,#4a6741,#3d5636 40%,#5b6b4a);margin:14px 0}
+.mapmock .poly{position:absolute;border:2px solid var(--verde);background:rgba(45,184,122,.14);border-radius:4px}
+.mapmock .poly.sel{border:3px solid var(--naranja);background:rgba(234,118,0,.20)}
+.mapmock .pin{position:absolute;left:50%;top:52%;transform:translate(-50%,-100%);font-size:28px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.mapmock .bar{position:absolute;left:0;right:0;top:0;background:rgba(0,0,0,.72);color:#fff;font-size:11.5px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center}
+.mapmock .bar .bs{display:flex;gap:5px}
+.mapmock .bar .bs span{background:rgba(255,255,255,.12);border-radius:6px;padding:3px 7px;font-weight:700}
+.mapmock .bar .bs span.on{background:var(--lima);color:#1f1f1e}
+.mapmock .foot{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.78);color:#fff;font-size:11.5px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center}
+.mapmock .foot .use{background:var(--naranja);border-radius:6px;padding:4px 9px;font-weight:800}
+
+/* Tabla resumen */
+table.res{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px;background:#fff}
+table.res th{background:var(--cafe);color:#fff;text-align:left;padding:9px;border:1px solid #fff;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+table.res td{padding:9px;border:1px solid var(--linea);vertical-align:top}
+table.res tr:nth-child(even) td{background:#fffdf8}
+
+/* FAQ */
+.faq{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:6px 20px;margin-top:22px}
+.faq details{border-bottom:1px solid #eee5cf;padding:12px 0}
+.faq details:last-child{border-bottom:0}
+.faq summary{cursor:pointer;font-weight:700;color:var(--cafe);font-size:14.5px}
+.faq p{font-size:13.5px;margin:8px 0 0}
+.footer{text-align:center;color:var(--cafe);font-size:12.5px;margin-top:34px}
+@media print{.backbar{display:none}body{background:#fff}}
+@media(max-width:640px){.head{flex-direction:column;text-align:center}.paper .top{grid-template-columns:1fr;justify-items:center;text-align:center}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <div class="logo"><img src="/icons/Logo%20RDCFT.png" alt="RDCFT"></div>
+    <div>
+      <h1>Guía de uso — Aviso RDCFT</h1>
+      <p>Cómo generar y enviar un aviso de reducción de combustible / fuego técnico, paso a paso.</p>
+    </div>
+  </div>
+
+  <div class="backbar">
+    <a href="/pages/aviso-rdcft.html">← Volver al Aviso RDCFT</a>
+  </div>
+
+  <!-- LEYENDA -->
+  <div class="leyenda">
+    <div class="li"><span class="chip edit">Editable</span> Lo escribes o modificas tú.</div>
+    <div class="li"><span class="chip auto">Automático</span> Se llena solo. No hace falta tocarlo.</div>
+    <div class="li"><span class="chip btn">Botón</span> Haces clic aquí.</div>
+    <div class="li"><span class="chip oblig">Obligatorio</span> Sin esto el aviso queda incompleto.</div>
+  </div>
+
+  <!-- PASO 1 -->
+  <div class="paso">
+    <h2><span class="num">1</span> Entrar al Aviso RDCFT</h2>
+    <p class="sub">Desde el dashboard, en el menú lateral, pulsa el botón <b>Aviso RDCFT</b>.</p>
+    <div class="nota">
+      <b>¿No ves el botón?</b> El Aviso RDCFT está disponible solo para el cargo
+      <b>Central Protección</b> y para administradores. Si tu cargo es otro y necesitas acceso,
+      pídelo al administrador.
+    </div>
+    <p>Al entrar verás <b>dos zonas</b>: a la <b>izquierda el panel de datos</b> (donde escribes) y a la
+    <b>derecha el reporte</b> (que se va armando solo mientras completas los datos).</p>
+  </div>
+
+  <!-- PASO 2 -->
+  <div class="paso">
+    <h2><span class="num">2</span> Buscar el predio</h2>
+    <p class="sub">Escribe <b>parte del nombre</b> o el <b>código</b> del predio. Aparecen las coincidencias mientras escribes.</p>
+
+    <div class="mock">
+      <div class="card">
+        <div class="row">
+          <div class="tag">A</div>
+          <label>Buscar predio (nombre o código)</label>
+          <div class="input">chingue</div>
+          <div class="ac">
+            <div class="it sel"><b>(EL CHINGUE) - LA VIÑA</b><small>71079 · Tome</small></div>
+            <div class="it"><b>CC-18 LOS CHINGUES - GDJO</b><small>14172 · Arauco</small></div>
+            <div class="it"><b>EL CHINGUE</b><small>40332 · Curanilahue</small></div>
+          </div>
+          <div class="marks"><span class="chip edit">Editable</span><span class="chip oblig">Obligatorio</span></div>
+          <div class="caption">Haz clic en el predio de la lista, o usa ↑ ↓ y Enter.</div>
+        </div>
+        <div class="row">
+          <div class="tag">B</div>
+          <label>Selector de predio</label>
+          <div class="input ph">Seleccione...</div>
+          <div class="caption">Alternativa: la lista completa desplegable.</div>
+        </div>
+      </div>
+    </div>
+
+    <p><b>A —</b> Buscador rápido. Funciona <b>sin tildes</b> y con búsquedas parciales
+    (ej. <i>viña</i>, <i>chingue</i>, o el código <i>71079</i>). Muestra hasta 25 resultados.</p>
+    <p><b>B —</b> Si prefieres, puedes desplegar la lista completa de predios.</p>
+
+    <div class="nota">
+      <b>Importante:</b> al elegir el predio se rellenan solos el <b>encargado</b>, la <b>región / provincia / comuna</b>
+      y las <b>coordenadas</b> del predio. Si cambias de predio, <b>la ubicación cambia también</b>.
+    </div>
+  </div>
+
+  <!-- PASO 3 -->
+  <div class="paso">
+    <h2><span class="num">3</span> Completar los datos del aviso</h2>
+    <p class="sub">Esta es la parte clave: qué debes escribir y qué se llena solo.</p>
+
+    <div class="mock">
+      <div class="card">
+        <div class="row">
+          <div class="tag">1</div>
+          <label>Número de aviso CONAF</label>
+          <div class="input">RDCFT-2026-000021</div>
+          <div class="btn ghost">Generar N° automático</div>
+          <div class="marks"><span class="chip edit">Editable</span><span class="chip oblig">Obligatorio</span></div>
+          <div class="caption">Escribe aquí el número que te entrega CONAF. Puedes borrar el que viene y poner el real.</div>
+        </div>
+
+        <div class="row">
+          <div class="tag">2</div>
+          <label>Fecha y hora del aviso (automática)</label>
+          <div class="input ro">10-07-2026 09:35</div>
+          <div class="btn ghost">Actualizar a la hora actual</div>
+          <div class="marks"><span class="chip auto">Automático</span><span class="chip btn">Botón</span></div>
+          <div class="caption">Se pone sola. Usa el botón solo si quieres refrescarla a la hora actual.</div>
+        </div>
+
+        <div class="row">
+          <div class="tag">3</div>
+          <label>Encargado del predio (editable)</label>
+          <div class="input">JUAN PÉREZ (R-14)</div>
+          <div class="marks"><span class="chip auto">Se prellena</span><span class="chip edit">Editable</span></div>
+          <div class="caption">Viene del predio, con su clave de radio entre paréntesis. Puedes corregirlo si no corresponde.</div>
+        </div>
+
+        <div class="row">
+          <div class="tag">4</div>
+          <label>Superficie a quemar (ha)</label>
+          <div class="input ph">Ej: 12,5</div>
+          <div class="marks"><span class="chip edit">Editable</span><span class="chip oblig">Obligatorio</span></div>
+          <div class="caption">Va vacío a propósito: <b>no</b> es la superficie del predio, sino la que vas a quemar. Escríbela tú.</div>
+        </div>
+
+        <div class="row">
+          <div class="tag">5</div>
+          <label>Coordenadas (decimal o GMS)</label>
+          <div class="input">-36.594246, -72.939559</div>
+          <div class="btn secondary">🗺️ Seleccionar en mapa</div>
+          <div class="marks"><span class="chip auto">Se prellena</span><span class="chip edit">Editable</span><span class="chip btn">Botón</span></div>
+          <div class="caption">Vienen del predio elegido. Ajústalas al punto exacto de la quema con el mapa (paso 4).</div>
+        </div>
+
+        <div class="row">
+          <div class="tag">6</div>
+          <label>Observación adicional</label>
+          <div class="input ph">Opcional</div>
+          <div class="marks"><span class="chip edit">Editable</span></div>
+          <div class="caption">Opcional. Si lo dejas vacío, el reporte dirá "Sin observaciones adicionales".</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alerta">
+      <b>Los dos datos que SIEMPRE debes escribir tú:</b> el <b>N° de aviso CONAF</b> (1) y la
+      <b>superficie a quemar</b> (4). El resto se completa solo al elegir el predio.
+    </div>
+  </div>
+
+  <!-- PASO 4 -->
+  <div class="paso">
+    <h2><span class="num">4</span> Marcar el punto exacto en el mapa</h2>
+    <p class="sub">Pulsa <b>🗺️ Seleccionar en mapa</b>. Se abre el mapa satelital con los predios dibujados.</p>
+
+    <div class="mapmock">
+      <div class="bar">
+        <span>📍 Seleccione el punto en el mapa</span>
+        <span class="bs"><span class="on">Satélite</span><span>Mapa</span><span class="on">Predios</span></span>
+      </div>
+      <div class="poly" style="left:12%;top:34%;width:30%;height:34%"></div>
+      <div class="poly sel" style="left:42%;top:28%;width:34%;height:44%"></div>
+      <div class="poly" style="left:78%;top:40%;width:16%;height:28%"></div>
+      <div class="pin">📍</div>
+      <div class="foot">
+        <span>36°52'17.3"S 72°49'16.5"O &nbsp;·&nbsp; -36.871474, -72.821248</span>
+        <span class="use">Usar estas coordenadas</span>
+      </div>
+    </div>
+
+    <p><b>Qué puedes hacer:</b></p>
+    <p>• <b>Clic en cualquier parte del mapa</b> → mueve el pin 📍 a ese punto.<br>
+       • <b>Arrastrar el pin</b> → ajuste fino.<br>
+       • <b>Satélite / Mapa</b> → cambia la vista.<br>
+       • <b>Predios</b> → muestra u oculta los polígonos de los predios. El predio que elegiste
+         aparece <b style="color:#EA7600">resaltado en naranja</b>, y los demás en verde.<br>
+       • <b>Usar estas coordenadas</b> → confirma y vuelve al formulario.</p>
+
+    <div class="nota">
+      Las coordenadas quedan registradas en <b>grados-minutos-segundos</b> y en <b>decimal</b>, y son las
+      que se usan para la imagen satelital y el enlace a Google Maps del aviso.
+    </div>
+  </div>
+
+  <!-- PASO 5 -->
+  <div class="paso">
+    <h2><span class="num">5</span> Revisar el reporte</h2>
+    <p class="sub">A la derecha se arma solo. <b>No se escribe ahí</b>: cambia únicamente al modificar el panel de la izquierda.</p>
+
+    <div class="paper">
+      <div class="top">
+        <div class="lg"><img src="/icons/Logo%20RDCFT.png" alt="RDCFT"></div>
+        <div>
+          <div class="ti">Aviso RDCFT Arauco</div>
+          <div class="st">Reducción de combustible / fuego técnico</div>
+        </div>
+        <div class="fo"><div class="cap">N° aviso CONAF</div><div class="num2">RDCFT-2026-000021</div></div>
+      </div>
+      <table>
+        <tr><th>Fecha y hora del aviso</th><td>10-07-2026 09:35</td></tr>
+        <tr><th>Código del predio</th><td>71079</td></tr>
+        <tr><th>Predio</th><td>(EL CHINGUE) - LA VIÑA</td></tr>
+        <tr><th>Encargado</th><td>JUAN PÉREZ (R-14)</td></tr>
+        <tr><th>Comuna</th><td>Tome</td></tr>
+        <tr><th>Superficie</th><td>12,5 ha</td></tr>
+        <tr><th>Coordenadas</th><td>36°35'39.3"S 72°56'22.4"O</td></tr>
+      </table>
+    </div>
+
+    <p>Verifica que el <b>N° CONAF</b>, la <b>superficie</b> y las <b>coordenadas</b> estén correctos antes de enviar.
+    Más abajo el reporte muestra la <b>imagen satelital</b> del punto (con el pin) y el pie
+    <i>"Reporte generado por [tu nombre]"</i>.</p>
+  </div>
+
+  <!-- PASO 6 -->
+  <div class="paso">
+    <h2><span class="num">6</span> Enviar por Outlook</h2>
+    <p class="sub">Un solo botón deja el correo listo, con el formato, el logo y la imagen.</p>
+
+    <div class="mock">
+      <div class="card">
+        <div class="row plain">
+          <div class="btn primary">📧 Enviar por Outlook (1 clic)</div>
+          <div class="btn ghost">Guardar trazabilidad</div>
+        </div>
+      </div>
+    </div>
+
+    <p><b>Qué pasa al pulsar "Enviar por Outlook":</b></p>
+    <p>1. Se <b>descarga un archivo</b> terminado en <code>.eml</code> (lo verás abajo en tu navegador).<br>
+       2. <b>Haz doble clic</b> en ese archivo.<br>
+       3. Se abre <b>Outlook con el correo ya armado</b>: asunto, tabla, colores, logo, imagen satelital y el enlace a Google Maps.<br>
+       4. <b>Agrega el destinatario</b> y pulsa <b>Enviar</b>.</p>
+
+    <div class="nota">
+      La <b>imagen satelital del correo es clickeable</b>: quien lo reciba puede hacer clic en ella y se le
+      abre la ubicación en Google Maps.
+    </div>
+
+    <div class="alerta">
+      <b>Si usas el "Nuevo Outlook" o Outlook web</b> y el archivo se abre como un correo <i>recibido</i>
+      (que no te deja enviarlo), avísale al administrador: existe una alternativa que copia el correo
+      con formato para pegarlo directamente en un mensaje nuevo.
+    </div>
+  </div>
+
+  <!-- PASO 7 -->
+  <div class="paso">
+    <h2><span class="num">7</span> Guardar trazabilidad</h2>
+    <p class="sub">Deja registro del aviso emitido.</p>
+    <p>Pulsa <b>Guardar trazabilidad</b> para registrar el aviso en el <b>historial</b> (queda con tu usuario,
+    el N° de aviso, el predio y la fecha). El historial se ve más abajo en el panel izquierdo.</p>
+    <div class="nota">
+      Al usar <b>Enviar por Outlook</b> el aviso <b>ya se guarda automáticamente</b> en el historial.
+      El botón sirve para registrar sin enviar correo.
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="paso">
+    <h2><span class="num">✓</span> Resumen: qué se modifica y qué no</h2>
+    <table class="res">
+      <tr><th>Campo</th><th>¿Se puede modificar?</th><th>Detalle</th></tr>
+      <tr><td><b>N° de aviso CONAF</b></td><td><span class="chip edit">Sí</span></td><td>Escríbelo tú. Hay un botón para generar uno automático como apoyo.</td></tr>
+      <tr><td><b>Fecha y hora</b></td><td><span class="chip auto">No</span></td><td>Se pone sola. Puedes refrescarla con su botón.</td></tr>
+      <tr><td><b>Predio / Código</b></td><td><span class="chip auto">No</span></td><td>Vienen de la base al elegir el predio en el buscador.</td></tr>
+      <tr><td><b>Encargado</b></td><td><span class="chip edit">Sí</span></td><td>Se prellena desde el predio, pero puedes corregirlo.</td></tr>
+      <tr><td><b>Región / Provincia / Comuna</b></td><td><span class="chip auto">No</span></td><td>Vienen de la base del predio.</td></tr>
+      <tr><td><b>Superficie a quemar</b></td><td><span class="chip edit">Sí</span></td><td>Siempre manual. Es la superficie a quemar, no la del predio.</td></tr>
+      <tr><td><b>Coordenadas</b></td><td><span class="chip edit">Sí</span></td><td>Se prellenan con el predio; ajústalas con el mapa al punto exacto.</td></tr>
+      <tr><td><b>Observación</b></td><td><span class="chip edit">Sí</span></td><td>Opcional.</td></tr>
+      <tr><td><b>Reporte (lado derecho)</b></td><td><span class="chip auto">No</span></td><td>Se arma solo. Se cambia editando el panel izquierdo.</td></tr>
+    </table>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq">
+    <details>
+      <summary>No encuentro el predio en el buscador</summary>
+      <p>Prueba con el <b>código</b> del predio en vez del nombre, o con una parte más corta del nombre
+      (el buscador ignora tildes y busca coincidencias parciales). Si aun así no aparece, avisa al administrador:
+      puede que el predio no esté en la base.</p>
+    </details>
+    <details>
+      <summary>Cambié de predio y la ubicación no era la correcta</summary>
+      <p>Al cambiar de predio, las coordenadas se actualizan solas al <b>centro del nuevo predio</b>. Ese es un
+      punto de referencia: debes ajustarlo al <b>punto exacto de la quema</b> con
+      <b>🗺️ Seleccionar en mapa</b>.</p>
+    </details>
+    <details>
+      <summary>En Outlook no se ven el logo ni la imagen del mapa</summary>
+      <p>El correo lleva el logo y la imagen <b>incrustados</b>, así que deberían verse. Si tu Outlook está
+      configurado para bloquear imágenes, pulsa el aviso de <i>"Descargar imágenes"</i> que aparece arriba
+      del mensaje.</p>
+    </details>
+    <details>
+      <summary>¿Puedo enviar el aviso sin marcar coordenadas?</summary>
+      <p>No es recomendable: sin coordenadas el aviso sale <b>sin imagen satelital ni enlace a Google Maps</b>,
+      que es justamente lo que permite ubicar la quema.</p>
+    </details>
+    <details>
+      <summary>¿Quién queda registrado como emisor del aviso?</summary>
+      <p>El usuario con el que iniciaste sesión. El reporte y el correo llevan al pie
+      <i>"Reporte generado por [tu nombre]"</i> y el aviso queda en el historial con tu usuario.</p>
+    </details>
+  </div>
+
+  <div class="backbar" style="margin-top:26px">
+    <a href="/pages/aviso-rdcft.html">← Volver al Aviso RDCFT</a>
+  </div>
+
+  <div class="footer">
+    <b>Central de Incendios Forestal Arauco PROTECCIÓN</b>
+  </div>
+
+</div>
+</body>
+</html>
