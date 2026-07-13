@@ -488,7 +488,7 @@ async function generarEml(){
       try{const b64=await fetchAsBase64(r.mapImg);html=html.split(esc(r.mapImg)).join('cid:mapa@rdcft');parts.push({cid:'mapa@rdcft',mime:'image/jpeg',b64});}
       catch(e){console.warn('No se pudo incrustar el mapa; se deja como imagen remota:',e);}
     }
-    const subject=`${r.folio} - Aviso RDCFT Arauco - ${r.predio}`;
+    const subject='Aviso RDCFT - '+r.predio+(r.codigo?' - '+r.codigo:'');
     const eml=buildRelatedEml(subject,html,parts);
     const blob=new Blob([eml],{type:'message/rfc822'});
     const a=document.createElement('a');
