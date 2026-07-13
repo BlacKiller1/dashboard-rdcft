@@ -57,7 +57,7 @@ label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;margin:1
 <div class="section-title">Antecedentes generales</div><table class="infoTable"><tbody><tr><th>Fecha y hora del aviso</th><td id="rFecha"></td></tr><tr><th>Código del predio</th><td id="rCodigo"></td></tr><tr><th>Predio</th><td id="rNombre"></td></tr><tr><th>Encargado</th><td id="rEncargado"></td></tr><tr><th>Región</th><td id="rRegion"></td></tr><tr><th>Provincia</th><td id="rProvincia"></td></tr><tr><th>Comuna</th><td id="rComuna"></td></tr><tr><th>Superficie</th><td id="rSuperficie"></td></tr><tr><th>Coordenadas</th><td id="rCoords"></td></tr></tbody></table>
 <div class="section-title">Ubicación referencial</div><div id="map" class="mapbox"></div><div class="geoLinks"><a class="maplink" id="googleMapsLink" href="#" target="_blank">📍 Ver en Google Maps</a></div><div class="intro" style="margin-top:16px"><b>Observación:</b> <span id="rObs">Sin observaciones adicionales.</span></div><div class="footer"><b id="footerBy">Reporte generado por CENTRAL DE PROTECCIÓN ARAUCO</b><br>Central de Incendios Forestal Arauco PROTECCIÓN</div>
 </div></section></main></div><div class="emailPreview no-print" id="emailPreview"><div class="emailCard"><h3>Vista previa correo profesional HTML corporativo</h3><div id="emailHtmlPreview"></div><div class="emailActions"><button class="secondary" onclick="copiarCorreoHTML()">Copiar correo HTML</button><button class="primary" onclick="generarEml()">Generar Outlook .eml</button><button class="danger" onclick="document.getElementById('emailPreview').style.display='none'">Cerrar</button></div><p style="font-size:12px;color:#666">Esta vista muestra el formato corporativo real del correo. Para conservar tablas y colores en Outlook, use "Generar Outlook .eml" o copie el HTML y péguelo en el cuerpo del mensaje.</p></div></div>
-<div class="pickerModal no-print" id="pickerModal"><div class="pickerCard"><div class="pickerHead"><b>📍 Seleccione el punto en el mapa</b><div class="pickerLayers"><button class="miniBtn secondary" id="pLayerSat" onclick="setPickerLayer('sat')">Satélite</button><button class="miniBtn ghost" id="pLayerMap" onclick="setPickerLayer('mapa')">Mapa</button></div></div><div id="pickerMap"></div><div class="pickerFoot"><div class="pickerCoords"><span id="pickerDMS">—</span><br><small id="pickerDec">Haga clic en el mapa o arrastre el marcador para fijar el punto.</small></div><div class="pickerActions"><button class="ghost" onclick="closePicker()">Cancelar</button><button class="primary" id="pickerUse" onclick="usePickerCoords()" disabled>Usar estas coordenadas</button></div></div></div></div>
+<div class="pickerModal no-print" id="pickerModal"><div class="pickerCard"><div class="pickerHead"><b>📍 Seleccione el punto en el mapa</b><div class="pickerLayers"><button class="miniBtn secondary" id="pLayerSat" onclick="setPickerLayer('sat')">Satélite</button><button class="miniBtn ghost" id="pLayerMap" onclick="setPickerLayer('mapa')">Mapa</button><button class="miniBtn ghost" id="pLayerPredios" onclick="togglePrediosPicker()">Predios</button></div></div><div id="pickerMap"></div><div class="pickerFoot"><div class="pickerCoords"><span id="pickerDMS">—</span><br><small id="pickerDec">Haga clic en el mapa o arrastre el marcador para fijar el punto.</small></div><div class="pickerActions"><button class="ghost" onclick="closePicker()">Cancelar</button><button class="primary" id="pickerUse" onclick="usePickerCoords()" disabled>Usar estas coordenadas</button></div></div></div></div>
 <script src="/js/vendor/leaflet.js"></script>
 <script>
 const DATA = [];
@@ -276,7 +276,49 @@ function coordsDMS(lat,lon){return toDMS(lat,true)+' '+toDMS(lon,false);}
 function coordsLabel(lat,lon){return `${coordsDMS(lat,lon)}  (${lat.toFixed(6)}, ${lon.toFixed(6)})`;}
 
 /* ── Selector de coordenadas por mapa (Leaflet) ────────────────────── */
-let pMap=null,pMarker=null,pLat=null,pLon=null,pLayers={};
+let pMap=null,pMarker=null,pLat=null,pLon=null,pLayers={},pPredios=null,pPrediosData=null,pPrediosOn=true,pPredioHi=null,pCanvas=null;
+// Capa de predios (polígonos) sobre el mapa selector. Va como capa NO interactiva
+// para que el clic siga fijando el punto en vez de abrir el polígono.
+function cargarPrediosPicker(){
+  if(pPrediosData){renderPrediosPicker();return;}
+  const b=$('pLayerPredios');if(b){b.textContent='⏳ Predios';b.disabled=true;}
+  fetch('/data/predios.geojson').then(r=>r.json()).then(d=>{
+    pPrediosData=d;if(b){b.textContent='Predios';b.disabled=false;}
+    renderPrediosPicker();
+  }).catch(e=>{
+    console.warn('No se pudo cargar la capa de predios:',e);
+    if(b){b.textContent='⚠ Predios';b.disabled=false;}
+  });
+}
+function renderPrediosPicker(){
+  if(!pMap||!pPrediosData||pPredios)return;
+  pCanvas=pCanvas||L.canvas({padding:.3});
+  pPredios=L.geoJSON(pPrediosData,{renderer:pCanvas,interactive:false,
+    style:{color:'#2DB87A',weight:1.1,opacity:.95,fillColor:'#2DB87A',fillOpacity:.10}});
+  if(pPrediosOn)pPredios.addTo(pMap);
+  resaltarPredioPicker();
+  actualizarBtnPredios();
+}
+function resaltarPredioPicker(){
+  if(!pMap||!pPrediosData)return;
+  if(pPredioHi){pMap.removeLayer(pPredioHi);pPredioHi=null;}
+  const cod=selected&&selected.codigo?String(selected.codigo).trim():'';
+  if(!cod)return;
+  const feats=(pPrediosData.features||[]).filter(f=>String((f.properties||{}).id||'').trim()===cod);
+  if(!feats.length)return;
+  pCanvas=pCanvas||L.canvas({padding:.3});
+  pPredioHi=L.geoJSON({type:'FeatureCollection',features:feats},{renderer:pCanvas,interactive:false,
+    style:{color:'#EA7600',weight:3,opacity:1,fillColor:'#EA7600',fillOpacity:.18}});
+  if(pPrediosOn)pPredioHi.addTo(pMap);
+}
+function togglePrediosPicker(){
+  if(!pMap)return;
+  if(!pPredios){pPrediosOn=true;cargarPrediosPicker();return;}
+  pPrediosOn=!pPrediosOn;
+  [pPredios,pPredioHi].forEach(l=>{if(!l)return;if(pPrediosOn)l.addTo(pMap);else pMap.removeLayer(l);});
+  actualizarBtnPredios();
+}
+function actualizarBtnPredios(){const b=$('pLayerPredios');if(b)b.className='miniBtn '+(pPrediosOn&&pPredios?'secondary':'ghost');}
 function openPicker(){$('pickerModal').style.display='flex';setTimeout(initPicker,40);}
 function closePicker(){$('pickerModal').style.display='none';}
 function initPicker(){
@@ -289,7 +331,9 @@ function initPicker(){
     pLayers.mapa=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© CARTO'});
     pMap.on('click',e=>setPickerMarker(e.latlng.lat,e.latlng.lng));
     setPickerLayer('sat');
+    cargarPrediosPicker();
   }
+  resaltarPredioPicker();
   let c=manualCoords();
   if(!c&&selected&&isFinite(Number(selected.lat))&&isFinite(Number(selected.long)))c={lat:Number(selected.lat),lon:Number(selected.long)};
   if(c){pMap.setView([c.lat,c.lon],15);setPickerMarker(c.lat,c.lon);}
