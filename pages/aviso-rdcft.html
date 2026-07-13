@@ -235,7 +235,18 @@ function onACKey(e){
   else if(e.key==='Escape'){hideAC();}
 }
 function encargadoFull(p){const n=String(p&&p.encargado||'').trim();const c=String(p&&p.claveRadio||'').trim();if(!n)return'No informado';return c?`${n} (${c})`:n;}
-function selectIndex(i){if(i===''||DATA[i]===undefined)return;selected=DATA[Number(i)];$('predioSearch').value=selected.nombre;$('encargado').value=encargadoFull(selected);$('fechaAviso').value=localNowValue();renderReport()}
+function selectIndex(i){
+  if(i===''||DATA[i]===undefined)return;
+  selected=DATA[Number(i)];
+  $('predioSearch').value=selected.nombre;
+  $('encargado').value=encargadoFull(selected);
+  $('fechaAviso').value=localNowValue();
+  // Al cambiar de predio, la ubicación pasa a la del nuevo predio (centroide).
+  // Se puede ajustar después con el mapa o escribiendo las coordenadas.
+  const ll=validLatLon(selected);
+  $('coordsManual').value=ll?(ll.lat.toFixed(6)+', '+ll.lon.toFixed(6)):'';
+  renderReport();
+}
 function validLatLon(p){let lat=Number(p?.lat),lon=Number(p?.long);if(!isFinite(lat)||!isFinite(lon))return null;const rawLat=String(p.latRaw||'').toUpperCase();const rawLon=String(p.longRaw||'').toUpperCase();/* Chile: latitudes Sur y longitudes Oeste negativas. */if(lat>0&&(rawLat.includes('S')||(lat>=17&&lat<=56)))lat=-lat;if(lon>0&&(rawLon.includes('O')||rawLon.includes('W')||(lon>=66&&lon<=76)))lon=-lon;return{lat,lon}}
 function geoLinks(lat,lon){return{osm:`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`,gmap:`https://www.google.com/maps?q=${lat},${lon}`,earth:`https://earth.google.com/web/search/${lat},${lon}/@${lat},${lon},1200a,1000d,35y,0h,0t,0r`}}
 function dmsToDec(token){
