@@ -10,3 +10,6 @@ node_modules/
 
 # Base fuente con datos de contacto (no publicar)
 data/predios_extraidos.csv
+
+# Planilla fuente de claves (contiene nombres) — se publica solo el JSON derivado
+data/CLAVES_CARGO.xlsx

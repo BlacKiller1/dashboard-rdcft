@@ -1,0 +1,1017 @@
+[
+ {
+  "nombre": "ABEL SALAZAR",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "ALDO RIOS",
+  "clave": "Y36",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "ALEJANDRO CABEZAS",
+  "clave": "SO",
+  "descripcion": "SUPERVISOR OPERACIONES"
+ },
+ {
+  "nombre": "ALEJANDRO CARRASCO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "ALEX HERMOSILLA SAEZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "ALEXIS LARA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "ALVARO BIZAMA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "ALVARO GUARDA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "AMADOR SILVA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "ARIEL FUENTES",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Adrian Parra",
+  "clave": "S-523",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Alan Aravena",
+  "clave": "S-422",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Angela Astete",
+  "clave": "S-511",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Angelo Divasto",
+  "clave": "S-412",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Ariel Jimenez",
+  "clave": "S-342",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "BENJAMIN CUEVAS",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Bernardo Hernandez",
+  "clave": "S-423",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Berto Saez",
+  "clave": "S-311",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "CARLOS MUÑOZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "CARLOS NECULPAN CABRAPAN",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "CARLOS PEÑA PEÑA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "CAROLINA ROJAS",
+  "clave": "Y22",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "CESAR PONCE",
+  "clave": "JO",
+  "descripcion": "JEFE OPERACIONES"
+ },
+ {
+  "nombre": "CLAUDIO CASTRO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "CLAUDIO FONSECA",
+  "clave": "Y33",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "CONSTANZA MONTES",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "CRISTIAN DEIK",
+  "clave": "Y11",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "CRISTIAN HUAIQUIL",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "CRISTIAN QUILAMAN RIVAS",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "CRISTIAN RAMOS",
+  "clave": "Y42",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "Carla Inostroza",
+  "clave": "S-264",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Carlos Quintraman",
+  "clave": "S-443",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Carolina Reyes",
+  "clave": "S-242",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Cesar Carrasco",
+  "clave": "S-212",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Claudio Fuentes",
+  "clave": "S-142",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Cristobal Cuevas",
+  "clave": "S-363",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Cristobal Quiroga",
+  "clave": "S-371",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "DAVID ORTEGA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "DAVID SILVA",
+  "clave": "Y21",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "Daniela Inzunza",
+  "clave": "S-224",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "ELIAN CALFUMIL",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "ERASMO MUÑOZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "ERICH KUSCH",
+  "clave": "JO",
+  "descripcion": "JEFE OPERACIONES"
+ },
+ {
+  "nombre": "ESTEBAN MARTIN",
+  "clave": "Y12",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "Enio Fernandez",
+  "clave": "S-333",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Erick Sepulveda",
+  "clave": "S-351",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Erwin Cruces",
+  "clave": "S-354",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "FELIPE BURTON VEJAR",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "FELIPE RIQUELME",
+  "clave": "SO",
+  "descripcion": "SUPERVISOR OPERACIONES"
+ },
+ {
+  "nombre": "FERNANDO CAMPOS",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "FERNANDO HERRERA LARA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "FERNANDO RAIN",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "FERNANDO RUBILAR",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "FERNANDO VALDEVENITO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "FRANCISCO LEVINAO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "FRANK GRANDON",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Francisco Uribe Garcés",
+  "clave": "S-241",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Franklin San Martin",
+  "clave": "S-414",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Freddy Nova",
+  "clave": "S-515",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Fredy Chavez",
+  "clave": "S-346",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "GABRIEL ESCOBAR",
+  "clave": "SO",
+  "descripcion": "SUPERVISOR OPERACIONES"
+ },
+ {
+  "nombre": "GABRIEL MONSALVES YEVENES",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "GASTON TORO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "GUILLERMO GONZALES",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "GUILLERMO OPAZO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Gabriel Vásquez",
+  "clave": "S-122",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Gonzalo Contreras",
+  "clave": "S-262",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Guillermo Guzman",
+  "clave": "S-315",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Gustavo Troncoso",
+  "clave": "S-123",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "HECTOR ALDEA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "HECTOR BASTIAS",
+  "clave": "SO",
+  "descripcion": "SUPERVISOR OPERACIONES"
+ },
+ {
+  "nombre": "HECTOR CERNA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "HECTOR GAJARDO",
+  "clave": "SO",
+  "descripcion": "SUPERVISOR OPERACIONES"
+ },
+ {
+  "nombre": "HECTOR GONZALES",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "HECTOR SOTO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Harry Widemann",
+  "clave": "S-431",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Hector Saez",
+  "clave": "S-344",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Henry Muñoz",
+  "clave": "S-365",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Homero Alarcon",
+  "clave": "S-352",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Héctor Luis Valenzuela",
+  "clave": "S-134",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "ISAAC VALENZUELA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "IVOR ANDRES AVENDAÑO",
+  "clave": "SO",
+  "descripcion": "SUPERVISOR OPERACIONES"
+ },
+ {
+  "nombre": "Ignacio Rojas",
+  "clave": "S-522",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Isai Barriga",
+  "clave": "S-444",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Ismael Montoya",
+  "clave": "S-514",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "JAIME VALENZUELA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JAIRO NAVARRO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JAVIER AILLAPAN",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JAVIER ESPINOZA VALDEBENITO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JAVIER SILVA",
+  "clave": "Y43",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "JONATHAN CALBUL",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JORGE SIERRA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JORGE SOTO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JOSE JARA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JOSE MANUEL ROMERO",
+  "clave": "Y15",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "JOSE TORRES",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JUAN ALVAREZ MACHUCA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JUAN BASCUÑAN",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JUAN BUENO",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JUAN CABRAPAN LEMUN",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JUAN CORTEZ VASQUEZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JUAN GUTIERREZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JUAN MAURICIO HERRERA",
+  "clave": "SO",
+  "descripcion": "SUPERVISOR OPERACIONES"
+ },
+ {
+  "nombre": "JUAN PABLO BASCUÑAN SUAREZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JUAN PARRA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JUAN SAEZ MOLINA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "JULIO ALARCON",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Jaime Alvarez",
+  "clave": "S-114",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Jaime Erices",
+  "clave": "S-374",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Jaime Garcés",
+  "clave": "S-442",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Jaime Ramirez",
+  "clave": "S-112",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Javier Valdés",
+  "clave": "S-144",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Jean Benavides",
+  "clave": "S-512",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Joaquín Juárez",
+  "clave": "S-441",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Jocelyn Gallegos",
+  "clave": "S-432",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Jorge Montes",
+  "clave": "S-513",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Jose Bustos",
+  "clave": "S-373",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Jose Garrido",
+  "clave": "S-153",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "José Galdames",
+  "clave": "S-252",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "José Patricio Arévalo",
+  "clave": "S-133",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Juan Carlos Rifo",
+  "clave": "S-334",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Juan Hormazabal",
+  "clave": "S-155",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Juan Opazo",
+  "clave": "S-154",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Julian Campos",
+  "clave": "S-332",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Julio Orellana",
+  "clave": "S-251",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Julio Torres",
+  "clave": "S-375",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Karla Leal",
+  "clave": "S-421",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "LUIS GUTIERREZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "LUIS VALDES",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "LUIS VARGAS",
+  "clave": "SO",
+  "descripcion": "SUPERVISOR OPERACIONES"
+ },
+ {
+  "nombre": "LUIS VILLEGAS",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Luis Campos",
+  "clave": "S-313",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Luis Espinoza",
+  "clave": "S-152",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Luis Gutierrez",
+  "clave": "S-254",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Luis Vergara",
+  "clave": "S-253",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "MAGNO RIQUELME",
+  "clave": "Y14",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "MANUEL MUÑOZ",
+  "clave": "Y25",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "MANUEL PIMENTEL",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "MARCO ROSAS",
+  "clave": "JO",
+  "descripcion": "JEFE OPERACIONES"
+ },
+ {
+  "nombre": "MARIO POBLETE",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "MATIAS PAREDES",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "MIGUEL BURBOA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "MOISES VELOZO",
+  "clave": "SO",
+  "descripcion": "SUPERVISOR OPERACIONES"
+ },
+ {
+  "nombre": "Manuel Bastias",
+  "clave": "S-353",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Manuel Ortega",
+  "clave": "S-335",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Manuel Toloza",
+  "clave": "S-243",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Manuel Venegas",
+  "clave": "S-221",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Marcelo Alejandro Duran Leal",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Mariela Yañez",
+  "clave": "S-355",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Markos Valenzuela",
+  "clave": "S-143",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Mauricio Otarola",
+  "clave": "S-261",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Miguel Angel Martinez",
+  "clave": "S-433",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Miguel Opazo",
+  "clave": "S-121",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Mirko Fierro",
+  "clave": "S-362",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "NELSON GRANDON SAEZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "NN",
+  "clave": "S-526",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Nelson Castro",
+  "clave": "S-364",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Nicolas Sanhueza",
+  "clave": "S-244",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "PABLO MARCHANT",
+  "clave": "Y44",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "PATRICIO ALARCON",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "PATRICIO ALEJANDRO GALLEGOS",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "PATRICIO GALLEGOS LOYOLA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "PEDRO PINEDA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Pablo Soto",
+  "clave": "S-361",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Pascual Veloso",
+  "clave": "S-263",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Patricio Campos",
+  "clave": "S-372",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Patricio Henriquez",
+  "clave": "S-113",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Patricio Ortiz",
+  "clave": "S-411",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Paula Morales",
+  "clave": "S-314",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Pedro Ramirez",
+  "clave": "S-345",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Peter Castro",
+  "clave": "S-331",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "RAMON CONSUEGRA",
+  "clave": "Y51",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "RENE SANDOVAL",
+  "clave": "Y35",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "RICHARD IBAÑEZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "ROBERTO PEREZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "RODOLFO CEBALLOS",
+  "clave": "Y52",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "RODRIGO BURGOS VALENCIA",
+  "clave": "Y37",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "RODRIGO BUSTOS",
+  "clave": "Y24",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "RODRIGO MONTECINOS",
+  "clave": "JO",
+  "descripcion": "JEFE OPERACIONES"
+ },
+ {
+  "nombre": "RODRIGO ORTIZ",
+  "clave": "Y26",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "RODRIGO OYARZO",
+  "clave": "SO",
+  "descripcion": "SUPERVISOR OPERACIONES"
+ },
+ {
+  "nombre": "ROLANDO RODRIGUEZ",
+  "clave": "S-312",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "ROSA BUSTOS",
+  "clave": "Y13",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "Raúl Méndez",
+  "clave": "S-524",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Richard Montecinos",
+  "clave": "S-434",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Richard Sandoval",
+  "clave": "S-525",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Rodrigo Rivera",
+  "clave": "S-124",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Rolando Matus",
+  "clave": "S-413",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "SEBASTIAN ARIAS",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "SEBASTIAN SANCHEZ",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "SERGIO GONZALES MORA",
+  "clave": "Y34",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "SERGIO RIQUELME",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "SIN JEFE INCENDIOS",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "SOLEN MORAGA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Samuel Arriagada",
+  "clave": "S-223",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Sergio Sepúlveda",
+  "clave": "S-211",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Usiel Nahuelpan",
+  "clave": "S-424",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "VANESSA MORALES",
+  "clave": "Y41",
+  "descripcion": "JEFE PAISAJE"
+ },
+ {
+  "nombre": "VICTOR MELLA",
+  "clave": "JB",
+  "descripcion": "JEFE BRIGADA"
+ },
+ {
+  "nombre": "Valeria Osorio",
+  "clave": "S-213",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Victor Peña Fernández",
+  "clave": "S-132",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Victor Quintana",
+  "clave": "S-343",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ },
+ {
+  "nombre": "Víctor Guzmán",
+  "clave": "S-222",
+  "descripcion": "ENCARGADO PATRIMONIAL"
+ }
+]
