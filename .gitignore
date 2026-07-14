@@ -13,3 +13,6 @@ data/predios_extraidos.csv
 
 # Planilla fuente de claves (contiene nombres) — se publica solo el JSON derivado
 data/CLAVES_CARGO.xlsx
+
+# Herramientas solo locales (no se despliegan en Vercel)
+local/
