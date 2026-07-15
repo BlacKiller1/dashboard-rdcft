@@ -167,4 +167,4 @@ python scripts/server.py
 
 *Datos meteorológicos: [Open-Meteo](https://open-meteo.com) — CC BY 4.0*
 *Precipitaciones: [agrometeorologia.cl](https://www.agrometeorologia.cl)*
-*Dispersión de humo: [NOAA HYSPLIT](https://www.ready.noaa.gov/HYSPLIT.php)*
+*Dispersión de humo: [NOAA HYSPLIT](https://www.ready.noaa.gov/HYSPLIT.php)*-.
