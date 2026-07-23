@@ -245,7 +245,10 @@ function mostrarDashboard(usuario) {
   if (usuario.rol === 'admin') iniciarPollAdmin();
   const btnAvisoRDCFT = document.getElementById('btnAvisoRDCFT');
   const cargoNorm = (usuario.cargo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  const verAviso  = usuario.rol === 'admin' || cargoNorm === 'central proteccion';
+  // Correos con acceso especial al aviso, adem\u00e1s de admins y del cargo Central Protecci\u00f3n
+  const AVISO_EXTRA = ['mauricio.almendra@arauco.com'];
+  const verAviso  = usuario.rol === 'admin' || cargoNorm === 'central proteccion'
+                 || AVISO_EXTRA.includes((usuario.email || '').trim().toLowerCase());
   if (btnAvisoRDCFT) btnAvisoRDCFT.style.display = verAviso ? 'flex' : 'none';
 
   // Clave temporal (primer ingreso o asignada por el administrador): recordar cambiarla
