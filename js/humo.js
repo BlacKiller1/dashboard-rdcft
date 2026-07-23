@@ -4,7 +4,10 @@
 // ═══════════════════════════════════════════════════════════════════════
 
 // URL del servidor de simulación.
-const HUMO_BASE   = 'https://dashboardrdcft.duckdns.org';
+// Publicado con Tailscale Funnel (HTTPS gestionado, sin depender de puertos
+// abiertos en el router ni de la IP pública). El dominio duckdns anterior dejó
+// de llegar al servidor: el tráfico de internet ya no entraba a la LAN.
+const HUMO_BASE   = 'https://dashboard.taildb45f4.ts.net';
 const HUMO_API    = `${HUMO_BASE}/api/simular-humo`;
 const HUMO_HEALTH = `${HUMO_BASE}/api/health`;
 
