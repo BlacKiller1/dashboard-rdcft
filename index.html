@@ -280,53 +280,6 @@
       .login-card { padding: 36px 22px; }
     }
 
-    /* ── Banner de mantenimiento ── */
-    #maintenance-banner {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
-      background: linear-gradient(90deg, #7c4a00, #EA7600, #7c4a00);
-      background-size: 200% 100%;
-      animation: banner-slide 4s ease infinite;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 20px; gap: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-    }
-    @keyframes banner-slide {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    .banner-content {
-      display: flex; align-items: center; gap: 10px; flex: 1;
-    }
-    .banner-icon {
-      font-size: 18px; flex-shrink: 0;
-      animation: banner-pulse 1.8s ease-in-out infinite;
-    }
-    @keyframes banner-pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.7; transform: scale(1.15); }
-    }
-    .banner-text {
-      font-family: 'Inter', sans-serif;
-      font-size: .78rem; font-weight: 500;
-      color: rgba(255,255,255,0.95);
-      line-height: 1.4;
-    }
-    .banner-text strong { font-weight: 700; color: #fff; }
-    .banner-close {
-      background: rgba(255,255,255,0.15); border: none;
-      border-radius: 50%; width: 24px; height: 24px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; flex-shrink: 0; color: #fff;
-      transition: background .15s;
-    }
-    .banner-close:hover { background: rgba(255,255,255,0.3); }
-    .banner-close svg { width: 12px; height: 12px; }
-    @media(max-width:768px) {
-      #maintenance-banner { padding: 8px 14px; }
-      .banner-text { font-size: .72rem; }
-    }
-
     /* ── Modal Soporte Técnico ── */
     .soporte-overlay {
       position: fixed; inset: 0; z-index: 10000;
@@ -431,20 +384,6 @@
   </style>
 </head>
 <body>
-
-<!-- Banner de mantenimiento -->
-<div id="maintenance-banner">
-  <div class="banner-content">
-    <span class="banner-icon">⚠️</span>
-    <span class="banner-text">
-      <strong>Plataforma en mejora continua.</strong>
-      Durante este período algunos servicios pueden presentar intermitencias o tiempos de respuesta superiores a lo habitual. Agradecemos tu comprensión.
-    </span>
-  </div>
-  <button class="banner-close" onclick="cerrarBanner()" title="Cerrar">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/></svg>
-  </button>
-</div>
 
 <div id="map"></div>
 
@@ -681,14 +620,6 @@
     }
   }
 
-  // Banner mantenimiento — se muestra siempre al cargar
-  function cerrarBanner() {
-    const b = document.getElementById('maintenance-banner');
-    b.style.transition = 'opacity .3s, transform .3s';
-    b.style.opacity = '0';
-    b.style.transform = 'translateY(-100%)';
-    setTimeout(() => b.style.display = 'none', 300);
-  }
 </script>
 </body>
 </html>
