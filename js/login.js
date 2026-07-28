@@ -206,8 +206,16 @@ function verificarSesion() {
   } catch { return null; }
 }
 
-function mostrarLogin() {
+// Correos con acceso especial al aviso, además de admins y del cargo Central Protección
+const AVISO_EXTRA = ['mauricio.almendra@arauco.com'];
+
+// Accion pendiente a ejecutar apenas termine el login ('admin' | 'aviso')
+let _intencionPendiente = null;
+
+// El dashboard ya no exige login: esta pantalla se abre solo bajo demanda
+function mostrarLogin(mensaje) {
   detenerPollSesion();
+  detenerPollAdmin();
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('appShell').style.display   = 'none';
   // Resetear a paso 1 (correo)
@@ -216,10 +224,100 @@ function mostrarLogin() {
   const otpStep   = document.getElementById('otpStep');
   if (emailStep) emailStep.style.display = 'block';
   if (otpStep)   otpStep.style.display   = 'none';
+  const errorMsg = document.getElementById('loginError');
+  if (errorMsg) {
+    if (mensaje) { errorMsg.textContent = mensaje; errorMsg.style.display = 'block'; }
+    else errorMsg.style.display = 'none';
+  }
   setTimeout(() => { const i = document.getElementById('inputEmail'); if (i) i.focus(); }, 100);
 }
 
+// Vuelve al dashboard publico sin iniciar sesion
+function volverAlPanel() {
+  _intencionPendiente = null;
+  const errorMsg = document.getElementById('loginError');
+  if (errorMsg) errorMsg.style.display = 'none';
+  _ocultarSolicitud();
+  mostrarDashboardInvitado();
+}
+
+// Define que opciones del menu ve cada perfil (invitado / usuario / admin)
+function _aplicarVisibilidadMenu(usuario) {
+  const conSesion = !!(usuario && usuario.email);
+  const esAdmin   = conSesion && usuario.rol === 'admin';
+  const set = (id, visible, display) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = visible ? (display || 'flex') : 'none';
+  };
+
+  set('btnAdmin',           esAdmin);
+  set('btnResetPin',        esAdmin);
+  set('umenuAdminSep',      esAdmin,   'block');
+  set('btnIngresar',       !conSesion);
+  set('btnCambiarPassMenu', conSesion);
+  set('btnSalir',           conSesion);
+  set('umenuSesionSep',     conSesion, 'block');
+
+  // Aviso RDCFT: visible para invitados (pedira login) y para quien ya tiene permiso
+  const cargoNorm = ((usuario && usuario.cargo) || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  const verAviso = !conSesion || esAdmin || cargoNorm === 'central proteccion'
+                || AVISO_EXTRA.includes(((usuario && usuario.email) || '').trim().toLowerCase());
+  set('btnAvisoRDCFT', verAviso);
+}
+
+// Dashboard publico: se entra sin iniciar sesion
+function mostrarDashboardInvitado() {
+  detenerPollSesion();
+  detenerPollAdmin();
+  mostrarBadgeAdmin(0);
+  document.getElementById('loginScreen').style.display = 'none';
+  const pinScreen = document.getElementById('pinScreen');
+  if (pinScreen) pinScreen.style.display = 'none';
+  document.getElementById('appShell').style.display = 'flex';
+  setTimeout(() => { if (typeof precargarPredios === 'function') precargarPredios(); }, 2000);
+
+  const badge = document.getElementById('userBadge');
+  if (badge) {
+    badge.innerHTML = `
+      <span class="user-email">Invitado</span>
+      <span class="user-meta">
+        <span class="user-cargo">Acceso público</span>
+      </span>
+    `;
+  }
+  _aplicarVisibilidadMenu(null);
+}
+
+// Abre el login guardando la accion que el usuario queria hacer
+function abrirIngreso() {
+  _intencionPendiente = 'admin';
+  mostrarLogin('Inicia sesión para acceder a la administración.');
+}
+
+function abrirAvisoRDCFT() {
+  if (!verificarSesion()) {
+    _intencionPendiente = 'aviso';
+    mostrarLogin('Inicia sesión para acceder al Aviso RDCFT.');
+    return;
+  }
+  window.open('/pages/aviso-rdcft.html', '_blank');
+}
+
+function _ejecutarIntencionPendiente(usuario) {
+  const intencion = _intencionPendiente;
+  _intencionPendiente = null;
+  // Si arrastra una clave temporal, primero se le pide cambiarla
+  if (usuario.debeCambiar) return;
+  if (intencion === 'aviso') {
+    setTimeout(() => { window.location.href = '/pages/aviso-rdcft.html'; }, 400);
+  } else if (intencion === 'admin' && usuario.rol === 'admin') {
+    setTimeout(abrirAdmin, 400);
+  }
+}
+
 function mostrarDashboard(usuario) {
+  if (!usuario || !usuario.email) return mostrarDashboardInvitado();
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appShell').style.display   = 'flex';
   setTimeout(() => { if (typeof precargarPredios === 'function') precargarPredios(); }, 2000);
@@ -236,20 +334,9 @@ function mostrarDashboard(usuario) {
     `;
   }
 
-  const btnAdmin = document.getElementById('btnAdmin');
-  if (btnAdmin) btnAdmin.style.display = usuario.rol === 'admin' ? 'flex' : 'none';
-  const btnResetPin = document.getElementById('btnResetPin');
-  if (btnResetPin) btnResetPin.style.display = usuario.rol === 'admin' ? 'flex' : 'none';
-  const umenuAdminSep = document.getElementById('umenuAdminSep');
-  if (umenuAdminSep) umenuAdminSep.style.display = usuario.rol === 'admin' ? 'block' : 'none';
+  _aplicarVisibilidadMenu(usuario);
   if (usuario.rol === 'admin') iniciarPollAdmin();
-  const btnAvisoRDCFT = document.getElementById('btnAvisoRDCFT');
-  const cargoNorm = (usuario.cargo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  // Correos con acceso especial al aviso, adem\u00e1s de admins y del cargo Central Protecci\u00f3n
-  const AVISO_EXTRA = ['mauricio.almendra@arauco.com'];
-  const verAviso  = usuario.rol === 'admin' || cargoNorm === 'central proteccion'
-                 || AVISO_EXTRA.includes((usuario.email || '').trim().toLowerCase());
-  if (btnAvisoRDCFT) btnAvisoRDCFT.style.display = verAviso ? 'flex' : 'none';
+  _ejecutarIntencionPendiente(usuario);
 
   // Clave temporal (primer ingreso o asignada por el administrador): recordar cambiarla
   if (usuario && usuario.debeCambiar) {
@@ -561,7 +648,8 @@ function confirmarCerrarSesion() {
   if (sesion) liberarSession(sesion.email);
   sessionStorage.removeItem(SESSION_KEY);
   usuariosDB = null;
-  window.location.href = '/';
+  // Al salir se vuelve al dashboard publico, no al login
+  window.location.href = window.location.pathname;
 }
 
 function cerrarSesion() {
@@ -1225,7 +1313,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (sesion) {
     registrarSession(sesion.email); // re-registrar al recargar la misma pestaña
     mostrarDashboard(sesion);
+  } else if (new URLSearchParams(window.location.search).get('login') === 'admin') {
+    // Llegó desde /pages/admin.html sin sesión válida
+    mostrarDashboardInvitado();
+    abrirIngreso();
   } else {
-    mostrarLogin();
+    // Sin sesión: el dashboard es de acceso público (el login queda para administración)
+    mostrarDashboardInvitado();
   }
 });

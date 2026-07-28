@@ -38,7 +38,7 @@ function formatLastLogin(iso) {
 
 async function cargarDatos() {
   sesion = verificarSesion();
-  if (!sesion || sesion.rol !== 'admin') { window.location.href = '/'; return; }
+  if (!sesion || sesion.rol !== 'admin') { window.location.href = '/pages/dashboard.html?login=admin'; return; }
 
   const emailEl = document.getElementById('apUserEmail');
   if (emailEl) emailEl.textContent = sesion.email;
@@ -49,7 +49,7 @@ async function cargarDatos() {
       fetch('/api/token?type=reset-pendientes', { headers: { Authorization: `Bearer ${crearCredenciales(sesion)}` } })
     ]);
 
-    if (respUsuarios.status === 401) { window.location.href = '/'; return; }
+    if (respUsuarios.status === 401) { window.location.href = '/pages/dashboard.html?login=admin'; return; }
     if (!respUsuarios.ok) throw new Error(`HTTP ${respUsuarios.status}`);
 
     const dataUsuarios    = await respUsuarios.json();
@@ -280,13 +280,13 @@ let _adminSesionTimer = null;
 
 async function validarSesionAdmin() {
   const s = verificarSesion();
-  if (!s?.sessionId) { window.location.href = '/'; return; }
+  if (!s?.sessionId) { window.location.href = '/pages/dashboard.html?login=admin'; return; }
   try {
     const resp = await fetch('/api/ping-sesion', {
       headers: { Authorization: `Bearer ${crearCredenciales(s)}` },
       signal: AbortSignal.timeout(8000)
     });
-    if (resp.status === 401) window.location.href = '/';
+    if (resp.status === 401) window.location.href = '/pages/dashboard.html?login=admin';
   } catch {}
 }
 
@@ -415,7 +415,7 @@ async function recargarUsuarios() {
     const resp = await fetch('/api/token?type=usuarios', {
       headers: { Authorization: `Bearer ${crearCredenciales(sesion)}` }
     });
-    if (resp.status === 401) { window.location.href = '/'; return; }
+    if (resp.status === 401) { window.location.href = '/pages/dashboard.html?login=admin'; return; }
     const data = await resp.json();
     usuariosDB = data.usuarios || [];
     renderTabla();

@@ -116,6 +116,7 @@
       <button class="login-btn" id="btnCrearPass" onclick="guardarPrimeraPass()">Crear contraseña e ingresar →</button>
     </div>
 
+    <button class="solicitud-link-btn" id="btnVolverPanel" onclick="volverAlPanel()">← Volver al panel sin iniciar sesión</button>
     <a href="/" style="font-size:11px; color:rgba(223,209,167,0.3); text-decoration:none; margin-top:2px; transition:color .15s;" onmouseover="this.style.color='rgba(223,209,167,0.6)'" onmouseout="this.style.color='rgba(223,209,167,0.3)'">← Volver al portal</a>
     <div id="loginError" class="login-error" style="display:none;"></div>
 
@@ -732,7 +733,7 @@
   <button id="btnResetPin" class="umenu-item umenu-item--admin" onclick="abrirResetPin(); cerrarUserMenu()" style="display:none;" role="menuitem">
     🔑 Restablecer PIN
   </button>
-  <button id="btnAvisoRDCFT" class="umenu-item umenu-item--aviso" onclick="window.open('/pages/aviso-rdcft.html','_blank'); cerrarUserMenu()" style="display:none;" role="menuitem">
+  <button id="btnAvisoRDCFT" class="umenu-item umenu-item--aviso" onclick="abrirAvisoRDCFT(); cerrarUserMenu()" style="display:none;" role="menuitem">
     🔥 Aviso RDCFT
   </button>
   <div class="umenu-sep" id="umenuAdminSep" style="display:none;"></div>
@@ -742,11 +743,14 @@
   <button class="umenu-item umenu-item--feedback" onclick="abrirFeedback(); cerrarUserMenu()" role="menuitem">
     💬 Sugerencias
   </button>
-  <button class="umenu-item" onclick="abrirCambiarPass(); cerrarUserMenu()" role="menuitem">
+  <button id="btnCambiarPassMenu" class="umenu-item" onclick="abrirCambiarPass(); cerrarUserMenu()" style="display:none;" role="menuitem">
     🔑 Cambiar contraseña
   </button>
-  <div class="umenu-sep"></div>
-  <button class="umenu-item umenu-item--logout" onclick="abrirConfirmLogout(); cerrarUserMenu()" role="menuitem">
+  <div class="umenu-sep" id="umenuSesionSep" style="display:none;"></div>
+  <button id="btnIngresar" class="umenu-item umenu-item--admin" onclick="abrirIngreso(); cerrarUserMenu()" style="display:none;" role="menuitem">
+    🔐 Ingresar / Administración
+  </button>
+  <button id="btnSalir" class="umenu-item umenu-item--logout" onclick="abrirConfirmLogout(); cerrarUserMenu()" style="display:none;" role="menuitem">
     ⎋ Salir
   </button>
 </div>
